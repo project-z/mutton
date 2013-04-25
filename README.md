@@ -1,4 +1,4 @@
-projectx
+libprz
 ========
 
 A distributed bitmap index and query engine for embedding or overlaying on top of other databases
