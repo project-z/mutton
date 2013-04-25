@@ -45,6 +45,8 @@ namespace prz {
             uint64_t offset;
             segment_t segment;
 
+            index_node_t(const index_node_t& node);
+
             index_node_t(uint64_t    offset);
 
             index_node_t(uint64_t    offset,
@@ -92,9 +94,23 @@ namespace prz {
             return iterator(_index.end());
         }
 
-        void
+        inline iterator
+        insert(iterator      pos,
+               index_node_t* value)
+        {
+            return iterator(_index.insert(pos.base(), value));
+        }
+
+        inline void
+        clear()
+        {
+            _index.clear();
+        }
+
+        static bool
         execute(index_operation_enum  operation,
-                index&                other_index,
+                index&                a_index,
+                index&                b_index,
                 index&                output);
 
         void
