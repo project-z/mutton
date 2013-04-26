@@ -66,20 +66,125 @@ segment_intersection(uint64_t* a,
 
 }
 
+inline prz::index::iterator
+find_insertion_point(prz::index::iterator begin,
+                     prz::index::iterator end,
+                     uint64_t bucket)
+{
+    return std::find_if(begin,
+                        end,
+                        boost::bind(&prz::index::index_node_t::offset, _1 ) >= bucket);
+}
+
+inline prz::index::iterator
+insert_node(prz::index&           output,
+            prz::index::iterator& output_iter,
+            uint64_t*             data,
+            uint64_t              offset)
+{
+    output_iter = find_insertion_point(output_iter, output.end(), offset);
+    if (output_iter == output.end()) {
+        return output.insert(output_iter, new prz::index::index_node_t(offset, data));
+    }
+    else {
+        memcpy(output_iter->segment, data, SEGMENT_SIZE);
+        return output_iter;
+    }
+}
+
+inline bool
+union_behavior(prz::index::index& a_index,
+               prz::index::index& b_index,
+               prz::index::index& output)
+{
+
+    prz::index::iterator a_iter = a_index.begin();
+    prz::index::iterator b_iter = b_index.begin();
+    prz::index::iterator output_iter = output.begin();
+
+    for (;;) {
+        if (a_iter == a_index.end() && b_iter == b_index.end()) {
+            break;
+        }
+        else if (a_iter == a_index.end()) {
+            if (&output == &b_index) {
+                break;
+            }
+            output_iter = insert_node(output, output_iter, b_iter->segment, b_iter->offset);
+            ++b_iter;
+        }
+        else if (a_iter->offset < b_iter->offset) {
+            output_iter = insert_node(output, output_iter, a_iter->segment, a_iter->offset);
+            ++a_iter;
+        }
+        else if (a_iter->offset > b_iter->offset) {
+            output_iter = insert_node(output, output_iter, b_iter->segment, b_iter->offset);
+            ++b_iter;
+        }
+        else if (a_iter->offset == b_iter->offset) {
+            prz::index::segment_t out_segment;
+            segment_union(a_iter->segment, b_iter->segment, out_segment);
+            output_iter = insert_node(output, output_iter, out_segment, b_iter->offset);
+            ++a_iter;
+            ++b_iter;
+        }
+        else {
+            // XXX shit's gone crazy log and abort
+            return false;
+        }
+    }
+    return true;
+}
+
+inline bool
+intersection_behavior(prz::index::index& a_index,
+                      prz::index::index& b_index,
+                      prz::index::index& output)
+{
+    prz::index::iterator a_iter = a_index.begin();
+    prz::index::iterator b_iter = b_index.begin();
+    prz::index::iterator output_iter = output.begin();
+
+    for (;;) {
+        if (b_iter == b_index.end() || a_iter == a_index.end()) {
+            output.erase(output_iter, output.end());
+            break;
+        }
+        else if (a_iter->offset < b_iter->offset) {
+            ++a_iter;
+        }
+        else if (a_iter->offset > b_iter->offset) {
+            ++b_iter;
+        }
+        else if (a_iter->offset == b_iter->offset) {
+            prz::index::segment_t out_segment;
+            segment_intersection(a_iter->segment, b_iter->segment, out_segment);
+            output_iter = insert_node(output, output_iter, out_segment, b_iter->offset);
+            ++a_iter;
+            ++b_iter;
+        }
+        else {
+            // XXX shit's gone crazy log and abort
+            return false;
+        }
+    }
+    return true;
+}
+
 prz::index::index_node_t::index_node_t(const index_node_t& node) :
     offset(node.offset)
 {
     memcpy(segment, node.segment, SEGMENT_SIZE);
 }
 
-prz::index::index_node_t::index_node_t(uint64_t    offset) :
+prz::index::index_node_t::index_node_t(uint64_t offset) :
     offset(offset)
 {
     memset(segment, 0, SEGMENT_SIZE);
 }
 
-prz::index::index_node_t::index_node_t(uint64_t    offset,
-                                       const char* data) :
+prz::index::index_node_t::index_node_t(uint64_t offset,
+                                       const uint64_t* data) :
     offset(offset)
 {
     memcpy(segment, data, SEGMENT_SIZE);
@@ -97,73 +202,18 @@ prz::index::index(leveldb::DB*          db,
 {}
 
 bool
-prz::index::execute(index_operation_enum  operation,
-                    index&                a_index,
-                    index&                b_index,
-                    index&                output)
+prz::index::execute(index_operation_enum operation,
+                    prz::index::index&   a_index,
+                    prz::index::index&   b_index,
+                    prz::index::index&   output)
 {
-    if (operation != INDEX_INTERSECTION
-        && operation != INDEX_UNION) {
-        return false;
+    if (operation == INDEX_INTERSECTION) {
+        return intersection_behavior(a_index, b_index, output);
     }
-
-    output.clear();
-    prz::index::iterator a_iter = a_index.begin();
-    prz::index::iterator b_iter = b_index.begin();
-    prz::index::iterator output_iter = output.begin();
-
-    for (;;) {
-        if (a_iter == a_index.end() && b_iter == b_index.end()) {
-            break;
-        }
-        else if (operation == INDEX_INTERSECTION && (b_iter == b_index.end() || a_iter == a_index.end())) {
-            break;
-        }
-        else if (operation == INDEX_UNION && a_iter == a_index.end()) {
-            output_iter = output.insert(output_iter, new index_node_t(*b_iter));
-            ++b_iter;
-            ++output_iter;
-        }
-        else if (operation == INDEX_UNION && b_iter == b_index.end()) {
-            output_iter = output.insert(output_iter, new index_node_t(*a_iter));
-            ++a_iter;
-            ++output_iter;
-        }
-        else if (operation == INDEX_UNION && a_iter->offset < b_iter->offset) {
-            output_iter = output.insert(output_iter, new index_node_t(*a_iter));
-            ++a_iter;
-            ++output_iter;
-        }
-        else if (operation == INDEX_UNION && a_iter->offset > b_iter->offset) {
-            output_iter = output.insert(output_iter, new index_node_t(*b_iter));
-            ++b_iter;
-            ++output_iter;
-        }
-        else if (operation == INDEX_INTERSECTION && a_iter->offset < b_iter->offset) {
-            ++a_iter;
-        }
-        else if (operation == INDEX_INTERSECTION && a_iter->offset > b_iter->offset) {
-            ++b_iter;
-        }
-        else if (a_iter->offset == b_iter->offset) {
-            std::auto_ptr<index_node_t> out_node(new index_node_t(a_iter->offset));
-            if (operation == INDEX_INTERSECTION) {
-                segment_intersection(a_iter->segment, b_iter->segment, out_node->segment);
-            }
-            else {
-                segment_union(a_iter->segment, b_iter->segment, out_node->segment);
-            }
-            output_iter = output.insert(output_iter, out_node.release());
-            ++a_iter;
-            ++b_iter;
-            ++output_iter;
-        }
-        else {
-            // XXX shit's gone crazy log and abort
-            break;
-        }
+    else if (operation == INDEX_UNION) {
+        return union_behavior(a_index, b_index, output);
     }
-    return true;
+    return false;
 }
 
 void
@@ -201,10 +251,10 @@ prz::index::bit(leveldb::DB*           db,
     uint8_t  bucket_index = 0;
     uint8_t  bit_offset = 0;
     get_address(bit, &bucket, &bucket_index, &bit_offset);
-    prz::index::index_container::iterator it = find_insertion_point(bucket);
+    prz::index::iterator it = find_insertion_point(begin(), end(), bucket);
 
     if (it->offset != bucket) {
-        it = _index.insert(it, new index_node_t(bucket));
+        it = prz::index::iterator(_index.insert(it.base(), new index_node_t(bucket)));
     }
     set_bit(it->segment, bucket_index, bit_offset, state);
 
@@ -222,7 +272,7 @@ prz::index::bit(uint64_t bit)
     uint8_t  bucket_index = 0;
     uint8_t  bit_offset = 0;
     get_address(bit, &bucket, &bucket_index, &bit_offset);
-    prz::index::index_container::iterator it = find_insertion_point(bucket);
+    prz::index::iterator it = find_insertion_point(begin(), end(), bucket);
 
     if (it->offset != bucket) {
         return false;
@@ -264,12 +314,4 @@ prz::index::estimateSize(leveldb::DB* db,
     uint64_t size;
     db->GetApproximateSizes(&range, 1, &size);
     return size;
-}
-
-prz::index::index_container::iterator
-prz::index::find_insertion_point(uint64_t bucket)
-{
-    return std::find_if(_index.begin(),
-                        _index.end(),
-                        boost::bind(&prz::index::index_node_t::offset, _1 ) >= bucket);
 }

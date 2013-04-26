@@ -21,6 +21,7 @@
 #define __X_INDEX_HPP_INCLUDED__
 
 #include <vector>
+#include <boost/iterator_adaptors.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/ptr_container/ptr_list.hpp>
 
@@ -47,33 +48,14 @@ namespace prz {
 
             index_node_t(const index_node_t& node);
 
-            index_node_t(uint64_t    offset);
+            index_node_t(uint64_t offset);
 
-            index_node_t(uint64_t    offset,
-                         const char* data);
+            index_node_t(uint64_t        offset,
+                         const uint64_t* data);
         };
 
         typedef boost::ptr_list<index_node_t> index_container;
-
-        class iterator :
-            public boost::iterator_adaptor<iterator,
-                                           index_container::iterator,
-                                           index_node_t&,
-                                           boost::bidirectional_traversal_tag,
-                                           index_node_t>
-        {
-        public:
-            iterator()
-                : iterator::iterator_adaptor_() {}
-
-            explicit
-            iterator(const iterator::iterator_adaptor_::base_type& p)
-                : iterator::iterator_adaptor_(p) {}
-
-        private:
-            friend class boost::iterator_core_access;
-            struct enabler {};  // a private type avoids misuse
-        };
+        typedef index_container::iterator iterator;
 
         index(leveldb::DB*          snapshot,
               leveldb::ReadOptions* options,
@@ -85,26 +67,39 @@ namespace prz {
         inline iterator
         begin()
         {
-            return iterator(_index.begin());
+            return _index.begin();
         }
 
         inline iterator
         end()
         {
-            return iterator(_index.end());
+            return _index.end();
         }
 
         inline iterator
         insert(iterator      pos,
                index_node_t* value)
         {
-            return iterator(_index.insert(pos.base(), value));
+            return _index.insert(pos, value);
         }
 
         inline void
         clear()
         {
             _index.clear();
+        }
+
+        inline void
+        erase(iterator first,
+              iterator last)
+        {
+            _index.erase(first, last);
+        }
+
+        inline void
+        erase(iterator position)
+        {
+            _index.erase(position);
         }
 
         static bool
@@ -161,9 +156,6 @@ namespace prz {
                      uint64_t     value);
 
     private:
-        index_container::iterator
-        find_insertion_point(uint64_t bucket);
-
         index_container   _index;
         uint8_t           _partition;
         std::vector<char> _field;
