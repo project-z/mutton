@@ -28,7 +28,11 @@
 #define SEGMENT_LENGTH 32
 #define SEGMENT_SIZE SEGMENT_LENGTH * sizeof(uint64_t)
 
-class leveldb::Snapshot;
+namespace leveldb {
+    class DB;
+    struct ReadOptions;
+    struct WriteOptions;
+}
 
 namespace prz {
 
@@ -37,7 +41,7 @@ namespace prz {
         INDEX_UNION = 1,
     };
 
-    class index : boost::noncopyable
+    class index_t : boost::noncopyable
     {
     public:
         typedef uint64_t segment_t[SEGMENT_LENGTH];
@@ -52,17 +56,25 @@ namespace prz {
 
             index_node_t(uint64_t        offset,
                          const uint64_t* data);
+
+            void
+            zero();
         };
 
         typedef boost::ptr_list<index_node_t> index_container;
         typedef index_container::iterator iterator;
 
-        index(leveldb::DB*          snapshot,
-              leveldb::ReadOptions* options,
-              uint8_t               partition,
-              const char*           field,
-              size_t                field_size,
-              uint64_t              value);
+        index_t(uint8_t               partition,
+                const char*           field,
+                size_t                field_size,
+                uint64_t              value);
+
+        index_t(leveldb::DB*          snapshot,
+                leveldb::ReadOptions* options,
+                uint8_t               partition,
+                const char*           field,
+                size_t                field_size,
+                uint64_t              value);
 
         inline iterator
         begin()
@@ -102,11 +114,17 @@ namespace prz {
             _index.erase(position);
         }
 
+        inline size_t
+        size()
+        {
+            return _index.size();
+        }
+
         static bool
-        execute(index_operation_enum  operation,
-                index&                a_index,
-                index&                b_index,
-                index&                output);
+        execute(index_operation_enum operation,
+                index_t&             a_index,
+                index_t&             b_index,
+                index_t&             output);
 
         void
         execute(leveldb::DB*          db,
@@ -116,7 +134,7 @@ namespace prz {
                 const char*           field,
                 size_t                field_size,
                 uint64_t              value,
-                index&                output);
+                index_t&                output);
 
         void
         execute(leveldb::DB*          db,

@@ -20,6 +20,8 @@
 #include <boost/bind.hpp>
 #include <leveldb/db.h>
 #include <stdint.h>
+#include <tmmintrin.h>
+#include <immintrin.h>
 
 #include "index.hpp"
 #include "encode.hpp"
@@ -55,7 +57,9 @@ segment_union(uint64_t* a,
               uint64_t* b,
               uint64_t* o)
 {
-
+    for (int i = 0; i < SEGMENT_LENGTH; ++i) {
+        o[i] = a[i] | b[i];
+    }
 }
 
 inline void
@@ -63,44 +67,42 @@ segment_intersection(uint64_t* a,
                      uint64_t* b,
                      uint64_t* o)
 {
-
+    for (int i = 0; i < SEGMENT_LENGTH; ++i) {
+        o[i] = a[i] & b[i];
+    }
 }
 
-inline prz::index::iterator
-find_insertion_point(prz::index::iterator begin,
-                     prz::index::iterator end,
+inline prz::index_t::iterator
+find_insertion_point(prz::index_t::iterator begin,
+                     prz::index_t::iterator end,
                      uint64_t bucket)
 {
     return std::find_if(begin,
                         end,
-                        boost::bind(&prz::index::index_node_t::offset, _1 ) >= bucket);
+                        boost::bind(&prz::index_t::index_node_t::offset, _1 ) >= bucket);
 }
 
-inline prz::index::iterator
-insert_node(prz::index&           output,
-            prz::index::iterator& output_iter,
-            uint64_t*             data,
-            uint64_t              offset)
+inline prz::index_t::iterator
+get_output_node(prz::index_t&           output,
+                prz::index_t::iterator& output_iter,
+                uint64_t                offset)
 {
     output_iter = find_insertion_point(output_iter, output.end(), offset);
     if (output_iter == output.end()) {
-        return output.insert(output_iter, new prz::index::index_node_t(offset, data));
+        return output.insert(output_iter, new prz::index_t::index_node_t(offset));
     }
-    else {
-        memcpy(output_iter->segment, data, SEGMENT_SIZE);
-        return output_iter;
-    }
+    return output_iter;
 }
 
 inline bool
-union_behavior(prz::index::index& a_index,
-               prz::index::index& b_index,
-               prz::index::index& output)
+union_behavior(prz::index_t& a_index,
+               prz::index_t& b_index,
+               prz::index_t& output)
 {
 
-    prz::index::iterator a_iter = a_index.begin();
-    prz::index::iterator b_iter = b_index.begin();
-    prz::index::iterator output_iter = output.begin();
+    prz::index_t::iterator a_iter = a_index.begin();
+    prz::index_t::iterator b_iter = b_index.begin();
+    prz::index_t::iterator output_iter = output.begin();
 
     for (;;) {
         if (a_iter == a_index.end() && b_iter == b_index.end()) {
@@ -110,21 +112,23 @@ union_behavior(prz::index::index& a_index,
             if (&output == &b_index) {
                 break;
             }
-            output_iter = insert_node(output, output_iter, b_iter->segment, b_iter->offset);
+            output_iter = get_output_node(output, output_iter, b_iter->offset);
+            memcpy(output_iter->segment, b_iter->segment, SEGMENT_SIZE);
             ++b_iter;
         }
         else if (a_iter->offset < b_iter->offset) {
-            output_iter = insert_node(output, output_iter, a_iter->segment, a_iter->offset);
+            output_iter = get_output_node(output, output_iter, a_iter->offset);
+            memcpy(output_iter->segment, a_iter->segment, SEGMENT_SIZE);
             ++a_iter;
         }
         else if (a_iter->offset > b_iter->offset) {
-            output_iter = insert_node(output, output_iter, b_iter->segment, b_iter->offset);
+            output_iter = get_output_node(output, output_iter, b_iter->offset);
+            memcpy(output_iter->segment, b_iter->segment, SEGMENT_SIZE);
             ++b_iter;
         }
         else if (a_iter->offset == b_iter->offset) {
-            prz::index::segment_t out_segment;
-            segment_union(a_iter->segment, b_iter->segment, out_segment);
-            output_iter = insert_node(output, output_iter, out_segment, b_iter->offset);
+            output_iter = get_output_node(output, output_iter, b_iter->offset);
+            segment_union(a_iter->segment, b_iter->segment, output_iter->segment);
             ++a_iter;
             ++b_iter;
         }
@@ -137,13 +141,13 @@ union_behavior(prz::index::index& a_index,
 }
 
 inline bool
-intersection_behavior(prz::index::index& a_index,
-                      prz::index::index& b_index,
-                      prz::index::index& output)
+intersection_behavior(prz::index_t& a_index,
+                      prz::index_t& b_index,
+                      prz::index_t& output)
 {
-    prz::index::iterator a_iter = a_index.begin();
-    prz::index::iterator b_iter = b_index.begin();
-    prz::index::iterator output_iter = output.begin();
+    prz::index_t::iterator a_iter = a_index.begin();
+    prz::index_t::iterator b_iter = b_index.begin();
+    prz::index_t::iterator output_iter = output.begin();
 
     for (;;) {
         if (b_iter == b_index.end() || a_iter == a_index.end()) {
@@ -157,11 +161,11 @@ intersection_behavior(prz::index::index& a_index,
             ++b_iter;
         }
         else if (a_iter->offset == b_iter->offset) {
-            prz::index::segment_t out_segment;
-            segment_intersection(a_iter->segment, b_iter->segment, out_segment);
-            output_iter = insert_node(output, output_iter, out_segment, b_iter->offset);
+            output_iter = get_output_node(output, output_iter, b_iter->offset);
+            segment_intersection(a_iter->segment, b_iter->segment, output_iter->segment);
             ++a_iter;
             ++b_iter;
+            ++output_iter;
         }
         else {
             // XXX shit's gone crazy log and abort
@@ -171,41 +175,54 @@ intersection_behavior(prz::index::index& a_index,
     return true;
 }
 
-prz::index::index_node_t::index_node_t(const index_node_t& node) :
+prz::index_t::index_node_t::index_node_t(const index_node_t& node) :
     offset(node.offset)
 {
     memcpy(segment, node.segment, SEGMENT_SIZE);
 }
 
-prz::index::index_node_t::index_node_t(uint64_t offset) :
+prz::index_t::index_node_t::index_node_t(uint64_t offset) :
     offset(offset)
-{
-    memset(segment, 0, SEGMENT_SIZE);
-}
+{}
 
-prz::index::index_node_t::index_node_t(uint64_t offset,
-                                       const uint64_t* data) :
+prz::index_t::index_node_t::index_node_t(uint64_t offset,
+                                         const uint64_t* data) :
     offset(offset)
 {
     memcpy(segment, data, SEGMENT_SIZE);
 }
 
-prz::index::index(leveldb::DB*          db,
-                  leveldb::ReadOptions* options,
-                  uint8_t               partition,
-                  const char*           field,
-                  size_t                field_size,
-                  uint64_t              value) :
+void
+prz::index_t::index_node_t::zero()
+{
+    memset(segment, 0, SEGMENT_SIZE);
+}
+
+prz::index_t::index_t(uint8_t               partition,
+                      const char*           field,
+                      size_t                field_size,
+                      uint64_t              value) :
+    _partition(partition),
+    _field(field, field + field_size),
+    _value(value)
+{}
+
+prz::index_t::index_t(leveldb::DB*          db,
+                      leveldb::ReadOptions* options,
+                      uint8_t               partition,
+                      const char*           field,
+                      size_t                field_size,
+                      uint64_t              value) :
     _partition(partition),
     _field(field, field + field_size),
     _value(value)
 {}
 
 bool
-prz::index::execute(index_operation_enum operation,
-                    prz::index::index&   a_index,
-                    prz::index::index&   b_index,
-                    prz::index::index&   output)
+prz::index_t::execute(index_operation_enum operation,
+                      prz::index_t&        a_index,
+                      prz::index_t&        b_index,
+                      prz::index_t&        output)
 {
     if (operation == INDEX_INTERSECTION) {
         return intersection_behavior(a_index, b_index, output);
@@ -217,44 +234,44 @@ prz::index::execute(index_operation_enum operation,
 }
 
 void
-prz::index::execute(leveldb::DB*          db,
-                    leveldb::ReadOptions* options,
-                    index_operation_enum  operation,
-                    uint8_t               partition,
-                    const char*           field,
-                    size_t                field_size,
-                    uint64_t              value,
-                    index&                output)
+prz::index_t::execute(leveldb::DB*          db,
+                      leveldb::ReadOptions* options,
+                      index_operation_enum  operation,
+                      uint8_t               partition,
+                      const char*           field,
+                      size_t                field_size,
+                      uint64_t              value,
+                      prz::index_t&         output)
 {
 
 }
 
 void
-prz::index::execute(leveldb::DB*          db,
-                    leveldb::ReadOptions* options,
-                    index_operation_enum  operation,
-                    uint8_t               partition,
-                    const char*           field,
-                    size_t                field_size,
-                    uint64_t              value)
+prz::index_t::execute(leveldb::DB*          db,
+                      leveldb::ReadOptions* options,
+                      index_operation_enum  operation,
+                      uint8_t               partition,
+                      const char*           field,
+                      size_t                field_size,
+                      uint64_t              value)
 {
 
 }
 
 void
-prz::index::bit(leveldb::DB*           db,
-                leveldb::WriteOptions* options,
-                uint64_t               bit,
-                bool                   state)
+prz::index_t::bit(leveldb::DB*           db,
+                  leveldb::WriteOptions* options,
+                  uint64_t               bit,
+                  bool                   state)
 {
     uint64_t bucket = 0;
     uint8_t  bucket_index = 0;
     uint8_t  bit_offset = 0;
     get_address(bit, &bucket, &bucket_index, &bit_offset);
-    prz::index::iterator it = find_insertion_point(begin(), end(), bucket);
+    prz::index_t::iterator it = find_insertion_point(begin(), end(), bucket);
 
     if (it->offset != bucket) {
-        it = prz::index::iterator(_index.insert(it.base(), new index_node_t(bucket)));
+        it = prz::index_t::iterator(_index.insert(it.base(), new index_node_t(bucket)));
     }
     set_bit(it->segment, bucket_index, bit_offset, state);
 
@@ -266,13 +283,13 @@ prz::index::bit(leveldb::DB*           db,
 }
 
 bool
-prz::index::bit(uint64_t bit)
+prz::index_t::bit(uint64_t bit)
 {
     uint64_t bucket = 0;
     uint8_t  bucket_index = 0;
     uint8_t  bit_offset = 0;
     get_address(bit, &bucket, &bucket_index, &bit_offset);
-    prz::index::iterator it = find_insertion_point(begin(), end(), bucket);
+    prz::index_t::iterator it = find_insertion_point(begin(), end(), bucket);
 
     if (it->offset != bucket) {
         return false;
@@ -281,29 +298,29 @@ prz::index::bit(uint64_t bit)
 }
 
 uint8_t
-prz::index::partition() const
+prz::index_t::partition() const
 {
     return _partition;
 }
 
 const char*
-prz::index::field() const
+prz::index_t::field() const
 {
     return &_field[0];
 }
 
 uint64_t
-prz::index::value() const
+prz::index_t::value() const
 {
     return _value;
 }
 
 uint64_t
-prz::index::estimateSize(leveldb::DB* db,
-                         uint8_t      partition,
-                         const char*  field,
-                         size_t       field_size,
-                         uint64_t     value)
+prz::index_t::estimateSize(leveldb::DB* db,
+                           uint8_t        partition,
+                           const char*    field,
+                           size_t         field_size,
+                           uint64_t       value)
 {
     std::vector<char> start_key;
     std::vector<char> stop_key;
