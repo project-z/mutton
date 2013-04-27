@@ -141,4 +141,54 @@ BOOST_AUTO_TEST_CASE(index_intersection_disjoint)
     BOOST_CHECK_EQUAL(0, o.size());
 }
 
+BOOST_AUTO_TEST_CASE(index_intersection_joint_match_overwrite)
+{
+    prz::index_t a(1, "foobar", 6, 2);
+    prz::index_t b(1, "foobar", 6, 3);
+    a.insert(a.begin(), new prz::index_t::index_node_t(0, EVERY_OTHER_EVEN));
+    b.insert(b.begin(), new prz::index_t::index_node_t(0, EVERY));
+    BOOST_CHECK_EQUAL(true, prz::index_t::execute(prz::INDEX_INTERSECTION, a, b, b));
+    BOOST_CHECK_EQUAL(1, b.size());
+    BOOST_CHECK_EQUAL(0, memcmp(b.begin()->segment, EVERY_OTHER_EVEN, SEGMENT_SIZE));
+}
+
+BOOST_AUTO_TEST_CASE(index_intersection_output_contains_data)
+{
+    prz::index_t a(1, "foobar", 6, 2);
+    prz::index_t b(1, "foobar", 6, 3);
+    prz::index_t o(1, "foobar", 6, 3);
+    a.insert(a.begin(), new prz::index_t::index_node_t(0, EVERY_OTHER_EVEN));
+    b.insert(b.begin(), new prz::index_t::index_node_t(0, EVERY));
+    o.insert(o.begin(), new prz::index_t::index_node_t(0, NONE));
+    BOOST_CHECK_EQUAL(true, prz::index_t::execute(prz::INDEX_INTERSECTION, a, b, o));
+    BOOST_CHECK_EQUAL(1, o.size());
+    BOOST_CHECK_EQUAL(0, memcmp(o.begin()->segment, EVERY_OTHER_EVEN, SEGMENT_SIZE));
+}
+
+BOOST_AUTO_TEST_CASE(index_intersection_output_contains_data_at_beginning)
+{
+    prz::index_t a(1, "foobar", 6, 2);
+    prz::index_t b(1, "foobar", 6, 3);
+    prz::index_t o(1, "foobar", 6, 3);
+    a.insert(a.begin(), new prz::index_t::index_node_t(1, EVERY_OTHER_EVEN));
+    b.insert(b.begin(), new prz::index_t::index_node_t(1, EVERY));
+    o.insert(o.begin(), new prz::index_t::index_node_t(0, NONE));
+    BOOST_CHECK_EQUAL(true, prz::index_t::execute(prz::INDEX_INTERSECTION, a, b, o));
+    BOOST_CHECK_EQUAL(1, o.size());
+    BOOST_CHECK_EQUAL(0, memcmp(o.begin()->segment, EVERY_OTHER_EVEN, SEGMENT_SIZE));
+}
+
+BOOST_AUTO_TEST_CASE(index_intersection_output_contains_data_at_end)
+{
+    prz::index_t a(1, "foobar", 6, 2);
+    prz::index_t b(1, "foobar", 6, 3);
+    prz::index_t o(1, "foobar", 6, 3);
+    a.insert(a.begin(), new prz::index_t::index_node_t(1, EVERY_OTHER_EVEN));
+    b.insert(b.begin(), new prz::index_t::index_node_t(1, EVERY));
+    o.insert(o.begin(), new prz::index_t::index_node_t(2, NONE));
+    BOOST_CHECK_EQUAL(true, prz::index_t::execute(prz::INDEX_INTERSECTION, a, b, o));
+    BOOST_CHECK_EQUAL(1, o.size());
+    BOOST_CHECK_EQUAL(0, memcmp(o.begin()->segment, EVERY_OTHER_EVEN, SEGMENT_SIZE));
+}
+
 BOOST_AUTO_TEST_SUITE_END()

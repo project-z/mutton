@@ -84,7 +84,7 @@ find_insertion_point(prz::index_t::iterator begin,
 
 inline prz::index_t::iterator
 get_output_node(prz::index_t&           output,
-                prz::index_t::iterator& output_iter,
+                prz::index_t::iterator  output_iter,
                 uint64_t                offset)
 {
     output_iter = find_insertion_point(output_iter, output.end(), offset);
@@ -161,7 +161,11 @@ intersection_behavior(prz::index_t& a_index,
             ++b_iter;
         }
         else if (a_iter->offset == b_iter->offset) {
-            output_iter = get_output_node(output, output_iter, b_iter->offset);
+            prz::index_t::iterator new_output_iter = get_output_node(output, output_iter, b_iter->offset);
+            if (output_iter != output.end() && new_output_iter != output_iter) {
+                output.erase(output_iter, new_output_iter);
+            }
+            output_iter = new_output_iter;
             segment_intersection(a_iter->segment, b_iter->segment, output_iter->segment);
             ++a_iter;
             ++b_iter;
