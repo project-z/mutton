@@ -32,42 +32,42 @@
 #endif
 
 inline void
-get_address(uint64_t  position,
-            uint64_t* bucket,
-            uint8_t*  bucket_index,
-            uint8_t*  bit_offset)
+get_address(prz::index_address_t    position,
+            prz::index_address_t*   bucket,
+            prz::index_partition_t* bucket_index,
+            prz::index_partition_t* bit_offset)
 {
     *bucket = position >> 8; // div by 256
-    uint8_t bucket_offset = position & 0xFF; // mod by 256
+    prz::index_partition_t bucket_offset = position & 0xFF; // mod by 256
     *bucket_index = bucket_offset >> 6; // div by 64
     *bit_offset = bucket_offset & 0x3F; // mod by 64
 }
 
 inline void
-set_bit(uint64_t* input,
-        uint8_t   bucket_index,
-        uint8_t   bit_offset,
-        bool      val)
+set_bit(prz::index_segment_ptr input,
+        prz::index_partition_t bucket_index,
+        prz::index_partition_t bit_offset,
+        bool                   val)
 {
     input[bucket_index] |= (val ? 1 : 0) << bit_offset;
 }
 
 inline void
-segment_union(uint64_t* a,
-              uint64_t* b,
-              uint64_t* o)
+segment_union(prz::index_segment_ptr a,
+              prz::index_segment_ptr b,
+              prz::index_segment_ptr o)
 {
-    for (int i = 0; i < SEGMENT_LENGTH; ++i) {
+    for (int i = 0; i < INDEX_SEGMENT_LENGTH; ++i) {
         o[i] = a[i] | b[i];
     }
 }
 
 inline void
-segment_intersection(uint64_t* a,
-                     uint64_t* b,
-                     uint64_t* o)
+segment_intersection(prz::index_segment_ptr a,
+                     prz::index_segment_ptr b,
+                     prz::index_segment_ptr o)
 {
-    for (int i = 0; i < SEGMENT_LENGTH; ++i) {
+    for (int i = 0; i < INDEX_SEGMENT_LENGTH; ++i) {
         o[i] = a[i] & b[i];
     }
 }
@@ -75,7 +75,7 @@ segment_intersection(uint64_t* a,
 inline prz::index_t::iterator
 find_insertion_point(prz::index_t::iterator begin,
                      prz::index_t::iterator end,
-                     uint64_t bucket)
+                     prz::index_address_t bucket)
 {
     return std::find_if(begin,
                         end,
@@ -83,9 +83,9 @@ find_insertion_point(prz::index_t::iterator begin,
 }
 
 inline prz::index_t::iterator
-get_output_node(prz::index_t&           output,
-                prz::index_t::iterator  output_iter,
-                uint64_t                offset)
+get_output_node(prz::index_t&          output,
+                prz::index_t::iterator output_iter,
+                prz::index_address_t        offset)
 {
     output_iter = find_insertion_point(output_iter, output.end(), offset);
     if (output_iter == output.end()) {
@@ -113,17 +113,17 @@ union_behavior(prz::index_t& a_index,
                 break;
             }
             output_iter = get_output_node(output, output_iter, b_iter->offset);
-            memcpy(output_iter->segment, b_iter->segment, SEGMENT_SIZE);
+            memcpy(output_iter->segment, b_iter->segment, INDEX_SEGMENT_SIZE);
             ++b_iter;
         }
         else if (a_iter->offset < b_iter->offset) {
             output_iter = get_output_node(output, output_iter, a_iter->offset);
-            memcpy(output_iter->segment, a_iter->segment, SEGMENT_SIZE);
+            memcpy(output_iter->segment, a_iter->segment, INDEX_SEGMENT_SIZE);
             ++a_iter;
         }
         else if (a_iter->offset > b_iter->offset) {
             output_iter = get_output_node(output, output_iter, b_iter->offset);
-            memcpy(output_iter->segment, b_iter->segment, SEGMENT_SIZE);
+            memcpy(output_iter->segment, b_iter->segment, INDEX_SEGMENT_SIZE);
             ++b_iter;
         }
         else if (a_iter->offset == b_iter->offset) {
@@ -182,41 +182,50 @@ intersection_behavior(prz::index_t& a_index,
 prz::index_t::index_node_t::index_node_t(const index_node_t& node) :
     offset(node.offset)
 {
-    memcpy(segment, node.segment, SEGMENT_SIZE);
+    memcpy(segment, node.segment, INDEX_SEGMENT_SIZE);
 }
 
-prz::index_t::index_node_t::index_node_t(uint64_t offset) :
+prz::index_t::index_node_t::index_node_t(prz::index_address_t offset) :
     offset(offset)
 {}
 
-prz::index_t::index_node_t::index_node_t(uint64_t offset,
-                                         const uint64_t* data) :
+prz::index_t::index_node_t::index_node_t(prz::index_address_t offset,
+                                         const index_segment_ptr data) :
     offset(offset)
 {
-    memcpy(segment, data, SEGMENT_SIZE);
+    memcpy(segment, data, INDEX_SEGMENT_SIZE);
 }
 
 void
 prz::index_t::index_node_t::zero()
 {
-    memset(segment, 0, SEGMENT_SIZE);
+    memset(segment, 0, INDEX_SEGMENT_SIZE);
 }
 
-prz::index_t::index_t(uint8_t               partition,
-                      const char*           field,
-                      size_t                field_size,
-                      uint64_t              value) :
+prz::index_t::index_t(prz::index_partition_t partition,
+                      const char*            field,
+                      size_t                 field_size,
+                      prz::index_address_t   value) :
     _partition(partition),
     _field(field, field + field_size),
     _value(value)
 {}
 
-prz::index_t::index_t(leveldb::DB*          db,
-                      leveldb::ReadOptions* options,
-                      uint8_t               partition,
-                      const char*           field,
-                      size_t                field_size,
-                      uint64_t              value) :
+prz::index_t::index_t(prz::index_partition_t partition,
+                      const prz::byte_t*     field,
+                      size_t                 field_size,
+                      prz::index_address_t   value) :
+    _partition(partition),
+    _field(field, field + field_size),
+    _value(value)
+{}
+
+prz::index_t::index_t(leveldb::DB*           db,
+                      leveldb::ReadOptions*  options,
+                      prz::index_partition_t partition,
+                      const prz::byte_t*     field,
+                      size_t                 field_size,
+                      prz::index_address_t   value) :
     _partition(partition),
     _field(field, field + field_size),
     _value(value)
@@ -238,26 +247,26 @@ prz::index_t::execute(index_operation_enum operation,
 }
 
 void
-prz::index_t::execute(leveldb::DB*          db,
-                      leveldb::ReadOptions* options,
-                      index_operation_enum  operation,
-                      uint8_t               partition,
-                      const char*           field,
-                      size_t                field_size,
-                      uint64_t              value,
-                      prz::index_t&         output)
+prz::index_t::execute(leveldb::DB*              db,
+                      leveldb::ReadOptions*     options,
+                      prz::index_operation_enum operation,
+                      prz::index_partition_t    partition,
+                      const prz::byte_t*        field,
+                      size_t                    field_size,
+                      prz::index_address_t      value,
+                      prz::index_t&             output)
 {
 
 }
 
 void
-prz::index_t::execute(leveldb::DB*          db,
-                      leveldb::ReadOptions* options,
-                      index_operation_enum  operation,
-                      uint8_t               partition,
-                      const char*           field,
-                      size_t                field_size,
-                      uint64_t              value)
+prz::index_t::execute(leveldb::DB*              db,
+                      leveldb::ReadOptions*     options,
+                      prz::index_operation_enum operation,
+                      prz::index_partition_t    partition,
+                      const prz::byte_t*        field,
+                      size_t                    field_size,
+                      prz::index_address_t      value)
 {
 
 }
@@ -265,13 +274,14 @@ prz::index_t::execute(leveldb::DB*          db,
 void
 prz::index_t::bit(leveldb::DB*           db,
                   leveldb::WriteOptions* options,
-                  uint64_t               bit,
+                  prz::index_address_t   bit,
                   bool                   state)
 {
-    uint64_t bucket = 0;
-    uint8_t  bucket_index = 0;
-    uint8_t  bit_offset = 0;
+    prz::index_address_t   bucket       = 0;
+    prz::index_partition_t bucket_index = 0;
+    prz::index_partition_t bit_offset   = 0;
     get_address(bit, &bucket, &bucket_index, &bit_offset);
+
     prz::index_t::iterator it = find_insertion_point(begin(), end(), bucket);
 
     if (it->offset != bucket) {
@@ -280,19 +290,20 @@ prz::index_t::bit(leveldb::DB*           db,
     set_bit(it->segment, bucket_index, bit_offset, state);
 
     std::vector<char> key;
-    encode_index_key(_partition, &_field[0], _field.size(), _value, bucket, key);
+    encode_index_key(_partition, reinterpret_cast<char*>(&_field[0]), _field.size(), _value, bucket, key);
     leveldb::Status status = db->Put(*options,
-                                     leveldb::Slice(&key[0], key.size()),
-                                     leveldb::Slice((char*)it->segment, SEGMENT_SIZE));
+                                     leveldb::Slice(reinterpret_cast<char*>(&key[0]), key.size()),
+                                     leveldb::Slice(reinterpret_cast<char*>(it->segment), INDEX_SEGMENT_SIZE));
 }
 
 bool
-prz::index_t::bit(uint64_t bit)
+prz::index_t::bit(index_address_t bit)
 {
-    uint64_t bucket = 0;
-    uint8_t  bucket_index = 0;
-    uint8_t  bit_offset = 0;
+    prz::index_address_t        bucket       = 0;
+    prz::index_partition_t      bucket_index = 0;
+    prz::index_partition_t      bit_offset   = 0;
     get_address(bit, &bucket, &bucket_index, &bit_offset);
+
     prz::index_t::iterator it = find_insertion_point(begin(), end(), bucket);
 
     if (it->offset != bucket) {
@@ -301,38 +312,38 @@ prz::index_t::bit(uint64_t bit)
     return (it->segment[bucket_index] & 1 << bit_offset);
 }
 
-uint8_t
+prz::index_partition_t
 prz::index_t::partition() const
 {
     return _partition;
 }
 
-const char*
+const prz::byte_t*
 prz::index_t::field() const
 {
     return &_field[0];
 }
 
-uint64_t
+prz::index_address_t
 prz::index_t::value() const
 {
     return _value;
 }
 
-uint64_t
-prz::index_t::estimateSize(leveldb::DB* db,
-                           uint8_t        partition,
-                           const char*    field,
-                           size_t         field_size,
-                           uint64_t       value)
+size_t
+prz::index_t::estimateSize(leveldb::DB*           db,
+                           prz::index_partition_t partition,
+                           const byte_t*          field,
+                           size_t                 field_size,
+                           prz::index_address_t   value)
 {
     std::vector<char> start_key;
     std::vector<char> stop_key;
-    encode_index_key(partition, field, field_size, value, 0, start_key);
-    encode_index_key(partition, field, field_size, value, UINT64_MAX, stop_key);
-    leveldb::Range range(leveldb::Slice(&start_key[0], start_key.size()),
-                         leveldb::Slice(&stop_key[0], stop_key.size()));
-    uint64_t size;
+    encode_index_key(partition, reinterpret_cast<const char*>(field), field_size, value, 0, start_key);
+    encode_index_key(partition, reinterpret_cast<const char*>(field), field_size, value, UINT64_MAX, stop_key);
+    leveldb::Range range(leveldb::Slice(reinterpret_cast<char*>(&start_key[0]), start_key.size()),
+                         leveldb::Slice(reinterpret_cast<char*>(&stop_key[0]), stop_key.size()));
+    index_address_t size;
     db->GetApproximateSizes(&range, 1, &size);
     return size;
 }
