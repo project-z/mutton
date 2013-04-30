@@ -27,11 +27,6 @@
 
 #include "index.hpp"
 
-// Required to use stdint.h
-#ifndef __STDC_LIMIT_MACROS
-#define __STDC_LIMIT_MACROS
-#endif
-
 inline void
 get_address(prz::index_address_t    position,
             prz::index_address_t*   bucket,
