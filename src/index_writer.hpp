@@ -21,6 +21,7 @@
 #define __X_INDEX_WRITER_HPP_INCLUDED__
 
 #include "base_types.hpp"
+#include "status.hpp"
 
 namespace prz {
 
@@ -34,7 +35,7 @@ namespace prz {
         ~index_writer_t()
         {}
 
-        virtual void
+        virtual prz::status_t
         write_index(index_partition_t partition,
                     const byte_t*     field,
                     size_t            field_size,
@@ -42,7 +43,7 @@ namespace prz {
                     index_address_t   offset,
                     prz::index_t*     input) = 0;
 
-        virtual void
+        virtual prz::status_t
         write_segment(index_partition_t partition,
                       const byte_t*     field,
                       size_t            field_size,

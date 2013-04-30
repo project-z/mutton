@@ -26,6 +26,7 @@
 #include <boost/ptr_container/ptr_list.hpp>
 
 #include "base_types.hpp"
+#include "status.hpp"
 
 namespace prz {
 
@@ -33,8 +34,8 @@ namespace prz {
     class index_writer_t;
 
     enum index_operation_enum {
-        INDEX_INTERSECTION = 0,
-        INDEX_UNION = 1,
+        PRZ_INDEX_OP_INTERSECTION = 0,
+        PRZ_INDEX_OP_UNION = 1,
     };
 
     class index_t
@@ -114,13 +115,13 @@ namespace prz {
             return _index.size();
         }
 
-        static bool
+        static prz::status_t
         execute(index_operation_enum operation,
                 index_t&             a_index,
                 index_t&             b_index,
                 index_t&             output);
 
-        void
+        prz::status_t
         execute(prz::index_operation_enum operation,
                 prz::index_reader_t*      reader,
                 index_partition_t         partition,
@@ -129,7 +130,7 @@ namespace prz {
                 index_address_t           value,
                 index_t&                  output);
 
-        void
+        prz::status_t
         execute(prz::index_operation_enum operation,
                 prz::index_reader_t*      reader,
                 index_partition_t         partition,
@@ -137,7 +138,7 @@ namespace prz {
                 size_t                    field_size,
                 index_address_t           value);
 
-        void
+        prz::status_t
         bit(prz::index_reader_t* reader,
             prz::index_writer_t* writer,
             index_address_t      bit,

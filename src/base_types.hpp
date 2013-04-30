@@ -20,13 +20,13 @@
 #ifndef __X_BASE_TYPES_HPP_INCLUDED__
 #define __X_BASE_TYPES_HPP_INCLUDED__
 
-#define INDEX_SEGMENT_LENGTH 32
-#define INDEX_SEGMENT_SIZE INDEX_SEGMENT_LENGTH * sizeof(uint64_t)
+#define PRZ_INDEX_SEGMENT_LENGTH 32
+#define PRZ_INDEX_SEGMENT_SIZE PRZ_INDEX_SEGMENT_LENGTH * sizeof(uint64_t)
 
 namespace prz {
     typedef uint16_t      index_partition_t;
     typedef uint64_t      index_address_t;
-    typedef uint64_t      index_segment_t[INDEX_SEGMENT_LENGTH];
+    typedef uint64_t      index_segment_t[PRZ_INDEX_SEGMENT_LENGTH];
     typedef uint64_t*     index_segment_ptr;
     typedef unsigned char byte_t;
 

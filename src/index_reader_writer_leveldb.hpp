@@ -40,7 +40,7 @@ namespace prz {
                                       leveldb::ReadOptions  read_options,
                                       leveldb::WriteOptions write_options);
 
-        void
+        prz::status_t
         write_segment(prz::index_partition_t partition,
                       const prz::byte_t*     field,
                       size_t                 field_size,
@@ -48,14 +48,14 @@ namespace prz {
                       prz::index_address_t   offset,
                       prz::index_segment_ptr input);
 
-        void
+        prz::status_t
         read_index(prz::index_partition_t partition,
                    const prz::byte_t*     field,
                    size_t                 field_size,
                    prz::index_address_t   value,
                    prz::index_t*          output);
 
-        void
+        prz::status_t
         read_segment(prz::index_partition_t partition,
                      const prz::byte_t*     field,
                      size_t                 field_size,
@@ -63,11 +63,12 @@ namespace prz {
                      prz::index_address_t   offset,
                      prz::index_segment_ptr output);
 
-        size_t
+        prz::status_t
         estimateSize(prz::index_partition_t partition,
                      const prz::byte_t*     field,
                      size_t                 field_size,
-                     prz::index_address_t   value);
+                     prz::index_address_t   value,
+                     uint64_t*              output);
 
     private:
         leveldb::DB*          _db;

@@ -21,6 +21,7 @@
 #define __X_INDEX_READER_HPP_INCLUDED__
 
 #include "base_types.hpp"
+#include "status.hpp"
 
 namespace prz {
 
@@ -35,14 +36,14 @@ namespace prz {
         ~index_reader_t()
         {}
 
-        virtual void
+        virtual prz::status_t
         read_index(prz::index_partition_t partition,
                    const prz::byte_t*     field,
                    size_t                 field_size,
                    prz::index_address_t   value,
                    prz::index_t*          output) = 0;
 
-        virtual void
+        virtual prz::status_t
         read_segment(prz::index_partition_t partition,
                      const byte_t*          field,
                      size_t                 field_size,
@@ -50,12 +51,12 @@ namespace prz {
                      prz::index_address_t   offset,
                      prz::index_segment_ptr output) = 0;
 
-
-        virtual size_t
+        virtual prz::status_t
         estimateSize(prz::index_partition_t partition,
                      const byte_t*          field,
                      size_t                 field_size,
-                     prz::index_address_t   value) = 0;
+                     prz::index_address_t   value,
+                     uint64_t*              output) = 0;
     };
 
 } // namespace prz

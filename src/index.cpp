@@ -19,8 +19,9 @@
 
 #include <boost/bind.hpp>
 #include <stdint.h>
-#include <tmmintrin.h>
-#include <immintrin.h>
+// #include <tmmintrin.h>
+// #include <immintrin.h>
+#include <boost/lexical_cast.hpp>
 
 #include "encode.hpp"
 #include "index_reader.hpp"
@@ -59,7 +60,7 @@ segment_union(prz::index_segment_ptr a,
               prz::index_segment_ptr b,
               prz::index_segment_ptr o)
 {
-    for (int i = 0; i < INDEX_SEGMENT_LENGTH; ++i) {
+    for (int i = 0; i < PRZ_INDEX_SEGMENT_LENGTH; ++i) {
         o[i] = a[i] | b[i];
     }
 }
@@ -69,7 +70,7 @@ segment_intersection(prz::index_segment_ptr a,
                      prz::index_segment_ptr b,
                      prz::index_segment_ptr o)
 {
-    for (int i = 0; i < INDEX_SEGMENT_LENGTH; ++i) {
+    for (int i = 0; i < PRZ_INDEX_SEGMENT_LENGTH; ++i) {
         o[i] = a[i] & b[i];
     }
 }
@@ -96,7 +97,7 @@ get_output_node(prz::index_t&          output,
     return output_iter;
 }
 
-inline bool
+inline prz::status_t
 union_behavior(prz::index_t& a_index,
                prz::index_t& b_index,
                prz::index_t& output)
@@ -115,17 +116,17 @@ union_behavior(prz::index_t& a_index,
                 break;
             }
             output_iter = get_output_node(output, output_iter, b_iter->offset);
-            memcpy(output_iter->segment, b_iter->segment, INDEX_SEGMENT_SIZE);
+            memcpy(output_iter->segment, b_iter->segment, PRZ_INDEX_SEGMENT_SIZE);
             ++b_iter;
         }
         else if (a_iter->offset < b_iter->offset) {
             output_iter = get_output_node(output, output_iter, a_iter->offset);
-            memcpy(output_iter->segment, a_iter->segment, INDEX_SEGMENT_SIZE);
+            memcpy(output_iter->segment, a_iter->segment, PRZ_INDEX_SEGMENT_SIZE);
             ++a_iter;
         }
         else if (a_iter->offset > b_iter->offset) {
             output_iter = get_output_node(output, output_iter, b_iter->offset);
-            memcpy(output_iter->segment, b_iter->segment, INDEX_SEGMENT_SIZE);
+            memcpy(output_iter->segment, b_iter->segment, PRZ_INDEX_SEGMENT_SIZE);
             ++b_iter;
         }
         else if (a_iter->offset == b_iter->offset) {
@@ -135,14 +136,17 @@ union_behavior(prz::index_t& a_index,
             ++b_iter;
         }
         else {
-            // XXX shit's gone crazy log and abort
-            return false;
+            return prz::status_t(PRZ_ERROR_INDEX_OPERATION,
+                                "shit's gone crazy in index union: "
+                                + boost::lexical_cast<std::string>(a_iter->offset)
+                                + ":" + boost::lexical_cast<std::string>(b_iter->offset)
+                                + ":" + boost::lexical_cast<std::string>(output_iter->offset));
         }
     }
-    return true;
+    return prz::status_t();
 }
 
-inline bool
+inline prz::status_t
 intersection_behavior(prz::index_t& a_index,
                       prz::index_t& b_index,
                       prz::index_t& output)
@@ -174,17 +178,20 @@ intersection_behavior(prz::index_t& a_index,
             ++output_iter;
         }
         else {
-            // XXX shit's gone crazy log and abort
-            return false;
+            return prz::status_t(PRZ_ERROR_INDEX_OPERATION,
+                                "shit's gone crazy in index intersection: "
+                                + boost::lexical_cast<std::string>(a_iter->offset)
+                                + ":" + boost::lexical_cast<std::string>(b_iter->offset)
+                                + ":" + boost::lexical_cast<std::string>(output_iter->offset));
         }
     }
-    return true;
+    return prz::status_t();
 }
 
 prz::index_t::index_node_t::index_node_t(const index_node_t& node) :
     offset(node.offset)
 {
-    memcpy(segment, node.segment, INDEX_SEGMENT_SIZE);
+    memcpy(segment, node.segment, PRZ_INDEX_SEGMENT_SIZE);
 }
 
 prz::index_t::index_node_t::index_node_t(prz::index_address_t offset) :
@@ -195,13 +202,13 @@ prz::index_t::index_node_t::index_node_t(prz::index_address_t offset,
                                          const index_segment_ptr data) :
     offset(offset)
 {
-    memcpy(segment, data, INDEX_SEGMENT_SIZE);
+    memcpy(segment, data, PRZ_INDEX_SEGMENT_SIZE);
 }
 
 void
 prz::index_t::index_node_t::zero()
 {
-    memset(segment, 0, INDEX_SEGMENT_SIZE);
+    memset(segment, 0, PRZ_INDEX_SEGMENT_SIZE);
 }
 
 prz::index_t::index_t(prz::index_partition_t partition,
@@ -222,22 +229,22 @@ prz::index_t::index_t(prz::index_partition_t partition,
     _value(value)
 {}
 
-bool
+prz::status_t
 prz::index_t::execute(index_operation_enum operation,
                       prz::index_t&        a_index,
                       prz::index_t&        b_index,
                       prz::index_t&        output)
 {
-    if (operation == INDEX_INTERSECTION) {
+    if (operation == PRZ_INDEX_OP_INTERSECTION) {
         return intersection_behavior(a_index, b_index, output);
     }
-    else if (operation == INDEX_UNION) {
+    else if (operation == PRZ_INDEX_OP_UNION) {
         return union_behavior(a_index, b_index, output);
     }
-    return false;
+    return prz::status_t(PRZ_ERROR_INDEX_OPERATION, "unkown/unsupported index operation");
 }
 
-void
+prz::status_t
 prz::index_t::execute(prz::index_operation_enum operation,
                       prz::index_reader_t*      reader,
                       prz::index_partition_t    partition,
@@ -246,11 +253,14 @@ prz::index_t::execute(prz::index_operation_enum operation,
                       prz::index_address_t      value,
                       prz::index_t&             output)
 {
-    reader->read_index(partition, field, field_size, value, &output);
-    execute(operation, *this, output, output);
+    prz::status_t status = reader->read_index(partition, field, field_size, value, &output);
+    if (status) {
+        status = execute(operation, *this, output, output);
+    }
+    return status;
 }
 
-void
+prz::status_t
 prz::index_t::execute(prz::index_operation_enum operation,
                       prz::index_reader_t*      reader,
                       prz::index_partition_t    partition,
@@ -259,11 +269,14 @@ prz::index_t::execute(prz::index_operation_enum operation,
                       prz::index_address_t      value)
 {
     prz::index_t other_index(partition, field, field_size, value);
-    reader->read_index(partition, field, field_size, value, &other_index);
-    execute(operation, *this, other_index, *this);
+    prz::status_t status = reader->read_index(partition, field, field_size, value, &other_index);
+    if (status) {
+        status = execute(operation, *this, other_index, *this);
+    }
+    return status;
 }
 
-void
+prz::status_t
 prz::index_t::bit(prz::index_reader_t* reader,
                   prz::index_writer_t* writer,
                   prz::index_address_t bit,
@@ -276,12 +289,17 @@ prz::index_t::bit(prz::index_reader_t* reader,
 
     prz::index_t::iterator it = find_insertion_point(begin(), end(), offset);
 
+    prz::status_t status;
     if (it->offset != offset) {
         it = prz::index_t::iterator(_index.insert(it.base(), new index_node_t(offset)));
-        reader->read_segment(_partition, &_field[0], _field.size(), _value, offset, it->segment);
+        status = reader->read_segment(_partition, &_field[0], _field.size(), _value, offset, it->segment);
     }
-    set_bit(it->segment, offset_index, bit_offset, state);
-    writer->write_segment(_partition, &_field[0], _field.size(), _value, offset, it->segment);
+
+    if (status) {
+        set_bit(it->segment, offset_index, bit_offset, state);
+        status = writer->write_segment(_partition, &_field[0], _field.size(), _value, offset, it->segment);
+    }
+    return status;
 }
 
 bool

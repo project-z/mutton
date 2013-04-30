@@ -44,8 +44,8 @@ else(LevelDB_FOUND)
   message(FATAL_ERROR "Could not find leveldb library.")
 endif(LevelDB_FOUND)
 
-set(INCLUDES ${INCLUDES} ${leveldb_INCLUDE_DIRS} )
-set(LIBS ${LIBS} ${leveldb_LIBRARIES} )
+set(INCLUDES ${INCLUDES} ${LevelDB_INCLUDE_DIRS} )
+set(LIBS ${LIBS} ${LevelDB_LIBRARIES} )
 
 #-------------------
 # libprz static and shared
