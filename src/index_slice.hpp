@@ -17,8 +17,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __X_INDEX_HPP_INCLUDED__
-#define __X_INDEX_HPP_INCLUDED__
+#ifndef __X_INDEX_SLICE_HPP_INCLUDED__
+#define __X_INDEX_SLICE_HPP_INCLUDED__
 
 #include <vector>
 #include <boost/iterator_adaptors.hpp>
@@ -32,11 +32,6 @@ namespace prz {
 
     class index_reader_t;
     class index_writer_t;
-
-    enum index_operation_enum {
-        PRZ_INDEX_OP_INTERSECTION = 0,
-        PRZ_INDEX_OP_UNION = 1,
-    };
 
     class index_slice_t
         : boost::noncopyable
@@ -128,7 +123,7 @@ namespace prz {
                 const byte_t*             field,
                 size_t                    field_size,
                 index_address_t           value,
-                index_slice_t&                  output);
+                index_slice_t&            output);
 
         prz::status_t
         execute(prz::index_operation_enum operation,
@@ -170,4 +165,4 @@ namespace prz {
 } // namespace prz
 
 
-#endif // __X_INDEX_HPP_INCLUDED__
+#endif // __X_INDEX_SLICE_HPP_INCLUDED__

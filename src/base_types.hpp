@@ -30,6 +30,11 @@ namespace prz {
     typedef uint64_t*     index_segment_ptr;
     typedef unsigned char byte_t;
 
+    enum index_operation_enum {
+        PRZ_INDEX_OP_INTERSECTION = 0,
+        PRZ_INDEX_OP_UNION = 1,
+    };
+
 } // namespace prz
 
 #endif // __X_BASE_TYPES_HPP_INCLUDED__
