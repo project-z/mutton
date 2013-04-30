@@ -19,8 +19,6 @@
 
 #include <boost/bind.hpp>
 #include <stdint.h>
-// #include <tmmintrin.h>
-// #include <immintrin.h>
 #include <boost/lexical_cast.hpp>
 
 #include "encode.hpp"
