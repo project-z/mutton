@@ -20,6 +20,7 @@
 #ifndef __X_ENCODE_HPP_INCLUDED__
 #define __X_ENCODE_HPP_INCLUDED__
 
+#include <vector>
 #include <machine/endian.h>
 #include <stdint.h>
 #include <tmmintrin.h>
@@ -44,52 +45,52 @@ namespace prz {
 ////////////////////////////////////////////////////////////////////////
 
     inline char*
-    decode_uint16(char*     input,
-                  uint16_t* output)
+    decode_uint16(const char* input,
+                  uint16_t*   output)
     {
         *output = ntohs(*(reinterpret_cast<const uint16_t*>(input)));
-        return input + sizeof(uint16_t);
+        return (char*) input + sizeof(uint16_t);
     }
 
     inline char*
-    decode_uint32(char*     input,
-                  uint32_t* output)
+    decode_uint32(const char* input,
+                  uint32_t*   output)
     {
         *output = ntohl(*(reinterpret_cast<const uint32_t*>(input)));
-        return input + sizeof(uint32_t);
+        return (char*) input + sizeof(uint32_t);
     }
 
     inline char*
-    decode_uint64(char*     input,
-                  uint64_t* output)
+    decode_uint64(const char* input,
+                  uint64_t*   output)
     {
         *output = ntohll(*(reinterpret_cast<const uint64_t*>(input)));
-        return input + sizeof(uint64_t);
+        return (char*) input + sizeof(uint64_t);
     }
 
     inline char*
-    decode_parition(char*     input,
-                    uint16_t* output)
+    decode_parition(const char* input,
+                    uint16_t*   output)
     {
         return decode_uint16(input, output);
     }
 
     inline char*
-    decode_bytes(char*     input,
-                 char**    output,
-                 uint16_t* size)
+    decode_bytes(const char* input,
+                 char**      output,
+                 uint16_t*   size)
     {
         *output = decode_uint16(input, size);
         return *output + *size;
     }
 
     inline char*
-    decode_index_key(char*     input,
-                     uint16_t* partition,
-                     char**    field,
-                     uint16_t* field_size,
-                     uint64_t* value,
-                     uint64_t* offset)
+    decode_index_key(const char* input,
+                     uint16_t*   partition,
+                     char**      field,
+                     uint16_t*   field_size,
+                     uint64_t*   value,
+                     uint64_t*   offset)
     {
         char* output = decode_parition(input, partition);
         output = decode_bytes(output, field, field_size);

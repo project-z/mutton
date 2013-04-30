@@ -24,7 +24,7 @@
 #define INDEX_SEGMENT_SIZE INDEX_SEGMENT_LENGTH * sizeof(uint64_t)
 
 namespace prz {
-    typedef uint8_t       index_partition_t;
+    typedef uint16_t      index_partition_t;
     typedef uint64_t      index_address_t;
     typedef uint64_t      index_segment_t[INDEX_SEGMENT_LENGTH];
     typedef uint64_t*     index_segment_ptr;

@@ -27,13 +27,10 @@
 
 #include "base_types.hpp"
 
-namespace leveldb {
-    class DB;
-    struct ReadOptions;
-    struct WriteOptions;
-}
-
 namespace prz {
+
+    class index_reader_t;
+    class index_writer_t;
 
     enum index_operation_enum {
         INDEX_INTERSECTION = 0,
@@ -72,13 +69,6 @@ namespace prz {
                 const byte_t*     field,
                 size_t            field_size,
                 index_address_t   value);
-
-        index_t(leveldb::DB*          snapshot,
-                leveldb::ReadOptions* options,
-                index_partition_t     partition,
-                const byte_t*         field,
-                size_t                field_size,
-                index_address_t       value);
 
         inline iterator
         begin()
@@ -131,32 +121,30 @@ namespace prz {
                 index_t&             output);
 
         void
-        execute(leveldb::DB*          db,
-                leveldb::ReadOptions* options,
-                index_operation_enum  operation,
-                index_partition_t     partition,
-                const byte_t*         field,
-                size_t                field_size,
-                index_address_t       value,
-                index_t&              output);
+        execute(prz::index_operation_enum operation,
+                prz::index_reader_t*      reader,
+                index_partition_t         partition,
+                const byte_t*             field,
+                size_t                    field_size,
+                index_address_t           value,
+                index_t&                  output);
 
         void
-        execute(leveldb::DB*          db,
-                leveldb::ReadOptions* options,
-                index_operation_enum  operation,
-                index_partition_t     partition,
-                const byte_t*         field,
-                size_t                field_size,
-                index_address_t       value);
+        execute(prz::index_operation_enum operation,
+                prz::index_reader_t*      reader,
+                index_partition_t         partition,
+                const byte_t*             field,
+                size_t                    field_size,
+                index_address_t           value);
 
         void
-        bit(leveldb::DB*           db,
-            leveldb::WriteOptions* options,
-            index_address_t        bit,
-            bool                   state);
+        bit(prz::index_reader_t* reader,
+            prz::index_writer_t* writer,
+            index_address_t      bit,
+            bool                 state);
 
         bool
-        bit(index_address_t bit);
+        bit(index_address_t      bit);
 
         index_partition_t
         partition() const;
@@ -170,12 +158,6 @@ namespace prz {
         index_address_t
         value() const;
 
-        static size_t
-        estimateSize(leveldb::DB*      db,
-                     index_partition_t partition,
-                     const byte_t*     field,
-                     size_t            field_size,
-                     index_address_t   value);
 
     private:
         index_container     _index;

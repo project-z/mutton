@@ -18,13 +18,15 @@
 */
 
 #include <boost/bind.hpp>
-#include <leveldb/db.h>
 #include <stdint.h>
 #include <tmmintrin.h>
 #include <immintrin.h>
 
-#include "index.hpp"
 #include "encode.hpp"
+#include "index_reader.hpp"
+#include "index_writer.hpp"
+
+#include "index.hpp"
 
 // Required to use stdint.h
 #ifndef __STDC_LIMIT_MACROS
@@ -220,17 +222,6 @@ prz::index_t::index_t(prz::index_partition_t partition,
     _value(value)
 {}
 
-prz::index_t::index_t(leveldb::DB*           db,
-                      leveldb::ReadOptions*  options,
-                      prz::index_partition_t partition,
-                      const prz::byte_t*     field,
-                      size_t                 field_size,
-                      prz::index_address_t   value) :
-    _partition(partition),
-    _field(field, field + field_size),
-    _value(value)
-{}
-
 bool
 prz::index_t::execute(index_operation_enum operation,
                       prz::index_t&        a_index,
@@ -247,9 +238,8 @@ prz::index_t::execute(index_operation_enum operation,
 }
 
 void
-prz::index_t::execute(leveldb::DB*              db,
-                      leveldb::ReadOptions*     options,
-                      prz::index_operation_enum operation,
+prz::index_t::execute(prz::index_operation_enum operation,
+                      prz::index_reader_t*      reader,
                       prz::index_partition_t    partition,
                       const prz::byte_t*        field,
                       size_t                    field_size,
@@ -260,9 +250,8 @@ prz::index_t::execute(leveldb::DB*              db,
 }
 
 void
-prz::index_t::execute(leveldb::DB*              db,
-                      leveldb::ReadOptions*     options,
-                      prz::index_operation_enum operation,
+prz::index_t::execute(prz::index_operation_enum operation,
+                      prz::index_reader_t*      reader,
                       prz::index_partition_t    partition,
                       const prz::byte_t*        field,
                       size_t                    field_size,
@@ -272,32 +261,28 @@ prz::index_t::execute(leveldb::DB*              db,
 }
 
 void
-prz::index_t::bit(leveldb::DB*           db,
-                  leveldb::WriteOptions* options,
-                  prz::index_address_t   bit,
-                  bool                   state)
+prz::index_t::bit(prz::index_reader_t* reader,
+                  prz::index_writer_t* writer,
+                  prz::index_address_t bit,
+                  bool                 state)
 {
-    prz::index_address_t   bucket       = 0;
-    prz::index_partition_t bucket_index = 0;
+    prz::index_address_t   offset       = 0;
+    prz::index_partition_t offset_index = 0;
     prz::index_partition_t bit_offset   = 0;
-    get_address(bit, &bucket, &bucket_index, &bit_offset);
+    get_address(bit, &offset, &offset_index, &bit_offset);
 
-    prz::index_t::iterator it = find_insertion_point(begin(), end(), bucket);
+    prz::index_t::iterator it = find_insertion_point(begin(), end(), offset);
 
-    if (it->offset != bucket) {
-        it = prz::index_t::iterator(_index.insert(it.base(), new index_node_t(bucket)));
+    if (it->offset != offset) {
+        it = prz::index_t::iterator(_index.insert(it.base(), new index_node_t(offset)));
+        reader->read_segment(_partition, &_field[0], _field.size(), _value, offset, it->segment);
     }
-    set_bit(it->segment, bucket_index, bit_offset, state);
-
-    std::vector<char> key;
-    encode_index_key(_partition, reinterpret_cast<char*>(&_field[0]), _field.size(), _value, bucket, key);
-    leveldb::Status status = db->Put(*options,
-                                     leveldb::Slice(reinterpret_cast<char*>(&key[0]), key.size()),
-                                     leveldb::Slice(reinterpret_cast<char*>(it->segment), INDEX_SEGMENT_SIZE));
+    set_bit(it->segment, offset_index, bit_offset, state);
+    writer->write_segment(_partition, &_field[0], _field.size(), _value, offset, it->segment);
 }
 
 bool
-prz::index_t::bit(index_address_t bit)
+prz::index_t::bit(index_address_t      bit)
 {
     prz::index_address_t        bucket       = 0;
     prz::index_partition_t      bucket_index = 0;
@@ -328,22 +313,4 @@ prz::index_address_t
 prz::index_t::value() const
 {
     return _value;
-}
-
-size_t
-prz::index_t::estimateSize(leveldb::DB*           db,
-                           prz::index_partition_t partition,
-                           const byte_t*          field,
-                           size_t                 field_size,
-                           prz::index_address_t   value)
-{
-    std::vector<char> start_key;
-    std::vector<char> stop_key;
-    encode_index_key(partition, reinterpret_cast<const char*>(field), field_size, value, 0, start_key);
-    encode_index_key(partition, reinterpret_cast<const char*>(field), field_size, value, UINT64_MAX, stop_key);
-    leveldb::Range range(leveldb::Slice(reinterpret_cast<char*>(&start_key[0]), start_key.size()),
-                         leveldb::Slice(reinterpret_cast<char*>(&stop_key[0]), stop_key.size()));
-    index_address_t size;
-    db->GetApproximateSizes(&range, 1, &size);
-    return size;
 }
