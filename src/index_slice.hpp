@@ -38,7 +38,7 @@ namespace prz {
         PRZ_INDEX_OP_UNION = 1,
     };
 
-    class index_t
+    class index_slice_t
         : boost::noncopyable
     {
     public:
@@ -61,12 +61,12 @@ namespace prz {
         typedef boost::ptr_list<index_node_t> index_container;
         typedef index_container::iterator iterator;
 
-        index_t(index_partition_t partition,
+        index_slice_t(index_partition_t partition,
                 const char*       field,
                 size_t            field_size,
                 index_address_t   value);
 
-        index_t(index_partition_t partition,
+        index_slice_t(index_partition_t partition,
                 const byte_t*     field,
                 size_t            field_size,
                 index_address_t   value);
@@ -117,9 +117,9 @@ namespace prz {
 
         static prz::status_t
         execute(index_operation_enum operation,
-                index_t&             a_index,
-                index_t&             b_index,
-                index_t&             output);
+                index_slice_t&             a_index,
+                index_slice_t&             b_index,
+                index_slice_t&             output);
 
         prz::status_t
         execute(prz::index_operation_enum operation,
@@ -128,7 +128,7 @@ namespace prz {
                 const byte_t*             field,
                 size_t                    field_size,
                 index_address_t           value,
-                index_t&                  output);
+                index_slice_t&                  output);
 
         prz::status_t
         execute(prz::index_operation_enum operation,

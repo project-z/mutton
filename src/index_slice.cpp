@@ -25,7 +25,7 @@
 #include "index_reader.hpp"
 #include "index_writer.hpp"
 
-#include "index.hpp"
+#include "index_slice.hpp"
 
 inline void
 get_address(prz::index_address_t    position,
@@ -68,37 +68,37 @@ segment_intersection(prz::index_segment_ptr a,
     }
 }
 
-inline prz::index_t::iterator
-find_insertion_point(prz::index_t::iterator begin,
-                     prz::index_t::iterator end,
-                     prz::index_address_t bucket)
+inline prz::index_slice_t::iterator
+find_insertion_point(prz::index_slice_t::iterator begin,
+                     prz::index_slice_t::iterator end,
+                     prz::index_address_t   bucket)
 {
     return std::find_if(begin,
                         end,
-                        boost::bind(&prz::index_t::index_node_t::offset, _1 ) >= bucket);
+                        boost::bind(&prz::index_slice_t::index_node_t::offset, _1 ) >= bucket);
 }
 
-inline prz::index_t::iterator
-get_output_node(prz::index_t&          output,
-                prz::index_t::iterator output_iter,
-                prz::index_address_t        offset)
+inline prz::index_slice_t::iterator
+get_output_node(prz::index_slice_t&          output,
+                prz::index_slice_t::iterator output_iter,
+                prz::index_address_t   offset)
 {
     output_iter = find_insertion_point(output_iter, output.end(), offset);
     if (output_iter == output.end()) {
-        return output.insert(output_iter, new prz::index_t::index_node_t(offset));
+        return output.insert(output_iter, new prz::index_slice_t::index_node_t(offset));
     }
     return output_iter;
 }
 
 inline prz::status_t
-union_behavior(prz::index_t& a_index,
-               prz::index_t& b_index,
-               prz::index_t& output)
+union_behavior(prz::index_slice_t& a_index,
+               prz::index_slice_t& b_index,
+               prz::index_slice_t& output)
 {
 
-    prz::index_t::iterator a_iter = a_index.begin();
-    prz::index_t::iterator b_iter = b_index.begin();
-    prz::index_t::iterator output_iter = output.begin();
+    prz::index_slice_t::iterator a_iter = a_index.begin();
+    prz::index_slice_t::iterator b_iter = b_index.begin();
+    prz::index_slice_t::iterator output_iter = output.begin();
 
     for (;;) {
         if (a_iter == a_index.end() && b_iter == b_index.end()) {
@@ -140,13 +140,13 @@ union_behavior(prz::index_t& a_index,
 }
 
 inline prz::status_t
-intersection_behavior(prz::index_t& a_index,
-                      prz::index_t& b_index,
-                      prz::index_t& output)
+intersection_behavior(prz::index_slice_t& a_index,
+                      prz::index_slice_t& b_index,
+                      prz::index_slice_t& output)
 {
-    prz::index_t::iterator a_iter = a_index.begin();
-    prz::index_t::iterator b_iter = b_index.begin();
-    prz::index_t::iterator output_iter = output.begin();
+    prz::index_slice_t::iterator a_iter = a_index.begin();
+    prz::index_slice_t::iterator b_iter = b_index.begin();
+    prz::index_slice_t::iterator output_iter = output.begin();
 
     for (;;) {
         if (b_iter == b_index.end() || a_iter == a_index.end()) {
@@ -160,7 +160,7 @@ intersection_behavior(prz::index_t& a_index,
             ++b_iter;
         }
         else if (a_iter->offset == b_iter->offset) {
-            prz::index_t::iterator new_output_iter = get_output_node(output, output_iter, b_iter->offset);
+            prz::index_slice_t::iterator new_output_iter = get_output_node(output, output_iter, b_iter->offset);
             if (output_iter != output.end() && new_output_iter != output_iter) {
                 output.erase(output_iter, new_output_iter);
             }
@@ -181,17 +181,17 @@ intersection_behavior(prz::index_t& a_index,
     return prz::status_t();
 }
 
-prz::index_t::index_node_t::index_node_t(const index_node_t& node) :
+prz::index_slice_t::index_node_t::index_node_t(const index_node_t& node) :
     offset(node.offset)
 {
     memcpy(segment, node.segment, PRZ_INDEX_SEGMENT_SIZE);
 }
 
-prz::index_t::index_node_t::index_node_t(prz::index_address_t offset) :
+prz::index_slice_t::index_node_t::index_node_t(prz::index_address_t offset) :
     offset(offset)
 {}
 
-prz::index_t::index_node_t::index_node_t(prz::index_address_t offset,
+prz::index_slice_t::index_node_t::index_node_t(prz::index_address_t offset,
                                          const index_segment_ptr data) :
     offset(offset)
 {
@@ -199,12 +199,12 @@ prz::index_t::index_node_t::index_node_t(prz::index_address_t offset,
 }
 
 void
-prz::index_t::index_node_t::zero()
+prz::index_slice_t::index_node_t::zero()
 {
     memset(segment, 0, PRZ_INDEX_SEGMENT_SIZE);
 }
 
-prz::index_t::index_t(prz::index_partition_t partition,
+prz::index_slice_t::index_slice_t(prz::index_partition_t partition,
                       const char*            field,
                       size_t                 field_size,
                       prz::index_address_t   value) :
@@ -213,7 +213,7 @@ prz::index_t::index_t(prz::index_partition_t partition,
     _value(value)
 {}
 
-prz::index_t::index_t(prz::index_partition_t partition,
+prz::index_slice_t::index_slice_t(prz::index_partition_t partition,
                       const prz::byte_t*     field,
                       size_t                 field_size,
                       prz::index_address_t   value) :
@@ -223,10 +223,10 @@ prz::index_t::index_t(prz::index_partition_t partition,
 {}
 
 prz::status_t
-prz::index_t::execute(index_operation_enum operation,
-                      prz::index_t&        a_index,
-                      prz::index_t&        b_index,
-                      prz::index_t&        output)
+prz::index_slice_t::execute(index_operation_enum operation,
+                      prz::index_slice_t&        a_index,
+                      prz::index_slice_t&        b_index,
+                      prz::index_slice_t&        output)
 {
     if (operation == PRZ_INDEX_OP_INTERSECTION) {
         return intersection_behavior(a_index, b_index, output);
@@ -238,13 +238,13 @@ prz::index_t::execute(index_operation_enum operation,
 }
 
 prz::status_t
-prz::index_t::execute(prz::index_operation_enum operation,
+prz::index_slice_t::execute(prz::index_operation_enum operation,
                       prz::index_reader_t*      reader,
                       prz::index_partition_t    partition,
                       const prz::byte_t*        field,
                       size_t                    field_size,
                       prz::index_address_t      value,
-                      prz::index_t&             output)
+                      prz::index_slice_t&             output)
 {
     prz::status_t status = reader->read_index(partition, field, field_size, value, &output);
     if (status) {
@@ -254,14 +254,14 @@ prz::index_t::execute(prz::index_operation_enum operation,
 }
 
 prz::status_t
-prz::index_t::execute(prz::index_operation_enum operation,
+prz::index_slice_t::execute(prz::index_operation_enum operation,
                       prz::index_reader_t*      reader,
                       prz::index_partition_t    partition,
                       const prz::byte_t*        field,
                       size_t                    field_size,
                       prz::index_address_t      value)
 {
-    prz::index_t other_index(partition, field, field_size, value);
+    prz::index_slice_t other_index(partition, field, field_size, value);
     prz::status_t status = reader->read_index(partition, field, field_size, value, &other_index);
     if (status) {
         status = execute(operation, *this, other_index, *this);
@@ -270,7 +270,7 @@ prz::index_t::execute(prz::index_operation_enum operation,
 }
 
 prz::status_t
-prz::index_t::bit(prz::index_reader_t* reader,
+prz::index_slice_t::bit(prz::index_reader_t* reader,
                   prz::index_writer_t* writer,
                   prz::index_address_t bit,
                   bool                 state)
@@ -280,11 +280,11 @@ prz::index_t::bit(prz::index_reader_t* reader,
     prz::index_partition_t bit_offset   = 0;
     get_address(bit, &offset, &offset_index, &bit_offset);
 
-    prz::index_t::iterator it = find_insertion_point(begin(), end(), offset);
+    prz::index_slice_t::iterator it = find_insertion_point(begin(), end(), offset);
 
     prz::status_t status;
     if (it->offset != offset) {
-        it = prz::index_t::iterator(_index.insert(it.base(), new index_node_t(offset)));
+        it = prz::index_slice_t::iterator(_index.insert(it.base(), new index_node_t(offset)));
         status = reader->read_segment(_partition, &_field[0], _field.size(), _value, offset, it->segment);
     }
 
@@ -296,14 +296,14 @@ prz::index_t::bit(prz::index_reader_t* reader,
 }
 
 bool
-prz::index_t::bit(index_address_t      bit)
+prz::index_slice_t::bit(index_address_t      bit)
 {
     prz::index_address_t        bucket       = 0;
     prz::index_partition_t      bucket_index = 0;
     prz::index_partition_t      bit_offset   = 0;
     get_address(bit, &bucket, &bucket_index, &bit_offset);
 
-    prz::index_t::iterator it = find_insertion_point(begin(), end(), bucket);
+    prz::index_slice_t::iterator it = find_insertion_point(begin(), end(), bucket);
 
     if (it->offset != bucket) {
         return false;
@@ -312,19 +312,19 @@ prz::index_t::bit(index_address_t      bit)
 }
 
 prz::index_partition_t
-prz::index_t::partition() const
+prz::index_slice_t::partition() const
 {
     return _partition;
 }
 
 const prz::byte_t*
-prz::index_t::field() const
+prz::index_slice_t::field() const
 {
     return &_field[0];
 }
 
 prz::index_address_t
-prz::index_t::value() const
+prz::index_slice_t::value() const
 {
     return _value;
 }

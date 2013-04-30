@@ -19,7 +19,7 @@
 
 #include <vector>
 #include "encode.hpp"
-#include "index.hpp"
+#include "index_slice.hpp"
 #include "index_reader_writer_leveldb.hpp"
 
 prz::index_reader_writer_leveldb_t::index_reader_writer_leveldb_t(leveldb::DB*          db,
@@ -35,7 +35,7 @@ prz::index_reader_writer_leveldb_t::read_index(prz::index_partition_t partition,
                                                const prz::byte_t*     field,
                                                size_t                 field_size,
                                                prz::index_address_t   value,
-                                               prz::index_t*          output)
+                                               prz::index_slice_t*          output)
 {
     std::vector<char> start_key;
     std::vector<char> stop_key;
@@ -43,7 +43,7 @@ prz::index_reader_writer_leveldb_t::read_index(prz::index_partition_t partition,
     encode_index_key(partition, reinterpret_cast<const char*>(field), field_size, value, UINT64_MAX, stop_key);
     leveldb::Slice start_slice(reinterpret_cast<char*>(&start_key[0]), start_key.size());
 
-    prz::index_t::iterator insert_iter = output->begin();
+    prz::index_slice_t::iterator insert_iter = output->begin();
 
     std::auto_ptr<leveldb::Iterator> iter(_db->NewIterator(_read_options));
     for (iter->Seek(start_slice);
@@ -57,7 +57,7 @@ prz::index_reader_writer_leveldb_t::read_index(prz::index_partition_t partition,
         uint64_t offset = 0;
         assert(iter->value().size() == PRZ_INDEX_SEGMENT_SIZE);
         prz::decode_index_key(iter->key().data(), &temp_partition, &temp_field, &temp_field_size, &temp_value, &offset);
-        insert_iter = output->insert(insert_iter, new prz::index_t::index_node_t(offset, (const index_segment_ptr) iter->value().data()));
+        insert_iter = output->insert(insert_iter, new prz::index_slice_t::index_node_t(offset, (const index_segment_ptr) iter->value().data()));
     }
     return prz::status_t();
 }

@@ -25,7 +25,7 @@
 
 namespace prz {
 
-    class index_t;
+    class index_slice_t;
 
     class index_reader_t
     {
@@ -41,7 +41,7 @@ namespace prz {
                    const prz::byte_t*     field,
                    size_t                 field_size,
                    prz::index_address_t   value,
-                   prz::index_t*          output) = 0;
+                   prz::index_slice_t*          output) = 0;
 
         virtual prz::status_t
         read_segment(prz::index_partition_t partition,

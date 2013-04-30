@@ -25,7 +25,7 @@
 
 namespace prz {
 
-    class index_t;
+    class index_slice_t;
 
     class index_writer_t
     {
@@ -41,7 +41,7 @@ namespace prz {
                     size_t            field_size,
                     index_address_t   value,
                     index_address_t   offset,
-                    prz::index_t*     input) = 0;
+                    prz::index_slice_t*     input) = 0;
 
         virtual prz::status_t
         write_segment(index_partition_t partition,
