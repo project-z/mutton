@@ -246,7 +246,7 @@ prz::index_slice_t::execute(prz::index_operation_enum operation,
                       prz::index_address_t      value,
                       prz::index_slice_t&             output)
 {
-    prz::status_t status = reader->read_index(partition, field, field_size, value, &output);
+    prz::status_t status = reader->read_index_slice(partition, field, field_size, value, &output);
     if (status) {
         status = execute(operation, *this, output, output);
     }
@@ -262,7 +262,7 @@ prz::index_slice_t::execute(prz::index_operation_enum operation,
                       prz::index_address_t      value)
 {
     prz::index_slice_t other_index(partition, field, field_size, value);
-    prz::status_t status = reader->read_index(partition, field, field_size, value, &other_index);
+    prz::status_t status = reader->read_index_slice(partition, field, field_size, value, &other_index);
     if (status) {
         status = execute(operation, *this, other_index, *this);
     }

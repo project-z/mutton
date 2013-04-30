@@ -21,7 +21,6 @@
 #define __X_INDEX_SLICE_HPP_INCLUDED__
 
 #include <vector>
-#include <boost/iterator_adaptors.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/ptr_container/ptr_list.hpp>
 

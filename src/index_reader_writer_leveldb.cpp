@@ -31,11 +31,11 @@ prz::index_reader_writer_leveldb_t::index_reader_writer_leveldb_t(leveldb::DB*  
 {}
 
 prz::status_t
-prz::index_reader_writer_leveldb_t::read_index(prz::index_partition_t partition,
-                                               const prz::byte_t*     field,
-                                               size_t                 field_size,
-                                               prz::index_address_t   value,
-                                               prz::index_slice_t*          output)
+prz::index_reader_writer_leveldb_t::read_index_slice(prz::index_partition_t partition,
+                                                     const prz::byte_t*     field,
+                                                     size_t                 field_size,
+                                                     prz::index_address_t   value,
+                                                     prz::index_slice_t*    output)
 {
     std::vector<char> start_key;
     std::vector<char> stop_key;
