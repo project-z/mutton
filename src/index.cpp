@@ -246,7 +246,8 @@ prz::index_t::execute(prz::index_operation_enum operation,
                       prz::index_address_t      value,
                       prz::index_t&             output)
 {
-
+    reader->read_index(partition, field, field_size, value, &output);
+    execute(operation, *this, output, output);
 }
 
 void
@@ -257,7 +258,9 @@ prz::index_t::execute(prz::index_operation_enum operation,
                       size_t                    field_size,
                       prz::index_address_t      value)
 {
-
+    prz::index_t other_index(partition, field, field_size, value);
+    reader->read_index(partition, field, field_size, value, &other_index);
+    execute(operation, *this, other_index, *this);
 }
 
 void
