@@ -17,14 +17,15 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __X_INDEX_SLICE_HPP_INCLUDED__
-#define __X_INDEX_SLICE_HPP_INCLUDED__
+#ifndef __X_INDEX_HPP_INCLUDED__
+#define __X_INDEX_HPP_INCLUDED__
 
 #include <vector>
 #include <boost/noncopyable.hpp>
-#include <boost/ptr_container/ptr_list.hpp>
+#include <boost/ptr_container/ptr_map.hpp>
 
 #include "base_types.hpp"
+#include "index_slice.hpp"
 #include "status.hpp"
 
 namespace prz {
@@ -32,44 +33,41 @@ namespace prz {
     class index_reader_t;
     class index_writer_t;
 
-    class index_slice_t
+    struct range_t {
+        prz::index_address_t start;
+        prz::index_address_t limit;
+
+        range_t(const prz::index_address_t s,
+                const prz::index_address_t l) :
+            start(s),
+            limit(l)
+        {}
+    };
+
+    class index_t
         : boost::noncopyable
     {
     public:
+        typedef boost::ptr_map<prz::index_address_t, prz::index_slice_t> index_container;
+        typedef index_container::iterator iterator;
 
-        struct index_node_t {
-            index_address_t offset;
-            index_segment_t segment;
 
-            index_node_t(const index_node_t& node);
-
-            index_node_t(index_address_t offset);
-
-            index_node_t(index_address_t         offset,
-                         const index_segment_ptr data);
-
-            void
-            zero();
-        };
-
-        typedef boost::ptr_list<index_node_t> slice_container;
-        typedef slice_container::iterator iterator;
-
-        index_slice_t(index_partition_t partition,
+        index_t(index_partition_t partition,
                 const char*       field,
-                size_t            field_size,
-                index_address_t   value);
-
-        index_slice_t(index_partition_t partition,
-                const byte_t*     field,
-                size_t            field_size,
-                index_address_t   value);
+                size_t            field_size);
 
         static prz::status_t
         execute(index_operation_enum operation,
-                index_slice_t&             a_index,
-                index_slice_t&             b_index,
-                index_slice_t&             output);
+                index_t&             a_index,
+                index_t&             b_index,
+                prz::range_t*        ranges,
+                index_slice_t&       output);
+
+        static prz::status_t
+        execute(index_operation_enum operation,
+                index_t&             a_index,
+                index_t&             b_index,
+                index_slice_t&       output);
 
         prz::status_t
         execute(prz::index_operation_enum operation,
@@ -77,7 +75,6 @@ namespace prz {
                 index_partition_t         partition,
                 const byte_t*             field,
                 size_t                    field_size,
-                index_address_t           value,
                 index_slice_t&            output);
 
         prz::status_t
@@ -86,16 +83,8 @@ namespace prz {
                 index_partition_t         partition,
                 const byte_t*             field,
                 size_t                    field_size,
-                index_address_t           value);
-
-        prz::status_t
-        bit(prz::index_reader_t* reader,
-            prz::index_writer_t* writer,
-            index_address_t      bit,
-            bool                 state);
-
-        bool
-        bit(index_address_t      bit);
+                prz::range_t*             ranges,
+                index_slice_t&            output);
 
         index_partition_t
         partition() const;
@@ -106,61 +95,58 @@ namespace prz {
         size_t
         field_size() const;
 
-        index_address_t
-        value() const;
-
         inline iterator
         begin()
         {
-            return _index_slice.begin();
+            return _index.begin();
         }
 
         inline iterator
         end()
         {
-            return _index_slice.end();
+            return _index.end();
         }
 
-        inline iterator
-        insert(iterator      pos,
-               index_node_t* value)
+        std::pair<iterator, bool>
+        insert(prz::index_address_t value,
+               index_slice_t* slice)
         {
-            return _index_slice.insert(pos, value);
+            return _index.insert(value, slice);
         }
 
         inline void
         clear()
         {
-            _index_slice.clear();
+            _index.clear();
         }
 
         inline void
         erase(iterator first,
               iterator last)
         {
-            _index_slice.erase(first, last);
+            _index.erase(first, last);
         }
 
         inline void
         erase(iterator position)
         {
-            _index_slice.erase(position);
+            _index.erase(position);
         }
 
         inline size_t
         size()
         {
-            return _index_slice.size();
+            return _index.size();
         }
 
     private:
-        slice_container     _index_slice;
+        index_container     _index;
         index_partition_t   _partition;
         std::vector<byte_t> _field;
-        index_address_t     _value;
     };
+
 
 } // namespace prz
 
 
-#endif // __X_INDEX_SLICE_HPP_INCLUDED__
+#endif // __X_INDEX_HPP_INCLUDED__

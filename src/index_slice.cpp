@@ -284,7 +284,7 @@ prz::index_slice_t::bit(prz::index_reader_t* reader,
 
     prz::status_t status;
     if (it->offset != offset) {
-        it = prz::index_slice_t::iterator(_index.insert(it.base(), new index_node_t(offset)));
+        it = prz::index_slice_t::iterator(_index_slice.insert(it.base(), new index_node_t(offset)));
         status = reader->read_segment(_partition, &_field[0], _field.size(), _value, offset, it->segment);
     }
 
@@ -321,6 +321,12 @@ const prz::byte_t*
 prz::index_slice_t::field() const
 {
     return &_field[0];
+}
+
+size_t
+prz::index_slice_t::field_size() const
+{
+    return _field.size();
 }
 
 prz::index_address_t
