@@ -67,9 +67,9 @@ namespace prz {
 
         static prz::status_t
         execute(index_operation_enum operation,
-                index_slice_t&             a_index,
-                index_slice_t&             b_index,
-                index_slice_t&             output);
+                index_slice_t&       a_index,
+                index_slice_t&       b_index,
+                index_slice_t&       output);
 
         prz::status_t
         execute(prz::index_operation_enum operation,

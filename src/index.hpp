@@ -32,22 +32,13 @@ namespace prz {
 
     class index_reader_t;
     class index_writer_t;
-
-    struct range_t {
-        prz::index_address_t start;
-        prz::index_address_t limit;
-
-        range_t(const prz::index_address_t s,
-                const prz::index_address_t l) :
-            start(s),
-            limit(l)
-        {}
-    };
+    struct range_t;
 
     class index_t
         : boost::noncopyable
     {
     public:
+        typedef prz::index_slice_t type;
         typedef boost::ptr_map<prz::index_address_t, prz::index_slice_t> index_container;
         typedef index_container::iterator iterator;
 
@@ -61,6 +52,7 @@ namespace prz {
                 index_t&             a_index,
                 index_t&             b_index,
                 prz::range_t*        ranges,
+                size_t               range_count,
                 index_slice_t&       output);
 
         static prz::status_t
@@ -84,6 +76,7 @@ namespace prz {
                 const byte_t*             field,
                 size_t                    field_size,
                 prz::range_t*             ranges,
+                size_t                    range_count,
                 index_slice_t&            output);
 
         index_partition_t
@@ -94,6 +87,12 @@ namespace prz {
 
         size_t
         field_size() const;
+
+        inline iterator
+        find(prz::index_address_t a)
+        {
+            return _index.find(a);
+        }
 
         inline iterator
         begin()
@@ -147,6 +146,22 @@ namespace prz {
 
 
 } // namespace prz
+
+namespace boost
+{
+    // specialize range_mutable_iterator and range_const_iterator in namespace boost
+    template<>
+    struct range_mutable_iterator< prz::index_t >
+    {
+        typedef prz::index_t::iterator type;
+    };
+
+    template<>
+    struct range_const_iterator< prz::index_t >
+    {
+        typedef prz::index_t::iterator type;
+    };
+} // namespace boost
 
 
 #endif // __X_INDEX_HPP_INCLUDED__
