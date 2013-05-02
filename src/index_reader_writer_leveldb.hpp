@@ -49,6 +49,12 @@ namespace prz {
                       prz::index_segment_ptr input);
 
         prz::status_t
+        read_index(prz::index_partition_t partition,
+                   const prz::byte_t*     field,
+                   size_t                 field_size,
+                   prz::index_t*          output);
+
+        prz::status_t
         read_index_slice(prz::index_partition_t partition,
                          const prz::byte_t*     field,
                          size_t                 field_size,
