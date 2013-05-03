@@ -181,6 +181,53 @@ prz::index_t::execute(prz::index_operation_enum operation,
     return prz::status_t();
 }
 
+prz::status_t
+prz::index_t::index_value(prz::index_reader_t* reader,
+                          prz::index_writer_t* writer,
+                          prz::index_address_t value,
+                          prz::index_address_t who_or_what,
+                          bool                 state)
+{
+    prz::index_t::iterator iter = _index.find(value);
+    if (iter == _index.end()) {
+        iter = insert(value, new prz::index_slice_t(_partition, &_field[0], _field.size(), who_or_what)).first;
+    }
+    return iter->second->bit(reader, writer, who_or_what, state);
+}
+
+prz::status_t
+prz::index_t::indexed_value(prz::index_reader_t* reader,
+                            prz::index_writer_t* writer,
+                            prz::index_address_t value,
+                            prz::index_address_t who_or_what,
+                            bool*                state)
+{
+    prz::index_t::iterator iter = _index.find(value);
+    if (iter == _index.end()) {
+        *state = false;
+    }
+    else {
+        *state = iter->second->bit(who_or_what);
+    }
+    return prz::status_t(); // XXX TODO better error handling
+}
+
+prz::status_t
+prz::index_t::indexed_value(prz::index_reader_t* reader,
+                            prz::index_writer_t* writer,
+                            prz::index_address_t value,
+                            prz::index_slice_t** who_or_what)
+{
+    prz::index_t::iterator iter = _index.find(value);
+    if (iter == _index.end()) {
+        *who_or_what = NULL;
+    }
+    else {
+        *who_or_what = iter->second;
+    }
+    return prz::status_t(); // XXX TODO better error handling
+}
+
 prz::index_partition_t
 prz::index_t::partition() const
 {

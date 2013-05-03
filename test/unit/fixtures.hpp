@@ -29,6 +29,7 @@
 #include "base_types.hpp"
 #include "index_reader.hpp"
 #include "index_writer.hpp"
+#include "index.hpp"
 #include "index_slice.hpp"
 
 // Required to use stdint.h
@@ -40,6 +41,11 @@ static prz::index_segment_t SEGMENT_NONE = {0, 0, 0, 0, 0, 0, 0, 0,
                                             0, 0, 0, 0, 0, 0, 0, 0,
                                             0, 0, 0, 0, 0, 0, 0, 0,
                                             0, 0, 0, 0, 0, 0, 0, 0};
+
+static prz::index_segment_t SEGMENT_ONE = {1, 0, 0, 0, 0, 0, 0, 0,
+                                           0, 0, 0, 0, 0, 0, 0, 0,
+                                           0, 0, 0, 0, 0, 0, 0, 0,
+                                           0, 0, 0, 0, 0, 0, 0, 0};
 
 static prz::index_segment_t SEGMENT_EVERY_OTHER_ODD = {0, UINT64_MAX, 0, UINT64_MAX, 0, UINT64_MAX, 0, UINT64_MAX,
                                                        0, UINT64_MAX, 0, UINT64_MAX, 0, UINT64_MAX, 0, UINT64_MAX,
@@ -93,6 +99,19 @@ public:
             }
             return a.value < b.value;
         }
+
+        friend bool
+        operator<=(const index_key_t& a,
+                  const index_key_t& b)
+        {
+            if (a.partition != b.partition) {
+                return a.partition <= b.partition;
+            }
+            if (a.field != b.field) {
+                return a.field <= b.field;
+            }
+            return a.value <= b.value;
+        }
     };
 
     typedef boost::ptr_map<index_key_t, prz::index_slice_t> index_container_t;
@@ -120,7 +139,7 @@ public:
                            iter->second->end(),
                            boost::bind(&prz::index_slice_t::index_node_t::offset, _1 ) >= offset);
 
-        if (slice_insert_iter != iter->second->end()) {
+        if (slice_insert_iter != iter->second->end() && slice_insert_iter->offset == offset) {
             slice_insert_iter = iter->second->erase(slice_insert_iter);
         }
 
@@ -134,6 +153,13 @@ public:
                size_t                 field_size,
                prz::index_t*          output)
     {
+        index_key_t start_key(partition, field, field_size, 0);
+        index_key_t end_key(partition, field, field_size, UINT64_MAX);
+
+        index_container_t::iterator iter = _index.lower_bound(start_key);
+        for (; iter != _index.end() && iter->first <= end_key; ++iter) {
+            output->insert(iter->second->value(), new prz::index_slice_t(*iter->second));
+        }
         return prz::status_t();
     }
 
@@ -144,6 +170,11 @@ public:
                      prz::index_address_t   value,
                      prz::index_slice_t*    output)
     {
+        index_key_t key(partition, field, field_size, value);
+        index_container_t::iterator iter = _index.find(key);
+        if (iter != _index.end()) {
+            *output = *iter->second;
+        }
         return prz::status_t();
     }
 
@@ -155,6 +186,20 @@ public:
                  prz::index_address_t   offset,
                  prz::index_segment_ptr output)
     {
+        index_key_t key(partition, field, field_size, value);
+        index_container_t::iterator iter = _index.find(key);
+        if (iter != _index.end()) {
+            prz::index_slice_t::iterator slice_iter     \
+                = std::find_if(iter->second->begin(),
+                               iter->second->end(),
+                               boost::bind(&prz::index_slice_t::index_node_t::offset, _1 ) == offset);
+
+            if (slice_iter != iter->second->end()) {
+                memcpy(output, slice_iter->segment, PRZ_INDEX_SEGMENT_SIZE);
+                return prz::status_t();
+            }
+        }
+        memset(output, 0, PRZ_INDEX_SEGMENT_SIZE);
         return prz::status_t();
     }
 

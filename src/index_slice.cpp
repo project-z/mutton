@@ -18,8 +18,8 @@
 */
 
 #include <boost/bind.hpp>
-#include <stdint.h>
 #include <boost/lexical_cast.hpp>
+#include <stdint.h>
 
 #include "encode.hpp"
 #include "index_reader.hpp"
@@ -45,7 +45,12 @@ set_bit(prz::index_segment_ptr input,
         prz::index_partition_t bit_offset,
         bool                   val)
 {
-    input[bucket_index] |= (val ? 1 : 0) << bit_offset;
+    if (val) {
+        input[bucket_index] |= 1 << bit_offset;
+    }
+    else {
+        input[bucket_index] &= 0 << bit_offset;
+    }
 }
 
 inline void
@@ -222,6 +227,16 @@ prz::index_slice_t::index_slice_t(prz::index_partition_t partition,
     _value(value)
 {}
 
+prz::index_slice_t::index_slice_t(const prz::index_slice_t::index_slice_t& other)  :
+    _partition(other.partition()),
+    _field(other.field(), other.field() + other.field_size()),
+    _value(other.value())
+{
+    for (prz::index_slice_t::const_iterator iter = other.cbegin(); iter != other.cend(); ++iter) {
+        _index_slice.insert(_index_slice.end(), new prz::index_slice_t::index_node_t(*iter));
+    }
+}
+
 prz::status_t
 prz::index_slice_t::execute(index_operation_enum operation,
                             prz::index_slice_t&  a_index,
@@ -283,7 +298,7 @@ prz::index_slice_t::bit(prz::index_reader_t* reader,
     prz::index_slice_t::iterator it = find_insertion_point(begin(), end(), offset);
 
     prz::status_t status;
-    if (it->offset != offset) {
+    if (it == end() || it->offset != offset) {
         it = prz::index_slice_t::iterator(_index_slice.insert(it.base(), new index_node_t(offset)));
         status = reader->read_segment(_partition, &_field[0], _field.size(), _value, offset, it->segment);
     }
@@ -333,4 +348,17 @@ prz::index_address_t
 prz::index_slice_t::value() const
 {
     return _value;
+}
+
+prz::index_slice_t&
+prz::index_slice_t::operator=(const index_slice_t& other)
+{
+    _field.assign(other.field(), other.field() + other.field_size());
+    _partition = other.partition();
+    _value = other.value();
+
+    for (prz::index_slice_t::const_iterator iter = other.cbegin(); iter != other.cend(); ++iter) {
+        _index_slice.insert(_index_slice.end(), new prz::index_slice_t::index_node_t(*iter));
+    }
+    return *this;
 }

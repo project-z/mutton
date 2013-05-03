@@ -42,42 +42,61 @@ namespace prz {
         typedef boost::ptr_map<prz::index_address_t, prz::index_slice_t> index_container;
         typedef index_container::iterator iterator;
 
-
-        index_t(index_partition_t partition,
-                const char*       field,
-                size_t            field_size);
-
-        static prz::status_t
-        execute(index_operation_enum operation,
-                index_t&             a_index,
-                index_t&             b_index,
-                prz::range_t*        ranges,
-                size_t               range_count,
-                index_slice_t&       output);
+        index_t(prz::index_partition_t partition,
+                const char*            field,
+                size_t                 field_size);
 
         static prz::status_t
-        execute(index_operation_enum operation,
-                index_t&             a_index,
-                index_t&             b_index,
-                index_slice_t&       output);
+        execute(prz::index_operation_enum operation,
+                prz::index_t&             a_index,
+                prz::index_t&             b_index,
+                prz::range_t*             ranges,
+                size_t                    range_count,
+                prz::index_slice_t&       output);
+
+        static prz::status_t
+        execute(prz::index_operation_enum operation,
+                prz::index_t&             a_index,
+                prz::index_t&             b_index,
+                prz::index_slice_t&       output);
 
         prz::status_t
         execute(prz::index_operation_enum operation,
                 prz::index_reader_t*      reader,
-                index_partition_t         partition,
+                prz::index_partition_t    partition,
                 const byte_t*             field,
                 size_t                    field_size,
-                index_slice_t&            output);
+                prz::index_slice_t&       output);
 
         prz::status_t
         execute(prz::index_operation_enum operation,
                 prz::index_reader_t*      reader,
-                index_partition_t         partition,
+                prz::index_partition_t    partition,
                 const byte_t*             field,
                 size_t                    field_size,
                 prz::range_t*             ranges,
                 size_t                    range_count,
-                index_slice_t&            output);
+                prz::index_slice_t&       output);
+
+        prz::status_t
+        index_value(prz::index_reader_t* reader,
+                    prz::index_writer_t* writer,
+                    prz::index_address_t value,
+                    prz::index_address_t who_or_what,
+                    bool                 state);
+
+        prz::status_t
+        indexed_value(prz::index_reader_t* reader,
+                      prz::index_writer_t* writer,
+                      prz::index_address_t value,
+                      prz::index_address_t who_or_what,
+                      bool*                state);
+
+        prz::status_t
+        indexed_value(prz::index_reader_t* reader,
+                      prz::index_writer_t* writer,
+                      prz::index_address_t value,
+                      prz::index_slice_t** who_or_what);
 
         index_partition_t
         partition() const;

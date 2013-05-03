@@ -36,14 +36,6 @@ namespace prz {
         {}
 
         virtual prz::status_t
-        write_index(index_partition_t partition,
-                    const byte_t*     field,
-                    size_t            field_size,
-                    index_address_t   value,
-                    index_address_t   offset,
-                    prz::index_slice_t*     input) = 0;
-
-        virtual prz::status_t
         write_segment(index_partition_t partition,
                       const byte_t*     field,
                       size_t            field_size,

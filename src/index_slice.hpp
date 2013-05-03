@@ -21,7 +21,6 @@
 #define __X_INDEX_SLICE_HPP_INCLUDED__
 
 #include <vector>
-#include <boost/noncopyable.hpp>
 #include <boost/ptr_container/ptr_list.hpp>
 
 #include "base_types.hpp"
@@ -33,7 +32,6 @@ namespace prz {
     class index_writer_t;
 
     class index_slice_t
-        : boost::noncopyable
     {
     public:
 
@@ -52,8 +50,10 @@ namespace prz {
             zero();
         };
 
-        typedef boost::ptr_list<index_node_t> slice_container;
+        typedef prz::index_slice_t::index_node_t type;
+        typedef boost::ptr_list<prz::index_slice_t::index_node_t> slice_container;
         typedef slice_container::iterator iterator;
+        typedef slice_container::const_iterator const_iterator;
 
         index_slice_t(index_partition_t partition,
                       const char*       field,
@@ -64,6 +64,8 @@ namespace prz {
                       const byte_t*     field,
                       size_t            field_size,
                       index_address_t   value);
+
+        index_slice_t(const index_slice_t& other);
 
         static prz::status_t
         execute(index_operation_enum operation,
@@ -109,6 +111,9 @@ namespace prz {
         index_address_t
         value() const;
 
+        prz::index_slice_t&
+        operator=(const index_slice_t& other);
+
         inline iterator
         begin()
         {
@@ -119,6 +124,18 @@ namespace prz {
         end()
         {
             return _index_slice.end();
+        }
+
+        inline const_iterator
+        cbegin() const
+        {
+            return _index_slice.cbegin();
+        }
+
+        inline const_iterator
+        cend() const
+        {
+            return _index_slice.cend();
         }
 
         inline iterator
@@ -134,17 +151,17 @@ namespace prz {
             _index_slice.clear();
         }
 
-        inline void
+        inline iterator
         erase(iterator first,
               iterator last)
         {
-            _index_slice.erase(first, last);
+            return _index_slice.erase(first, last);
         }
 
-        inline void
+        inline iterator
         erase(iterator position)
         {
-            _index_slice.erase(position);
+            return _index_slice.erase(position);
         }
 
         inline size_t
@@ -161,6 +178,22 @@ namespace prz {
     };
 
 } // namespace prz
+
+namespace boost
+{
+    // specialize range_mutable_iterator and range_const_iterator in namespace boost
+    template<>
+    struct range_mutable_iterator< prz::index_slice_t >
+    {
+        typedef prz::index_slice_t::iterator type;
+    };
+
+    template<>
+    struct range_const_iterator< prz::index_slice_t >
+    {
+        typedef prz::index_slice_t::iterator type;
+    };
+} // namespace boost
 
 
 #endif // __X_INDEX_SLICE_HPP_INCLUDED__

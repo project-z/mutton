@@ -124,6 +124,9 @@ prz::index_reader_writer_leveldb_t::read_segment(prz::index_partition_t partitio
         assert(iter->value().size() == PRZ_INDEX_SEGMENT_SIZE);
         memcpy(output, iter->value().data(), PRZ_INDEX_SEGMENT_SIZE);
     }
+    else {
+        memset(output, 0, PRZ_INDEX_SEGMENT_SIZE);
+    }
     return prz::status_t();
 }
 
