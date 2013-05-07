@@ -62,6 +62,7 @@ static prz::index_segment_t SEGMENT_EVERY = {UINT64_MAX, UINT64_MAX, UINT64_MAX,
                                              UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX,
                                              UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX};
 
+typedef std::basic_string<unsigned char> ustring_t;
 
 class index_reader_writer_memory_t :
     public prz::index_reader_t,
@@ -70,7 +71,6 @@ class index_reader_writer_memory_t :
 {
 
 public:
-    typedef std::basic_string<unsigned char> ustring_t;
 
     struct index_key_t {
 

@@ -89,7 +89,9 @@ intersection_range_behavior(prz::index_t&       a_index,
 
 prz::index_t::index_t(index_partition_t partition,
                       const char*       field,
-                      size_t            field_size)
+                      size_t            field_size) :
+    _partition(partition),
+    _field(field, field + field_size)
 {}
 
 prz::status_t
@@ -118,16 +120,17 @@ prz::index_t::execute(index_operation_enum operation,
 
     prz::status_t status;
     if (operation == PRZ_INDEX_OP_INTERSECTION) {
+
         BOOST_FOREACH(const prz::index_t::index_container::value_type& a_pair, a_index) {
             prz::index_t::iterator b_iter = b_index.find(a_pair.first);
 
             if (b_iter != b_index.end()) {
-                status = output.execute(prz::PRZ_INDEX_OP_INTERSECTION, *(a_pair->second), output, output);
+                status = prz::index_slice_t::execute(prz::PRZ_INDEX_OP_INTERSECTION, *(a_pair->second), output, output);
                 if (!status) {
                     return status;
                 }
 
-                status = output.execute(prz::PRZ_INDEX_OP_INTERSECTION, *(b_iter->second), output, output);
+                status = prz::index_slice_t::execute(prz::PRZ_INDEX_OP_INTERSECTION, *(b_iter->second), output, output);
                 if (!status) {
                     return status;
                 }
@@ -137,14 +140,14 @@ prz::index_t::execute(index_operation_enum operation,
     else if (operation == PRZ_INDEX_OP_UNION) {
 
         BOOST_FOREACH(const prz::index_t::index_container::value_type& a_pair, a_index) {
-            status = output.execute(prz::PRZ_INDEX_OP_UNION, *(a_pair.second), output, output);
+            status = prz::index_slice_t::execute(prz::PRZ_INDEX_OP_UNION, *(a_pair.second), output, output);
             if (!status) {
                 return status;
             }
         }
 
         BOOST_FOREACH(const prz::index_t::index_container::value_type& b_pair, b_index) {
-            status = output.execute(prz::PRZ_INDEX_OP_UNION, *(b_pair.second), output, output);
+            status = prz::index_slice_t::execute(prz::PRZ_INDEX_OP_UNION, *(b_pair.second), output, output);
             if (!status) {
                 return status;
             }

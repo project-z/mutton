@@ -84,15 +84,34 @@ find_insertion_point(prz::index_slice_t::iterator begin,
 }
 
 inline prz::index_slice_t::iterator
-get_output_node(prz::index_slice_t&          output,
-                prz::index_slice_t::iterator output_iter,
-                prz::index_address_t         offset)
+get_union_output_node(prz::index_slice_t&          output,
+                      prz::index_slice_t::iterator output_iter,
+                      prz::index_address_t         offset)
 {
     output_iter = find_insertion_point(output_iter, output.end(), offset);
-    if (output_iter == output.end()) {
+    if (output_iter == output.end() || output_iter->offset != offset) {
         return output.insert(output_iter, new prz::index_slice_t::index_node_t(offset));
     }
     return output_iter;
+}
+
+inline prz::index_slice_t::iterator
+get_intersection_output_node(prz::index_slice_t&          output,
+                             prz::index_slice_t::iterator output_iter,
+                             prz::index_address_t         offset)
+{
+    for (;;) {
+        if (output_iter == output.end() || output_iter->offset > offset) {
+            return output.insert(output_iter, new prz::index_slice_t::index_node_t(offset));
+        }
+        else if (output_iter->offset == offset) {
+            return output_iter;
+        }
+        else if (output_iter->offset < offset) {
+            output_iter = output.erase(output_iter);
+        }
+        ++output_iter;
+    }
 }
 
 inline prz::status_t
@@ -113,22 +132,30 @@ union_behavior(prz::index_slice_t& a_index,
             if (&output == &b_index) {
                 break;
             }
-            output_iter = get_output_node(output, output_iter, b_iter->offset);
+            output_iter = get_union_output_node(output, output_iter, b_iter->offset);
             memcpy(output_iter->segment, b_iter->segment, PRZ_INDEX_SEGMENT_SIZE);
             ++b_iter;
         }
+        else if (b_iter == b_index.end()) {
+            if (&output == &a_index) {
+                break;
+            }
+            output_iter = get_union_output_node(output, output_iter, a_iter->offset);
+            memcpy(output_iter->segment, a_iter->segment, PRZ_INDEX_SEGMENT_SIZE);
+            ++a_iter;
+        }
         else if (a_iter->offset < b_iter->offset) {
-            output_iter = get_output_node(output, output_iter, a_iter->offset);
+            output_iter = get_union_output_node(output, output_iter, a_iter->offset);
             memcpy(output_iter->segment, a_iter->segment, PRZ_INDEX_SEGMENT_SIZE);
             ++a_iter;
         }
         else if (a_iter->offset > b_iter->offset) {
-            output_iter = get_output_node(output, output_iter, b_iter->offset);
+            output_iter = get_union_output_node(output, output_iter, b_iter->offset);
             memcpy(output_iter->segment, b_iter->segment, PRZ_INDEX_SEGMENT_SIZE);
             ++b_iter;
         }
         else if (a_iter->offset == b_iter->offset) {
-            output_iter = get_output_node(output, output_iter, b_iter->offset);
+            output_iter = get_union_output_node(output, output_iter, b_iter->offset);
             segment_union(a_iter->segment, b_iter->segment, output_iter->segment);
             ++a_iter;
             ++b_iter;
@@ -165,11 +192,7 @@ intersection_behavior(prz::index_slice_t& a_index,
             ++b_iter;
         }
         else if (a_iter->offset == b_iter->offset) {
-            prz::index_slice_t::iterator new_output_iter = get_output_node(output, output_iter, b_iter->offset);
-            if (output_iter != output.end() && new_output_iter != output_iter) {
-                output.erase(output_iter, new_output_iter);
-            }
-            output_iter = new_output_iter;
+            output_iter = get_intersection_output_node(output, output_iter, b_iter->offset);
             segment_intersection(a_iter->segment, b_iter->segment, output_iter->segment);
             ++a_iter;
             ++b_iter;
