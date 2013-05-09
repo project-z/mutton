@@ -69,6 +69,22 @@ prz::index_t::slice(prz::index_slice_t& output)
 }
 
 prz::status_t
+prz::index_t::index_value(prz::index_reader_t* reader,
+                          prz::index_writer_t* writer,
+                          prz::index_address_t value,
+                          prz::index_address_t who_or_what,
+                          bool                 state)
+{
+    prz::index_t::iterator iter = _index.find(value);
+    if (iter == _index.end()) {
+        iter = insert(value, new prz::index_slice_t(_partition, &_field[0], _field.size(), value)).first;
+    }
+
+    iter->second->bit(reader, writer, who_or_what, state);
+    return prz::status_t(); // XXX TODO better error handling
+}
+
+prz::status_t
 prz::index_t::indexed_value(prz::index_reader_t* reader,
                             prz::index_writer_t* writer,
                             prz::index_address_t value,

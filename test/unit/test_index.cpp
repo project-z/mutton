@@ -20,6 +20,7 @@
 #include <boost/test/unit_test.hpp>
 #include "fixtures.hpp"
 #include "index.hpp"
+#include "range.hpp"
 
 BOOST_AUTO_TEST_SUITE(_index)
 
@@ -52,85 +53,59 @@ BOOST_AUTO_TEST_CASE(index_find)
     BOOST_CHECK(index.find(2) == index.end());
 }
 
-BOOST_AUTO_TEST_CASE(index_execute_static_norange_union_unaligned)
+BOOST_AUTO_TEST_CASE(index_slice_norange)
 {
     index_reader_writer_memory_t reader_writer;
 
-    prz::index_t a(1, "foobar", 6);
-    a.insert(1, new prz::index_slice_t(1, "foobar", 6, 1));
-    a.insert(2, new prz::index_slice_t(1, "foobar", 6, 2));
-    a.begin()->second->bit(&reader_writer, &reader_writer, 2048, true);
-
-    prz::index_t b(1, "bizbang", 7);
-    b.insert(1, new prz::index_slice_t(1, "bizbang", 7, 1));
-    b.insert(2, new prz::index_slice_t(1, "bizbang", 7, 2));
-    b.begin()->second->bit(&reader_writer, &reader_writer, 1, true);
-
-    prz::index_slice_t a_slice;
-    a.slice(a_slice);
-
-    prz::index_slice_t b_slice;
-    b.slice(b_slice);
+    prz::index_t index(1, "foobar", 6);
+    index.index_value(&reader_writer, &reader_writer, 1, 2048, true);
+    index.index_value(&reader_writer, &reader_writer, 3, 2049, true);
 
     prz::index_slice_t o;
-    BOOST_CHECK_EQUAL(0, o.size());
-    prz::index_slice_t::execute(prz::PRZ_INDEX_OP_UNION, a_slice, b_slice, o);
-    BOOST_CHECK_EQUAL(2, o.size());
-}
-
-BOOST_AUTO_TEST_CASE(index_execute_static_norange_intersection_unaligned)
-{
-    index_reader_writer_memory_t reader_writer;
-
-    prz::index_t a(1, "foobar", 6);
-    a.insert(1, new prz::index_slice_t(1, "foobar", 6, 1));
-    a.insert(2, new prz::index_slice_t(1, "foobar", 6, 2));
-    a.begin()->second->bit(&reader_writer, &reader_writer, 2048, true);
-
-    prz::index_t b(1, "bizbang", 7);
-    b.insert(1, new prz::index_slice_t(1, "bizbang", 7, 1));
-    b.insert(2, new prz::index_slice_t(1, "bizbang", 7, 2));
-    b.begin()->second->bit(&reader_writer, &reader_writer, 1, true);
-
-    prz::index_slice_t a_slice;
-    a.slice(a_slice);
-
-    prz::index_slice_t b_slice;
-    b.slice(b_slice);
-
-    prz::index_slice_t o;
-    BOOST_CHECK_EQUAL(0, o.size());
-    prz::index_slice_t::execute(prz::PRZ_INDEX_OP_INTERSECTION, a_slice, b_slice, o);
-    BOOST_CHECK_EQUAL(0, o.size());
-}
-
-BOOST_AUTO_TEST_CASE(index_execute_static_norange_intersection_aligned)
-{
-    index_reader_writer_memory_t reader_writer;
-
-    prz::index_t a(1, "foobar", 6);
-    a.insert(1, new prz::index_slice_t(1, "foobar", 6, 1));
-    a.insert(2, new prz::index_slice_t(1, "foobar", 6, 2));
-    a.begin()->second->bit(&reader_writer, &reader_writer, 3, true);
-
-    prz::index_t b(1, "bizbang", 7);
-    b.insert(1, new prz::index_slice_t(1, "bizbang", 7, 1));
-    b.insert(2, new prz::index_slice_t(1, "bizbang", 7, 2));
-    b.begin()->second->bit(&reader_writer, &reader_writer, 3, true);
-
-    prz::index_slice_t a_slice;
-    a.slice(a_slice);
-
-    prz::index_slice_t b_slice;
-    b.slice(b_slice);
-
-    prz::index_slice_t o;
-    BOOST_CHECK_EQUAL(0, o.size());
-    prz::index_slice_t::execute(prz::PRZ_INDEX_OP_INTERSECTION, a_slice, b_slice, o);
+    index.slice(o);
     BOOST_CHECK_EQUAL(1, o.size());
+    BOOST_CHECK_EQUAL(8, o.begin()->offset);
+    BOOST_CHECK_EQUAL(3, o.begin()->segment[0]);
+}
 
-    BOOST_CHECK_EQUAL(0, o.begin()->offset);
-    BOOST_CHECK_EQUAL(8, o.begin()->segment[0]);
+BOOST_AUTO_TEST_CASE(index_slice_single_range)
+{
+    index_reader_writer_memory_t reader_writer;
+
+    prz::index_t index(1, "foobar", 6);
+    index.index_value(&reader_writer, &reader_writer, 1, 2048, true);
+    index.index_value(&reader_writer, &reader_writer, 2, 1024, true);
+    index.index_value(&reader_writer, &reader_writer, 3, 2049, true);
+
+    prz::range_t range(0, 2);
+
+    prz::index_slice_t o;
+    index.slice(&range, 1, o);
+    BOOST_CHECK_EQUAL(1, o.size());
+    BOOST_CHECK_EQUAL(8, o.begin()->offset);
+    BOOST_CHECK_EQUAL(1, o.begin()->segment[0]);
+}
+
+BOOST_AUTO_TEST_CASE(index_slice_multiple_ranges)
+{
+    index_reader_writer_memory_t reader_writer;
+
+    prz::index_t index(1, "foobar", 6);
+    index.index_value(&reader_writer, &reader_writer, 1, 2048, true);
+    index.index_value(&reader_writer, &reader_writer, 2, 1024, true);
+    index.index_value(&reader_writer, &reader_writer, 3, 2049, true);
+    index.index_value(&reader_writer, &reader_writer, 4, 3049, true);
+
+    std::vector<prz::range_t> ranges;
+    ranges.reserve(2);
+    ranges.push_back(prz::range_t(0, 2));
+    ranges.push_back(prz::range_t(3, 4));
+
+    prz::index_slice_t o;
+    index.slice(&ranges[0], 2, o);
+    BOOST_CHECK_EQUAL(1, o.size());
+    BOOST_CHECK_EQUAL(8, o.begin()->offset);
+    BOOST_CHECK_EQUAL(3, o.begin()->segment[0]);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
