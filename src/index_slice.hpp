@@ -55,6 +55,8 @@ namespace prz {
         typedef slice_container::iterator iterator;
         typedef slice_container::const_iterator const_iterator;
 
+        index_slice_t();
+
         index_slice_t(index_partition_t partition,
                       const char*       field,
                       size_t            field_size,

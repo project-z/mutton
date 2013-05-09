@@ -232,6 +232,11 @@ prz::index_slice_t::index_node_t::zero()
     memset(segment, 0, PRZ_INDEX_SEGMENT_SIZE);
 }
 
+prz::index_slice_t::index_slice_t() :
+    _partition(0),
+    _value(0)
+{}
+
 prz::index_slice_t::index_slice_t(prz::index_partition_t partition,
                                   const char*            field,
                                   size_t                 field_size,

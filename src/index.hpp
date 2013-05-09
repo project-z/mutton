@@ -46,37 +46,13 @@ namespace prz {
                 const char*            field,
                 size_t                 field_size);
 
-        static prz::status_t
-        execute(prz::index_operation_enum operation,
-                prz::index_t&             a_index,
-                prz::index_t&             b_index,
-                prz::range_t*             ranges,
-                size_t                    range_count,
-                prz::index_slice_t&       output);
-
-        static prz::status_t
-        execute(prz::index_operation_enum operation,
-                prz::index_t&             a_index,
-                prz::index_t&             b_index,
-                prz::index_slice_t&       output);
+        prz::status_t
+        slice(prz::index_slice_t&       output);
 
         prz::status_t
-        execute(prz::index_operation_enum operation,
-                prz::index_reader_t*      reader,
-                prz::index_partition_t    partition,
-                const byte_t*             field,
-                size_t                    field_size,
-                prz::index_slice_t&       output);
-
-        prz::status_t
-        execute(prz::index_operation_enum operation,
-                prz::index_reader_t*      reader,
-                prz::index_partition_t    partition,
-                const byte_t*             field,
-                size_t                    field_size,
-                prz::range_t*             ranges,
-                size_t                    range_count,
-                prz::index_slice_t&       output);
+        slice(prz::range_t*             ranges,
+              size_t                    range_count,
+              prz::index_slice_t&       output);
 
         prz::status_t
         index_value(prz::index_reader_t* reader,
