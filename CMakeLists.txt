@@ -20,6 +20,9 @@ else()
   set(Boost_USE_STATIC_RUNTIME OFF)
 endif()
 
+# UTF8-CPP
+set(INCLUDES ${INCLUDES} ${PROJECT_SOURCE_DIR}/ext/utf8/source)
+
 # Boost
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost 1.47.0 COMPONENTS unit_test_framework REQUIRED)

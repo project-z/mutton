@@ -32,7 +32,7 @@ namespace prz {
 
     enum index_operation_enum {
         PRZ_INDEX_OP_INTERSECTION = 0,
-        PRZ_INDEX_OP_UNION = 1,
+        PRZ_INDEX_OP_UNION = 1
     };
 
 } // namespace prz

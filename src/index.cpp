@@ -21,6 +21,7 @@
 
 #include "range.hpp"
 #include "index.hpp"
+#include "trigram.hpp"
 
 typedef boost::counting_iterator<prz::index_address_t> counting_iterator;
 
@@ -83,6 +84,30 @@ prz::index_t::index_value(prz::index_reader_t* reader,
     iter->second->bit(reader, writer, who_or_what, state);
     return prz::status_t(); // XXX TODO better error handling
 }
+
+prz::status_t
+prz::index_t::index_value(prz::index_reader_t* reader,
+                          prz::index_writer_t* writer,
+                          const char*          value,
+                          const char*          end,
+                          prz::index_address_t who_or_what,
+                          bool                 state)
+{
+    prz::status_t status;
+    prz::trigram_t trigram;
+    char* pos = const_cast<char*>(value);
+    while ((pos = prz::trigram_t::init(pos, end, &trigram)) < end) {
+        status = index_value(reader, writer, trigram.hash(), who_or_what, state);
+        if (!status) {
+            return status;
+        }
+        trigram.zero();
+    }
+    return status;
+}
+
+
+
 
 prz::status_t
 prz::index_t::indexed_value(prz::index_reader_t* reader,
