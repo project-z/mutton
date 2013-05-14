@@ -1,14 +1,14 @@
 /*
   Copyright (c) 2013 Matthew Stump
 
-  This file is part of libprz.
+  This file is part of libmtn.
 
-  libprz is free software: you can redistribute it and/or modify
+  libmtn is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as
   published by the Free Software Foundation, either version 3 of the
   License, or (at your option) any later version.
 
-  libprz is distributed in the hope that it will be useful,
+  libmtn is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU Affero General Public License for more details.
@@ -26,7 +26,7 @@
 #include "base_types.hpp"
 #include "status.hpp"
 
-namespace prz {
+namespace mtn {
 
     class index_reader_t;
     class index_writer_t;
@@ -50,8 +50,8 @@ namespace prz {
             zero();
         };
 
-        typedef prz::index_slice_t::index_node_t type;
-        typedef boost::ptr_list<prz::index_slice_t::index_node_t> slice_container;
+        typedef mtn::index_slice_t::index_node_t type;
+        typedef boost::ptr_list<mtn::index_slice_t::index_node_t> slice_container;
         typedef slice_container::iterator iterator;
         typedef slice_container::const_iterator const_iterator;
 
@@ -69,32 +69,32 @@ namespace prz {
 
         index_slice_t(const index_slice_t& other);
 
-        static prz::status_t
+        static mtn::status_t
         execute(index_operation_enum operation,
                 index_slice_t&       a_index,
                 index_slice_t&       b_index,
                 index_slice_t&       output);
 
-        prz::status_t
-        execute(prz::index_operation_enum operation,
-                prz::index_reader_t*      reader,
+        mtn::status_t
+        execute(mtn::index_operation_enum operation,
+                mtn::index_reader_t*      reader,
                 index_partition_t         partition,
                 const byte_t*             field,
                 size_t                    field_size,
                 index_address_t           value,
                 index_slice_t&            output);
 
-        prz::status_t
-        execute(prz::index_operation_enum operation,
-                prz::index_reader_t*      reader,
+        mtn::status_t
+        execute(mtn::index_operation_enum operation,
+                mtn::index_reader_t*      reader,
                 index_partition_t         partition,
                 const byte_t*             field,
                 size_t                    field_size,
                 index_address_t           value);
 
-        prz::status_t
-        bit(prz::index_reader_t* reader,
-            prz::index_writer_t* writer,
+        mtn::status_t
+        bit(mtn::index_reader_t* reader,
+            mtn::index_writer_t* writer,
             index_address_t      bit,
             bool                 state);
 
@@ -113,7 +113,7 @@ namespace prz {
         index_address_t
         value() const;
 
-        prz::index_slice_t&
+        mtn::index_slice_t&
         operator=(const index_slice_t& other);
 
         inline iterator
@@ -179,21 +179,21 @@ namespace prz {
         index_address_t     _value;
     };
 
-} // namespace prz
+} // namespace mtn
 
 namespace boost
 {
     // specialize range_mutable_iterator and range_const_iterator in namespace boost
     template<>
-    struct range_mutable_iterator< prz::index_slice_t >
+    struct range_mutable_iterator< mtn::index_slice_t >
     {
-        typedef prz::index_slice_t::iterator type;
+        typedef mtn::index_slice_t::iterator type;
     };
 
     template<>
-    struct range_const_iterator< prz::index_slice_t >
+    struct range_const_iterator< mtn::index_slice_t >
     {
-        typedef prz::index_slice_t::iterator type;
+        typedef mtn::index_slice_t::iterator type;
     };
 } // namespace boost
 

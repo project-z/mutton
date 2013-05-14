@@ -1,14 +1,14 @@
 /*
   Copyright (c) 2013 Matthew Stump
 
-  This file is part of libprz.
+  This file is part of libmtn.
 
-  libprz is free software: you can redistribute it and/or modify
+  libmtn is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as
   published by the Free Software Foundation, either version 3 of the
   License, or (at your option) any later version.
 
-  libprz is distributed in the hope that it will be useful,
+  libmtn is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU Affero General Public License for more details.
@@ -25,23 +25,23 @@
 
 #include "base_types.hpp"
 
-namespace prz {
+namespace mtn {
 
     struct range_t {
-        prz::index_address_t start;
-        prz::index_address_t limit;
+        mtn::index_address_t start;
+        mtn::index_address_t limit;
 
-        typedef boost::counting_iterator<prz::index_address_t> counting_iterator;
+        typedef boost::counting_iterator<mtn::index_address_t> counting_iterator;
         typedef boost::iterator_range<counting_iterator> iterator;
 
-        range_t(const prz::index_address_t s,
-                const prz::index_address_t l) :
+        range_t(const mtn::index_address_t s,
+                const mtn::index_address_t l) :
             start(s),
             limit(l)
         {}
 
         inline bool
-        in_range(prz::index_address_t value)
+        in_range(mtn::index_address_t value)
         {
             return value >= start && value < limit;
         }
@@ -53,6 +53,6 @@ namespace prz {
         }
     };
 
-} // namespace prz
+} // namespace mtn
 
 #endif // __X_RANGE_HPP_INCLUDED__

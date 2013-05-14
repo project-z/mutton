@@ -1,14 +1,14 @@
 /*
   Copyright (c) 2013 Matthew Stump
 
-  This file is part of libprz.
+  This file is part of libmtn.
 
-  libprz is free software: you can redistribute it and/or modify
+  libmtn is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as
   published by the Free Software Foundation, either version 3 of the
   License, or (at your option) any later version.
 
-  libprz is distributed in the hope that it will be useful,
+  libmtn is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU Affero General Public License for more details.
@@ -25,9 +25,9 @@ BOOST_AUTO_TEST_SUITE(trigram)
 BOOST_AUTO_TEST_CASE(simple)
 {
     std::string input = "foobar";
-    prz::trigram_t output;
+    mtn::trigram_t output;
 
-    char* new_ptr = prz::trigram_t::init(input.c_str(), input.c_str() + input.size(), &output);
+    char* new_ptr = mtn::trigram_t::init(input.c_str(), input.c_str() + input.size(), &output);
 
     BOOST_CHECK_EQUAL(input.c_str() + 3, new_ptr);
     BOOST_CHECK_EQUAL(102, output.one);
@@ -39,9 +39,9 @@ BOOST_AUTO_TEST_CASE(simple)
 BOOST_AUTO_TEST_CASE(small)
 {
     std::string input = "fo";
-    prz::trigram_t output;
+    mtn::trigram_t output;
 
-    char* new_ptr = prz::trigram_t::init(input.c_str(), input.c_str() + input.size(), &output);
+    char* new_ptr = mtn::trigram_t::init(input.c_str(), input.c_str() + input.size(), &output);
 
     BOOST_CHECK_EQUAL(input.c_str() + 2, new_ptr);
     BOOST_CHECK_EQUAL(102, output.one);
@@ -53,14 +53,14 @@ BOOST_AUTO_TEST_CASE(small)
 BOOST_AUTO_TEST_CASE(loop)
 {
     std::string input = "fooooooo";
-    prz::trigram_t output;
+    mtn::trigram_t output;
 
     int counter = 0;
     char* pos = const_cast<char*>(input.c_str());
     const char* end = pos + input.size();
 
     for (;;) {
-        pos = prz::trigram_t::init(pos, end, &output);
+        pos = mtn::trigram_t::init(pos, end, &output);
         ++counter;
         if (pos == end) {
             break;

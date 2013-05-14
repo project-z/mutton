@@ -1,14 +1,14 @@
 /*
   Copyright (c) 2013 Matthew Stump
 
-  This file is part of libprz.
+  This file is part of libmtn.
 
-  libprz is free software: you can redistribute it and/or modify
+  libmtn is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as
   published by the Free Software Foundation, either version 3 of the
   License, or (at your option) any later version.
 
-  libprz is distributed in the hope that it will be useful,
+  libmtn is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU Affero General Public License for more details.
@@ -28,7 +28,7 @@
 #include "base_types.hpp"
 #include "status.hpp"
 
-namespace prz {
+namespace mtn {
 
 #pragma pack(push, 1)
 
@@ -69,7 +69,7 @@ namespace prz {
             return input_pos;
         }
 
-        inline prz::index_address_t
+        inline mtn::index_address_t
         hash()
         {
             return CityHash64(reinterpret_cast<char*>(this), sizeof(uint32_t) * 3);
@@ -78,13 +78,13 @@ namespace prz {
         static inline void
         to_trigrams(const char* start,
                     const char* end,
-                    std::set<prz::index_address_t>& output)
+                    std::set<mtn::index_address_t>& output)
         {
-            prz::trigram_t trigram;
+            mtn::trigram_t trigram;
             char* pos = const_cast<char*>(start);
 
             for (;;) {
-                pos = prz::trigram_t::init(pos, end, &trigram);
+                pos = mtn::trigram_t::init(pos, end, &trigram);
                 output.insert(trigram.hash());
                 if (pos == end) {
                     break;
@@ -96,7 +96,7 @@ namespace prz {
     };
 #pragma pack(pop)
 
-} // namespace prz
+} // namespace mtn
 
 
 #endif // __X_TRIGRAM_HPP_INCLUDED__

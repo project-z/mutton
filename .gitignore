@@ -19,16 +19,16 @@ CTestTestfile.cmake
 Makefile
 cmake_install.cmake
 cmake_uninstall.cmake
-libprz-config-version.cmake
-libprz-config.cmake
-libprz-targets.cmake
+libmtn-config-version.cmake
+libmtn-config.cmake
+libmtn-targets.cmake
 install_manifest.txt
 
 # build files
 build/
 Testing/
-src/demo/prz_demo
-test/unit/prz_test
+src/demo/mutton_demo
+test/unit/mutton_test
 
 # editor
 *.swp

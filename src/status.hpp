@@ -1,14 +1,14 @@
 /*
   Copyright (c) 2013 Matthew Stump
 
-  This file is part of libprz.
+  This file is part of libmtn.
 
-  libprz is free software: you can redistribute it and/or modify
+  libmtn is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as
   published by the Free Software Foundation, either version 3 of the
   License, or (at your option) any later version.
 
-  libprz is distributed in the hope that it will be useful,
+  libmtn is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU Affero General Public License for more details.
@@ -23,9 +23,9 @@
 #include <string>
 #include "libcql/cql.hpp"
 
-#define PRZ_ERROR_INDEX_OPERATION 1
+#define MTN_ERROR_INDEX_OPERATION 1
 
-namespace prz {
+namespace mtn {
 
     struct status_t
     {
@@ -60,6 +60,6 @@ namespace prz {
             return !(library || local_storage);
         }
     };
-} // namespace prz
+} // namespace mtn
 
 #endif // __X_STATUS_H_

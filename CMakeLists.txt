@@ -1,13 +1,13 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.0)
-set(PROJECT_NAME_STR prz)
+set(PROJECT_NAME_STR mutton)
 project(${PROJECT_NAME_STR} C CXX)
 
 #-------------------
 # The version number
 #-------------------
-set (libprz_VERSION_MAJOR 0)
-set (libprz_VERSION_MINOR 5)
-set (libprz_VERSION_STRING ${libprz_VERSION_MAJOR}.${libprz_VERSION_MINOR})
+set (libmutton_VERSION_MAJOR 0)
+set (libmutton_VERSION_MINOR 5)
+set (libmutton_VERSION_STRING ${libmutton_VERSION_MAJOR}.${libmutton_VERSION_MINOR})
 
 #-------------------
 # setup deps
@@ -73,7 +73,7 @@ set(INCLUDES ${INCLUDES} ${LUA_INCLUDE_DIR} )
 set(LIBS ${LIBS} ${LUA_LIBRARIES} )
 
 #-------------------
-# libprz static, shared and executable
+# libmutton static, shared and executable
 #-------------------
 set(PROJECT_LIB_NAME ${PROJECT_NAME_STR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "build/bin/")
@@ -82,17 +82,15 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build/bin)
 set(PROJECT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 
-include_directories(${INCLUDES} ${PROJECT_INCLUDE_DIR}/libprz ${PROJECT_SOURCE_DIR}/src)
+include_directories(${INCLUDES} ${PROJECT_INCLUDE_DIR}/libmutton ${PROJECT_SOURCE_DIR}/src)
 file(GLOB SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
 
 add_library(${PROJECT_LIB_NAME} SHARED ${SRC_FILES})
 add_library(${PROJECT_LIB_NAME}-static STATIC ${SRC_FILES})
-add_executable("fooprz" ${SRC_FILES})
-target_link_libraries("fooprz" ${LIBS})
 
 target_link_libraries(${PROJECT_LIB_NAME} ${LIBS})
 SET_TARGET_PROPERTIES(${PROJECT_LIB_NAME}-static PROPERTIES OUTPUT_NAME ${PROJECT_LIB_NAME})
-SET_TARGET_PROPERTIES(${PROJECT_LIB_NAME} PROPERTIES VERSION ${libprz_VERSION_MAJOR}.${libprz_VERSION_MINOR} SOVERSION ${libprz_VERSION_MAJOR})
+SET_TARGET_PROPERTIES(${PROJECT_LIB_NAME} PROPERTIES VERSION ${libmutton_VERSION_MAJOR}.${libmutton_VERSION_MINOR} SOVERSION ${libmutton_VERSION_MAJOR})
 
 set_property(
   TARGET ${PROJECT_LIB_NAME}
@@ -105,8 +103,8 @@ set_property(
 #-------------------
 # install target
 #-------------------
-FILE(GLOB INSTALL_HEADERS "${PROJECT_INCLUDE_DIR}/libprz/*.hpp")
-INSTALL(FILES ${INSTALL_HEADERS} DESTINATION include/libprz)
+FILE(GLOB INSTALL_HEADERS "${PROJECT_INCLUDE_DIR}/libmutton/*.hpp")
+INSTALL(FILES ${INSTALL_HEADERS} DESTINATION include/libmutton)
 
 INSTALL(TARGETS ${PROJECT_LIB_NAME}-static ${PROJECT_LIB_NAME}
   RUNTIME DESTINATION bin

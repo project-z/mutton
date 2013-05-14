@@ -1,14 +1,14 @@
 /*
   Copyright (c) 2013 Matthew Stump
 
-  This file is part of libprz.
+  This file is part of libmtn.
 
-  libprz is free software: you can redistribute it and/or modify
+  libmtn is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as
   published by the Free Software Foundation, either version 3 of the
   License, or (at your option) any later version.
 
-  libprz is distributed in the hope that it will be useful,
+  libmtn is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU Affero General Public License for more details.
@@ -23,7 +23,7 @@
 #include "base_types.hpp"
 #include "status.hpp"
 
-namespace prz {
+namespace mtn {
 
     class index_t;
     class index_slice_t;
@@ -37,35 +37,35 @@ namespace prz {
         ~index_reader_t()
         {}
 
-        virtual prz::status_t
-        read_index(prz::index_partition_t partition,
-                   const prz::byte_t*     field,
+        virtual mtn::status_t
+        read_index(mtn::index_partition_t partition,
+                   const mtn::byte_t*     field,
                    size_t                 field_size,
-                   prz::index_t*          output) = 0;
+                   mtn::index_t*          output) = 0;
 
-        virtual prz::status_t
-        read_index_slice(prz::index_partition_t partition,
-                         const prz::byte_t*     field,
+        virtual mtn::status_t
+        read_index_slice(mtn::index_partition_t partition,
+                         const mtn::byte_t*     field,
                          size_t                 field_size,
-                         prz::index_address_t   value,
-                         prz::index_slice_t*    output) = 0;
+                         mtn::index_address_t   value,
+                         mtn::index_slice_t*    output) = 0;
 
-        virtual prz::status_t
-        read_segment(prz::index_partition_t partition,
+        virtual mtn::status_t
+        read_segment(mtn::index_partition_t partition,
                      const byte_t*          field,
                      size_t                 field_size,
-                     prz::index_address_t   value,
-                     prz::index_address_t   offset,
-                     prz::index_segment_ptr output) = 0;
+                     mtn::index_address_t   value,
+                     mtn::index_address_t   offset,
+                     mtn::index_segment_ptr output) = 0;
 
-        virtual prz::status_t
-        estimateSize(prz::index_partition_t partition,
+        virtual mtn::status_t
+        estimateSize(mtn::index_partition_t partition,
                      const byte_t*          field,
                      size_t                 field_size,
-                     prz::index_address_t   value,
+                     mtn::index_address_t   value,
                      uint64_t*              output) = 0;
     };
 
-} // namespace prz
+} // namespace mtn
 
 #endif // __X_INDEX_READER_HPP_INCLUDED__
