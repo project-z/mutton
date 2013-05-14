@@ -9,7 +9,7 @@ A distributed bitmap index and query engine for embedding or overlaying on top o
 ```
 keyspace user_events
 row_id -> [product, user]
-colmns -> event_name : counter
+columns -> event_name : counter
 
 [prod1, user1] : {login : 1}
 [prod1, user1] : {landing_page : 2}
