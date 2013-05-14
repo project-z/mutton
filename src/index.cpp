@@ -33,25 +33,57 @@ mtn::index_t::index_t(mtn::index_partition_t partition,
 {}
 
 mtn::status_t
-mtn::index_t::slice(mtn::range_t*       ranges,
-                    size_t              range_count,
-                    mtn::index_slice_t& output)
+mtn::index_t::slice(mtn::index_address_t*     trigrams,
+                    size_t                    trigrams_count,
+                    mtn::index_operation_enum operation,
+                    mtn::index_slice_t&       output)
+{
+    std::vector<mtn::range_t> ranges(trigrams_count, mtn::range_t());
+    for (int i = 0; i < trigrams_count; ++i) {
+        ranges[i].start = trigrams[i];
+        ranges[i].limit = trigrams[i] + 1;
+    }
+
+    return slice(&ranges[0], trigrams_count, operation, output);
+}
+
+mtn::status_t
+mtn::index_t::slice(mtn::range_t*             ranges,
+                    size_t                    range_count,
+                    mtn::index_operation_enum operation,
+                    mtn::index_slice_t&       output)
 {
     mtn::status_t status;
+    bool first_iteration = true;
+
     for (int r = 0; r < range_count; ++r) {
         BOOST_FOREACH(mtn::index_address_t a, boost::make_iterator_range(counting_iterator(ranges[r].start), counting_iterator(ranges[r].limit))) {
             mtn::index_t::iterator iter = find(a);
 
             if (iter != end()) {
-                status = output.execute(mtn::MTN_INDEX_OP_UNION, *(iter->second), output, output);
-                if (!status) {
-                    return status;
+                if (first_iteration) {
+                    output = *(iter->second);
+                    first_iteration = false;
+                }
+                else {
+                    status = output.execute(operation, *(iter->second), output, output);
+                    if (!status) {
+                        return status;
+                    }
                 }
             }
         }
     }
 
     return status;
+}
+
+mtn::status_t
+mtn::index_t::slice(mtn::range_t*             ranges,
+                    size_t                    range_count,
+                    mtn::index_slice_t&       output)
+{
+    return slice(ranges, range_count, MTN_INDEX_OP_UNION, output);
 }
 
 mtn::status_t

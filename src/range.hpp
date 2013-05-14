@@ -34,6 +34,11 @@ namespace mtn {
         typedef boost::counting_iterator<mtn::index_address_t> counting_iterator;
         typedef boost::iterator_range<counting_iterator> iterator;
 
+        range_t() :
+            start(0),
+            limit(0)
+        {}
+
         range_t(const mtn::index_address_t s,
                 const mtn::index_address_t l) :
             start(s),

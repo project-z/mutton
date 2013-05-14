@@ -55,6 +55,18 @@ namespace mtn {
               mtn::index_slice_t&       output);
 
         mtn::status_t
+        slice(mtn::range_t*             ranges,
+              size_t                    range_count,
+              mtn::index_operation_enum operation,
+              mtn::index_slice_t&       output);
+
+        mtn::status_t
+        slice(mtn::index_address_t*     trigrams,
+              size_t                    trigrams_count,
+              mtn::index_operation_enum operation,
+              mtn::index_slice_t&       output);
+
+        mtn::status_t
         index_value(mtn::index_reader_t* reader,
                     mtn::index_writer_t* writer,
                     mtn::index_address_t value,
