@@ -86,28 +86,36 @@ prz::index_t::index_value(prz::index_reader_t* reader,
 }
 
 prz::status_t
-prz::index_t::index_value(prz::index_reader_t* reader,
-                          prz::index_writer_t* writer,
-                          const char*          value,
-                          const char*          end,
-                          prz::index_address_t who_or_what,
-                          bool                 state)
+prz::index_t::index_value_trigram(prz::index_reader_t* reader,
+                                  prz::index_writer_t* writer,
+                                  const char*          value,
+                                  const char*          end,
+                                  prz::index_address_t who_or_what,
+                                  bool                 state)
 {
     prz::status_t status;
-    prz::trigram_t trigram;
-    char* pos = const_cast<char*>(value);
-    while ((pos = prz::trigram_t::init(pos, end, &trigram)) < end) {
-        status = index_value(reader, writer, trigram.hash(), who_or_what, state);
+    std::set<prz::index_address_t> trigrams;
+    prz::trigram_t::to_trigrams(value, end, trigrams);
+
+    BOOST_FOREACH(prz::index_address_t value, trigrams) {
+        status = index_value(reader, writer, value, who_or_what, state);
         if (!status) {
             return status;
         }
-        trigram.zero();
     }
     return status;
 }
 
-
-
+prz::status_t
+prz::index_t::index_value_hash(prz::index_reader_t* reader,
+                               prz::index_writer_t* writer,
+                               const char*          value,
+                               size_t               len,
+                               prz::index_address_t who_or_what,
+                               bool                 state)
+{
+    return index_value(reader, writer, CityHash64(value, len), who_or_what, state);
+}
 
 prz::status_t
 prz::index_t::indexed_value(prz::index_reader_t* reader,

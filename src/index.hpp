@@ -62,12 +62,20 @@ namespace prz {
                     bool                 state);
 
         prz::status_t
-        index_value(prz::index_reader_t* reader,
-                    prz::index_writer_t* writer,
-                    const char*          value,
-                    const char*          end,
-                    prz::index_address_t who_or_what,
-                    bool                 state);
+        index_value_trigram(prz::index_reader_t* reader,
+                            prz::index_writer_t* writer,
+                            const char*          value,
+                            const char*          end,
+                            prz::index_address_t who_or_what,
+                            bool                 state);
+
+        prz::status_t
+        index_value_hash(prz::index_reader_t* reader,
+                         prz::index_writer_t* writer,
+                         const char*          value,
+                         size_t               len,
+                         prz::index_address_t who_or_what,
+                         bool                 state);
 
         prz::status_t
         indexed_value(prz::index_reader_t* reader,

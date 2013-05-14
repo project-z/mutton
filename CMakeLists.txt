@@ -42,7 +42,7 @@ if(LevelDB_INCLUDE_DIRS AND LevelDB_LIBRARIES)
 endif(LevelDB_INCLUDE_DIRS AND LevelDB_LIBRARIES)
 
 if(LevelDB_FOUND)
-  message(STATUS "Found LevelDB: ${LevelDB_LIBRARY}")
+  message(STATUS "Found LevelDB: ${LevelDB_LIBRARIES}")
 else(LevelDB_FOUND)
   message(FATAL_ERROR "Could not find leveldb library.")
 endif(LevelDB_FOUND)
@@ -50,8 +50,30 @@ endif(LevelDB_FOUND)
 set(INCLUDES ${INCLUDES} ${LevelDB_INCLUDE_DIRS} )
 set(LIBS ${LIBS} ${LevelDB_LIBRARIES} )
 
+# CityHash
+find_path(CityHash_INCLUDE_DIRS NAMES city.h HINTS /usr/include /usr/local/include)
+find_library(CityHash_LIBRARIES NAMES libcityhash.a libcityhash.lib libcityhash.dylib HINTS /usr/lib /usr/local/lib)
+
+if(CityHash_INCLUDE_DIRS AND CityHash_LIBRARIES)
+  set(CityHash_FOUND TRUE)
+endif(CityHash_INCLUDE_DIRS AND CityHash_LIBRARIES)
+
+if(CityHash_FOUND)
+  message(STATUS "Found CityHash: ${CityHash_LIBRARIES}")
+else(CityHash_FOUND)
+  message(FATAL_ERROR "Could not find CityHash library.")
+endif(CityHash_FOUND)
+
+set(INCLUDES ${INCLUDES} ${CityHash_INCLUDE_DIRS} )
+set(LIBS ${LIBS} ${CityHash_LIBRARIES} )
+
+# Lua 5.1
+find_package(Lua51 REQUIRED)
+set(INCLUDES ${INCLUDES} ${LUA_INCLUDE_DIR} )
+set(LIBS ${LIBS} ${LUA_LIBRARIES} )
+
 #-------------------
-# libprz static and shared
+# libprz static, shared and executable
 #-------------------
 set(PROJECT_LIB_NAME ${PROJECT_NAME_STR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "build/bin/")
@@ -65,6 +87,8 @@ file(GLOB SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
 
 add_library(${PROJECT_LIB_NAME} SHARED ${SRC_FILES})
 add_library(${PROJECT_LIB_NAME}-static STATIC ${SRC_FILES})
+add_executable("fooprz" ${SRC_FILES})
+target_link_libraries("fooprz" ${LIBS})
 
 target_link_libraries(${PROJECT_LIB_NAME} ${LIBS})
 SET_TARGET_PROPERTIES(${PROJECT_LIB_NAME}-static PROPERTIES OUTPUT_NAME ${PROJECT_LIB_NAME})

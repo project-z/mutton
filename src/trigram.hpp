@@ -20,12 +20,13 @@
 #ifndef __X_TRIGRAM_HPP_INCLUDED__
 #define __X_TRIGRAM_HPP_INCLUDED__
 
-#include <boost/crc.hpp>
+#include <set>
+
+#include "city.h"
+#include "utf8.h"
 
 #include "base_types.hpp"
 #include "status.hpp"
-
-#include "utf8.h"
 
 namespace prz {
 
@@ -71,16 +72,29 @@ namespace prz {
         inline prz::index_address_t
         hash()
         {
-            boost::crc_optimal<64, 0x04C11DB7, 0, 0, false, false> crc;
-            crc.process_bytes(this, sizeof(uint32_t) * 3);
-            return crc.checksum();
+            return CityHash64(reinterpret_cast<char*>(this), sizeof(uint32_t) * 3);
+        }
+
+        static inline void
+        to_trigrams(const char* start,
+                    const char* end,
+                    std::set<prz::index_address_t>& output)
+        {
+            prz::trigram_t trigram;
+            char* pos = const_cast<char*>(start);
+
+            for (;;) {
+                pos = prz::trigram_t::init(pos, end, &trigram);
+                output.insert(trigram.hash());
+                if (pos == end) {
+                    break;
+                }
+                trigram.zero();
+            }
         }
 
     };
 #pragma pack(pop)
-
-
-
 
 } // namespace prz
 

@@ -22,6 +22,8 @@
 #include "index.hpp"
 #include "range.hpp"
 
+#include "city.h"
+
 BOOST_AUTO_TEST_SUITE(_index)
 
 BOOST_AUTO_TEST_CASE(index_partition)
@@ -107,5 +109,21 @@ BOOST_AUTO_TEST_CASE(index_slice_multiple_ranges)
     BOOST_CHECK_EQUAL(8, o.begin()->offset);
     BOOST_CHECK_EQUAL(3, o.begin()->segment[0]);
 }
+
+// BOOST_AUTO_TEST_CASE(index_index_hash)
+// {
+//     index_reader_writer_memory_t reader_writer;
+
+//     prz::index_t index(1, "foobar", 6);
+//     index.index_value_hash(&reader_writer, &reader_writer, "foobar", 6, 2048, true);
+//     std::cout << "foobar: " << CityHash64("foobar", 6) << std::endl;
+
+//     prz::index_slice_t o;
+//     index.slice(o);
+
+//     BOOST_CHECK_EQUAL(1, o.size());
+//     BOOST_CHECK_EQUAL(8, o.begin()->offset);
+//     BOOST_CHECK_EQUAL(1, o.begin()->segment[0]);
+// }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -33,7 +33,7 @@ BOOST_AUTO_TEST_CASE(simple)
     BOOST_CHECK_EQUAL(102, output.one);
     BOOST_CHECK_EQUAL(111, output.two);
     BOOST_CHECK_EQUAL(111, output.three);
-    BOOST_CHECK_EQUAL(18081745206516578866ULL, output.hash());
+    BOOST_CHECK_EQUAL(449053481852041171ULL, output.hash());
 }
 
 BOOST_AUTO_TEST_CASE(small)
@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE(small)
     BOOST_CHECK_EQUAL(102, output.one);
     BOOST_CHECK_EQUAL(111, output.two);
     BOOST_CHECK_EQUAL(0, output.three);
-    BOOST_CHECK_EQUAL(18122317844775107122ULL, output.hash());
+    BOOST_CHECK_EQUAL(14721480736911785443ULL, output.hash());
 }
 
 BOOST_AUTO_TEST_CASE(loop)
@@ -59,15 +59,19 @@ BOOST_AUTO_TEST_CASE(loop)
     char* pos = const_cast<char*>(input.c_str());
     const char* end = pos + input.size();
 
-    while ((pos = prz::trigram_t::init(pos, end, &output)) < end) {
-        output.zero();
+    for (;;) {
+        pos = prz::trigram_t::init(pos, end, &output);
         ++counter;
+        if (pos == end) {
+            break;
+        }
+        output.zero();
     }
 
     BOOST_CHECK_EQUAL(111, output.one);
     BOOST_CHECK_EQUAL(111, output.two);
     BOOST_CHECK_EQUAL(0, output.three);
-    BOOST_CHECK_EQUAL(2, counter);
+    BOOST_CHECK_EQUAL(3, counter);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
