@@ -17,8 +17,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __X_TRIGRAM_HPP_INCLUDED__
-#define __X_TRIGRAM_HPP_INCLUDED__
+#ifndef __MUTTON_TRIGRAM_HPP_INCLUDED__
+#define __MUTTON_TRIGRAM_HPP_INCLUDED__
 
 #include <set>
 
@@ -99,4 +99,4 @@ namespace mtn {
 } // namespace mtn
 
 
-#endif // __X_TRIGRAM_HPP_INCLUDED__
+#endif // __MUTTON_TRIGRAM_HPP_INCLUDED__

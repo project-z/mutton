@@ -17,8 +17,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __X_INDEX_READER_WRITER_LEVELDB_HPP_INCLUDED__
-#define __X_INDEX_READER_WRITER_LEVELDB_HPP_INCLUDED__
+#ifndef __MUTTON_INDEX_READER_WRITER_LEVELDB_HPP_INCLUDED__
+#define __MUTTON_INDEX_READER_WRITER_LEVELDB_HPP_INCLUDED__
 
 #include <leveldb/db.h>
 
@@ -84,4 +84,4 @@ namespace mtn {
 
 } // namespace mtn
 
-#endif // __X_INDEX_READER_WRITER_LEVELDB_HPP_INCLUDED__
+#endif // __MUTTON_INDEX_READER_WRITER_LEVELDB_HPP_INCLUDED__

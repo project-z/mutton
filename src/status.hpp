@@ -17,8 +17,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __X_STATUS_H_
-#define __X_STATUS_H_
+#ifndef __MUTTON_STATUS_H_
+#define __MUTTON_STATUS_H_
 
 #include <string>
 #include "libcql/cql.hpp"
@@ -62,4 +62,4 @@ namespace mtn {
     };
 } // namespace mtn
 
-#endif // __X_STATUS_H_
+#endif // __MUTTON_STATUS_H_

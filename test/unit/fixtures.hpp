@@ -17,8 +17,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __X_TEST_FIXTURES_HPP_INCLUDED__
-#define __X_TEST_FIXTURES_HPP_INCLUDED__
+#ifndef __MUTTON_TEST_FIXTURES_HPP_INCLUDED__
+#define __MUTTON_TEST_FIXTURES_HPP_INCLUDED__
 
 #include <stdint.h>
 #include <boost/bind.hpp>
@@ -219,4 +219,4 @@ private:
 };
 
 
-#endif // __X_TEST_FIXTURES_HPP_INCLUDED__
+#endif // __MUTTON_TEST_FIXTURES_HPP_INCLUDED__

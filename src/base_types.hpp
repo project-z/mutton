@@ -17,8 +17,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __X_BASE_TYPES_HPP_INCLUDED__
-#define __X_BASE_TYPES_HPP_INCLUDED__
+#ifndef __MUTTON_BASE_TYPES_HPP_INCLUDED__
+#define __MUTTON_BASE_TYPES_HPP_INCLUDED__
 
 #define MTN_INDEX_SEGMENT_LENGTH 32
 #define MTN_INDEX_SEGMENT_SIZE MTN_INDEX_SEGMENT_LENGTH * sizeof(uint64_t)
@@ -37,4 +37,4 @@ namespace mtn {
 
 } // namespace mtn
 
-#endif // __X_BASE_TYPES_HPP_INCLUDED__
+#endif // __MUTTON_BASE_TYPES_HPP_INCLUDED__

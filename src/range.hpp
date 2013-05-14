@@ -17,8 +17,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __X_RANGE_HPP_INCLUDED__
-#define __X_RANGE_HPP_INCLUDED__
+#ifndef __MUTTON_RANGE_HPP_INCLUDED__
+#define __MUTTON_RANGE_HPP_INCLUDED__
 
 #include <boost/iterator/counting_iterator.hpp>
 #include <boost/range/iterator_range.hpp>
@@ -55,4 +55,4 @@ namespace mtn {
 
 } // namespace mtn
 
-#endif // __X_RANGE_HPP_INCLUDED__
+#endif // __MUTTON_RANGE_HPP_INCLUDED__
