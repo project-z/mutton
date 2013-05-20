@@ -37,12 +37,38 @@ mtn::index_reader_writer_leveldb_t::read_index(mtn::index_partition_t partition,
                                                size_t                 field_size,
                                                mtn::index_t*          output)
 {
+    mtn::index_reader_t::index_container container;
+    mtn::status_t status = read_indexes(partition, field, field_size, NULL, 0, &container);
+
+    if (status) {
+        output = container.release(container.begin()).release();
+    }
+    return status;
+}
+
+mtn::status_t
+mtn::index_reader_writer_leveldb_t::read_indexes(mtn::index_partition_t                partition,
+                                                 const mtn::byte_t*                    start_field,
+                                                 size_t                                start_field_size,
+                                                 const mtn::byte_t*                    end_field,
+                                                 size_t                                end_field_size,
+                                                 mtn::index_reader_t::index_container* output)
+{
     std::vector<char> start_key;
     std::vector<char> stop_key;
-    encode_index_key(partition, reinterpret_cast<const char*>(field), field_size, 0, 0, start_key);
-    encode_index_key(partition, reinterpret_cast<const char*>(field), field_size, UINT64_MAX, UINT64_MAX, stop_key);
+    encode_index_key(partition, reinterpret_cast<const char*>(start_field), start_field_size, 0, 0, start_key);
+
+    if (end_field) {
+        encode_index_key(partition, reinterpret_cast<const char*>(end_field), end_field_size, UINT64_MAX, UINT64_MAX, stop_key);
+    }
+    else {
+        encode_index_key(partition + 1, NULL, 0, 0, 0, stop_key);
+    }
+
     leveldb::Slice start_slice(reinterpret_cast<char*>(&start_key[0]), start_key.size());
 
+    std::vector<char> current_field;
+    mtn::index_t* current_index = NULL;
     mtn::index_slice_t* current_slice = NULL;
     mtn::index_address_t current_slice_value = UINT64_MAX;
 
@@ -51,21 +77,31 @@ mtn::index_reader_writer_leveldb_t::read_index(mtn::index_partition_t partition,
          iter->Valid() && memcmp(iter->key().data(), &stop_key[0], MTN_INDEX_SEGMENT_SIZE) < 0;
          iter->Next())
     {
-        uint16_t temp_partition = 0;
-        char*    temp_field = NULL;
-        uint16_t temp_field_size = 0;
-        uint64_t temp_value = 0;
-        uint64_t offset = 0;
+        uint16_t temp_partition      = 0;
+        byte_t*  temp_field          = NULL;
+        uint16_t temp_field_size     = 0;
+        uint64_t temp_value          = 0;
+        uint64_t offset              = 0;
         assert(iter->value().size() == MTN_INDEX_SEGMENT_SIZE);
-        mtn::decode_index_key(iter->key().data(), &temp_partition, &temp_field, &temp_field_size, &temp_value, &offset);
+        mtn::decode_index_key(iter->key().data(), &temp_partition, reinterpret_cast<char**>(&temp_field), &temp_field_size, &temp_value, &offset);
+
+        if (current_field.size() != temp_field_size
+            || memcmp(&current_field[0], temp_field, temp_field_size) != 0)
+        {
+            std::vector<mtn::byte_t> key;
+            key.assign(temp_field, temp_field + temp_field_size);
+            current_field.assign(temp_field, temp_field + temp_field_size);
+            current_index = output->insert(key, new mtn::index_t(temp_partition, temp_field, temp_field_size)).first->second;
+            current_slice_value = UINT64_MAX;
+        }
 
         if (current_slice_value != temp_value) {
-            mtn::index_t::iterator insert_iter = output->find(temp_value);
-            if (insert_iter != output->end()) {
+            mtn::index_t::iterator insert_iter = current_index->find(temp_value);
+            if (insert_iter != current_index->end()) {
                 current_slice = insert_iter->second;
             }
             else {
-                current_slice = output->insert(temp_value, new mtn::index_slice_t(temp_partition, temp_field, temp_field_size, temp_value)).first->second;
+                current_slice = current_index->insert(temp_value, new mtn::index_slice_t(temp_partition, temp_field, temp_field_size, temp_value)).first->second;
                 current_slice_value = temp_value;
             }
         }

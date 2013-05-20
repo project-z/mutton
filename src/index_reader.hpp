@@ -20,6 +20,8 @@
 #ifndef __MUTTON_INDEX_READER_HPP_INCLUDED__
 #define __MUTTON_INDEX_READER_HPP_INCLUDED__
 
+#include <boost/ptr_container/ptr_map.hpp>
+
 #include "base_types.hpp"
 #include "status.hpp"
 
@@ -33,9 +35,19 @@ namespace mtn {
 
     public:
 
+        typedef boost::ptr_map<std::vector<mtn::byte_t>, mtn::index_t> index_container;
+
         virtual
         ~index_reader_t()
         {}
+
+        virtual mtn::status_t
+        read_indexes(mtn::index_partition_t                partition,
+                     const mtn::byte_t*                    start_field,
+                     size_t                                start_field_size,
+                     const mtn::byte_t*                    end_field,
+                     size_t                                end_field_size,
+                     mtn::index_reader_t::index_container* output) = 0;
 
         virtual mtn::status_t
         read_index(mtn::index_partition_t partition,

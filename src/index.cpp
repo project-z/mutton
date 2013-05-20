@@ -26,26 +26,11 @@
 typedef boost::counting_iterator<mtn::index_address_t> counting_iterator;
 
 mtn::index_t::index_t(mtn::index_partition_t partition,
-                      const char*            field,
+                      const byte_t*          field,
                       size_t                 field_size) :
     _partition(partition),
     _field(field, field + field_size)
 {}
-
-mtn::status_t
-mtn::index_t::slice(mtn::index_address_t*     trigrams,
-                    size_t                    trigrams_count,
-                    mtn::index_operation_enum operation,
-                    mtn::index_slice_t&       output)
-{
-    std::vector<mtn::range_t> ranges(trigrams_count, mtn::range_t());
-    for (int i = 0; i < trigrams_count; ++i) {
-        ranges[i].start = trigrams[i];
-        ranges[i].limit = trigrams[i] + 1;
-    }
-
-    return slice(&ranges[0], trigrams_count, operation, output);
-}
 
 mtn::status_t
 mtn::index_t::slice(mtn::range_t*             ranges,

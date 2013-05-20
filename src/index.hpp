@@ -43,7 +43,7 @@ namespace mtn {
         typedef index_container::iterator iterator;
 
         index_t(mtn::index_partition_t partition,
-                const char*            field,
+                const byte_t*          field,
                 size_t                 field_size);
 
         mtn::status_t
@@ -57,12 +57,6 @@ namespace mtn {
         mtn::status_t
         slice(mtn::range_t*             ranges,
               size_t                    range_count,
-              mtn::index_operation_enum operation,
-              mtn::index_slice_t&       output);
-
-        mtn::status_t
-        slice(mtn::index_address_t*     trigrams,
-              size_t                    trigrams_count,
               mtn::index_operation_enum operation,
               mtn::index_slice_t&       output);
 

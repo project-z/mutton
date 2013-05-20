@@ -58,11 +58,6 @@ namespace mtn {
         index_slice_t();
 
         index_slice_t(index_partition_t partition,
-                      const char*       field,
-                      size_t            field_size,
-                      index_address_t   value);
-
-        index_slice_t(index_partition_t partition,
                       const byte_t*     field,
                       size_t            field_size,
                       index_address_t   value);

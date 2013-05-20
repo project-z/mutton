@@ -26,6 +26,7 @@
 #include "utf8.h"
 
 #include "base_types.hpp"
+#include "range.hpp"
 #include "status.hpp"
 
 namespace mtn {
@@ -91,6 +92,27 @@ namespace mtn {
                 }
                 trigram.zero();
             }
+        }
+
+        static inline void
+        to_ranges(std::set<mtn::index_address_t> trigrams,
+                  std::vector<mtn::range_t>&     output)
+        {
+            output.reserve(trigrams.size());
+            std::set<mtn::index_address_t>::iterator iter = trigrams.begin();
+            for (;iter != trigrams.end(); ++iter) {
+                output.push_back(mtn::range_t(*iter, *iter + 1));
+            }
+        }
+
+        static inline void
+        to_ranges(const char*                start,
+                  const char*                end,
+                  std::vector<mtn::range_t>& output)
+        {
+            std::set<mtn::index_address_t> trigrams;
+            to_trigrams(start, end, trigrams);
+            to_ranges(trigrams, output);
         }
 
     };

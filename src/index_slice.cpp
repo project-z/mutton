@@ -238,15 +238,6 @@ mtn::index_slice_t::index_slice_t() :
 {}
 
 mtn::index_slice_t::index_slice_t(mtn::index_partition_t partition,
-                                  const char*            field,
-                                  size_t                 field_size,
-                                  mtn::index_address_t   value) :
-    _partition(partition),
-    _field(field, field + field_size),
-    _value(value)
-{}
-
-mtn::index_slice_t::index_slice_t(mtn::index_partition_t partition,
                                   const mtn::byte_t*     field,
                                   size_t                 field_size,
                                   mtn::index_address_t   value) :

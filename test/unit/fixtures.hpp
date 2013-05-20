@@ -148,6 +148,40 @@ public:
     }
 
     mtn::status_t
+    read_indexes(mtn::index_partition_t                partition,
+                 const mtn::byte_t*                    start_field,
+                 size_t                                start_field_size,
+                 const mtn::byte_t*                    end_field,
+                 size_t                                end_field_size,
+                 mtn::index_reader_t::index_container* output)
+    {
+        index_key_t start_key(partition, start_field, start_field_size, 0);
+        index_key_t end_key(partition, end_field, end_field_size, 0);
+
+
+        ustring_t current_field;
+        mtn::index_t* current_index = NULL;
+
+        index_container_t::iterator iter = _index.lower_bound(start_key);
+        for (; iter != _index.end() && iter->first <= end_key; ++iter) {
+
+            if (iter->first.field != current_field) {
+                mtn::index_reader_t::index_container::key_type key(iter->first.field.begin(), iter->first.field.end());
+                current_index = output->insert(
+                    key,
+                    new mtn::index_t(partition,
+                                     iter->first.field.c_str(),
+                                     iter->first.field.size())
+                    ).first->second;
+
+                current_field = iter->first.field;
+            }
+            current_index->insert(iter->second->value(), new mtn::index_slice_t(*iter->second));
+        }
+        return mtn::status_t();
+    }
+
+    mtn::status_t
     read_index(mtn::index_partition_t partition,
                const mtn::byte_t*     field,
                size_t                 field_size,

@@ -24,6 +24,7 @@
 #include "libcql/cql.hpp"
 
 #define MTN_ERROR_INDEX_OPERATION 1
+#define MTN_ERROR_NOT_FOUND 2
 
 namespace mtn {
 
