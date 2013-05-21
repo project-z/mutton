@@ -10,8 +10,16 @@ set (libmutton_VERSION_MINOR 5)
 set (libmutton_VERSION_STRING ${libmutton_VERSION_MAJOR}.${libmutton_VERSION_MINOR})
 
 #-------------------
+# Enable C++11
+#-------------------
+set(CMAKE_CXX_FLAGS "-Wall -Werror -g3 -O2 -std=c++11 -stdlib=libc++")
+
+#-------------------
 # setup deps
 #-------------------
+set(EXT_PREFIX ${PROJECT_SOURCE_DIR}/ext)
+set(CMAKE_MODULE_PATH ${EXT_PREFIX})
+
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(Boost_USE_STATIC_LIBS ON)
   set(Boost_USE_STATIC_RUNTIME ON)
@@ -25,30 +33,15 @@ set(INCLUDES ${INCLUDES} ${PROJECT_SOURCE_DIR}/ext/utf8/source)
 
 # Boost
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost 1.47.0 COMPONENTS unit_test_framework REQUIRED)
+find_package(Boost 1.47.0 REQUIRED)
 set(INCLUDES ${INCLUDES} ${Boost_INCLUDE_DIRS} )
-set(LIBS ${LIBS} ${Boost_LIBRARIES} )
 
 # Threading
 find_package(Threads)
 set(LIBS ${LIBS} ${CMAKE_THREAD_LIBS_INIT} )
 
 # LevelDB
-find_path(LevelDB_INCLUDE_DIRS NAMES leveldb/db.h HINTS /usr/include /usr/local/include)
-find_library(LevelDB_LIBRARIES NAMES libleveldb.a libleveldb.lib libleveldb.dylib HINTS /usr/lib /usr/local/lib)
-
-if(LevelDB_INCLUDE_DIRS AND LevelDB_LIBRARIES)
-  set(LevelDB_FOUND TRUE)
-endif(LevelDB_INCLUDE_DIRS AND LevelDB_LIBRARIES)
-
-if(LevelDB_FOUND)
-  message(STATUS "Found LevelDB: ${LevelDB_LIBRARIES}")
-else(LevelDB_FOUND)
-  message(FATAL_ERROR "Could not find leveldb library.")
-endif(LevelDB_FOUND)
-
-set(INCLUDES ${INCLUDES} ${LevelDB_INCLUDE_DIRS} )
-set(LIBS ${LIBS} ${LevelDB_LIBRARIES} )
+include(leveldb)
 
 # CityHash
 find_path(CityHash_INCLUDE_DIRS NAMES city.h HINTS /usr/include /usr/local/include)
@@ -72,6 +65,10 @@ find_package(Lua51 REQUIRED)
 set(INCLUDES ${INCLUDES} ${LUA_INCLUDE_DIR} )
 set(LIBS ${LIBS} ${LUA_LIBRARIES} )
 
+add_custom_target (AppDependencies ALL
+  DEPENDS ${APP_DEPENDENCIES}
+  COMMENT "Installing any missing dependencies.")
+
 #-------------------
 # libmutton static, shared and executable
 #-------------------
@@ -91,14 +88,6 @@ add_library(${PROJECT_LIB_NAME}-static STATIC ${SRC_FILES})
 target_link_libraries(${PROJECT_LIB_NAME} ${LIBS})
 SET_TARGET_PROPERTIES(${PROJECT_LIB_NAME}-static PROPERTIES OUTPUT_NAME ${PROJECT_LIB_NAME})
 SET_TARGET_PROPERTIES(${PROJECT_LIB_NAME} PROPERTIES VERSION ${libmutton_VERSION_MAJOR}.${libmutton_VERSION_MINOR} SOVERSION ${libmutton_VERSION_MAJOR})
-
-set_property(
-  TARGET ${PROJECT_LIB_NAME}
-  APPEND PROPERTY COMPILE_FLAGS "-Wall -Werror -ansi -Wno-deprecated -pthread -g")
-
-set_property(
-  TARGET ${PROJECT_LIB_NAME}-static
-  APPEND PROPERTY COMPILE_FLAGS "-Wall -Werror -ansi -Wno-deprecated -pthread -g")
 
 #-------------------
 # install target

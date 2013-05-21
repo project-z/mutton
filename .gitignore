@@ -29,6 +29,10 @@ build/
 Testing/
 src/demo/mutton_demo
 test/unit/mutton_test
+ext/include/
+ext/share/
+ext/src/
+ext/tmp/
 
 # editor
 *.swp

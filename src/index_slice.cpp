@@ -339,7 +339,7 @@ mtn::index_slice_t::bit(index_address_t      bit)
 
     mtn::index_slice_t::iterator it = find_insertion_point(begin(), end(), bucket);
 
-    if (it->offset != bucket) {
+    if (it == end() || it->offset != bucket) {
         return false;
     }
     return (it->segment[bucket_index] & 1 << bit_offset);

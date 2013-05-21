@@ -1,3 +1,6 @@
-#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_NO_LIB
 #define BOOST_TEST_MODULE libmutton
-#include <boost/test/included/unit_test.hpp>
+#define BOOST_TEST_MAIN
+
+#include <boost/test/included/unit_test_framework.hpp>
+#include <boost/test/unit_test.hpp>

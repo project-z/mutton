@@ -54,12 +54,12 @@ mtn::index_reader_writer_leveldb_t::read_indexes(mtn::index_partition_t         
                                                  size_t                                end_field_size,
                                                  mtn::index_reader_t::index_container* output)
 {
-    std::vector<char> start_key;
-    std::vector<char> stop_key;
-    encode_index_key(partition, reinterpret_cast<const char*>(start_field), start_field_size, 0, 0, start_key);
+    std::vector<mtn::byte_t> start_key;
+    std::vector<mtn::byte_t> stop_key;
+    encode_index_key(partition, start_field, start_field_size, 0, 0, start_key);
 
     if (end_field) {
-        encode_index_key(partition, reinterpret_cast<const char*>(end_field), end_field_size, UINT64_MAX, UINT64_MAX, stop_key);
+        encode_index_key(partition, end_field, end_field_size, UINT64_MAX, UINT64_MAX, stop_key);
     }
     else {
         encode_index_key(partition + 1, NULL, 0, 0, 0, stop_key);
@@ -67,7 +67,7 @@ mtn::index_reader_writer_leveldb_t::read_indexes(mtn::index_partition_t         
 
     leveldb::Slice start_slice(reinterpret_cast<char*>(&start_key[0]), start_key.size());
 
-    std::vector<char> current_field;
+    std::vector<mtn::byte_t> current_field;
     mtn::index_t* current_index = NULL;
     mtn::index_slice_t* current_slice = NULL;
     mtn::index_address_t current_slice_value = UINT64_MAX;
@@ -83,7 +83,7 @@ mtn::index_reader_writer_leveldb_t::read_indexes(mtn::index_partition_t         
         uint64_t temp_value          = 0;
         uint64_t offset              = 0;
         assert(iter->value().size() == MTN_INDEX_SEGMENT_SIZE);
-        mtn::decode_index_key(iter->key().data(), &temp_partition, reinterpret_cast<char**>(&temp_field), &temp_field_size, &temp_value, &offset);
+        mtn::decode_index_key(reinterpret_cast<const mtn::byte_t*>(iter->key().data()), &temp_partition, &temp_field, &temp_field_size, &temp_value, &offset);
 
         if (current_field.size() != temp_field_size
             || memcmp(&current_field[0], temp_field, temp_field_size) != 0)
@@ -117,10 +117,10 @@ mtn::index_reader_writer_leveldb_t::read_index_slice(mtn::index_partition_t part
                                                      mtn::index_address_t   value,
                                                      mtn::index_slice_t*    output)
 {
-    std::vector<char> start_key;
-    std::vector<char> stop_key;
-    encode_index_key(partition, reinterpret_cast<const char*>(field), field_size, value, 0, start_key);
-    encode_index_key(partition, reinterpret_cast<const char*>(field), field_size, value, UINT64_MAX, stop_key);
+    std::vector<mtn::byte_t> start_key;
+    std::vector<mtn::byte_t> stop_key;
+    encode_index_key(partition, field, field_size, value, 0, start_key);
+    encode_index_key(partition, field, field_size, value, UINT64_MAX, stop_key);
     leveldb::Slice start_slice(reinterpret_cast<char*>(&start_key[0]), start_key.size());
 
     mtn::index_slice_t::iterator insert_iter = output->begin();
@@ -131,12 +131,12 @@ mtn::index_reader_writer_leveldb_t::read_index_slice(mtn::index_partition_t part
          iter->Next())
     {
         uint16_t temp_partition = 0;
-        char*    temp_field = NULL;
+        mtn::byte_t*    temp_field = NULL;
         uint16_t temp_field_size = 0;
         uint64_t temp_value = 0;
         uint64_t offset = 0;
         assert(iter->value().size() == MTN_INDEX_SEGMENT_SIZE);
-        mtn::decode_index_key(iter->key().data(), &temp_partition, &temp_field, &temp_field_size, &temp_value, &offset);
+        mtn::decode_index_key(reinterpret_cast<const mtn::byte_t*>(iter->key().data()), &temp_partition, &temp_field, &temp_field_size, &temp_value, &offset);
         insert_iter = output->insert(insert_iter, new mtn::index_slice_t::index_node_t(offset, (const index_segment_ptr) iter->value().data()));
     }
     return mtn::status_t(); // XXX TODO better error handling
@@ -150,9 +150,9 @@ mtn::index_reader_writer_leveldb_t::read_segment(mtn::index_partition_t partitio
                                                  mtn::index_address_t   offset,
                                                  mtn::index_segment_ptr output)
 {
-    std::vector<char> key;
+    std::vector<mtn::byte_t> key;
     leveldb::Slice key_slice(reinterpret_cast<char*>(&key[0]), key.size());
-    encode_index_key(partition, reinterpret_cast<const char*>(field), field_size, value, offset, key);
+    encode_index_key(partition, field, field_size, value, offset, key);
 
     std::auto_ptr<leveldb::Iterator> iter(_db->NewIterator(_read_options));
     iter->Seek(key_slice);
@@ -174,8 +174,8 @@ mtn::index_reader_writer_leveldb_t::write_segment(mtn::index_partition_t partiti
                                                   mtn::index_address_t   offset,
                                                   mtn::index_segment_ptr input)
 {
-    std::vector<char> key;
-    encode_index_key(partition, reinterpret_cast<const char*>(field), field_size, value, offset, key);
+    std::vector<mtn::byte_t> key;
+    encode_index_key(partition, field, field_size, value, offset, key);
     leveldb::Status db_status = _db->Put(_write_options,
                                          leveldb::Slice(reinterpret_cast<char*>(&key[0]), key.size()),
                                          leveldb::Slice(reinterpret_cast<char*>(input), MTN_INDEX_SEGMENT_SIZE));
@@ -196,10 +196,10 @@ mtn::index_reader_writer_leveldb_t::estimateSize(mtn::index_partition_t partitio
                                                  mtn::index_address_t   value,
                                                  uint64_t*              output)
 {
-    std::vector<char> start_key;
-    std::vector<char> stop_key;
-    encode_index_key(partition, reinterpret_cast<const char*>(field), field_size, value, 0, start_key);
-    encode_index_key(partition, reinterpret_cast<const char*>(field), field_size, value, UINT64_MAX, stop_key);
+    std::vector<mtn::byte_t> start_key;
+    std::vector<mtn::byte_t> stop_key;
+    encode_index_key(partition, field, field_size, value, 0, start_key);
+    encode_index_key(partition, field, field_size, value, UINT64_MAX, stop_key);
     leveldb::Range range(leveldb::Slice(reinterpret_cast<char*>(&start_key[0]), start_key.size()),
                          leveldb::Slice(reinterpret_cast<char*>(&stop_key[0]), stop_key.size()));
 
