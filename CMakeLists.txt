@@ -120,4 +120,4 @@ add_subdirectory(test/unit)
 #-------------------
 # the demo program
 #-------------------
-# add_subdirectory(src/demo EXCLUDE_FROM_ALL)
+add_subdirectory(src/demo EXCLUDE_FROM_ALL)
