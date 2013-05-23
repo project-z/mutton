@@ -13,10 +13,13 @@
 #include <boost/spirit/include/support_utree.hpp>
 #include <boost/variant/recursive_wrapper.hpp>
 
+#define BOOST_SPIRIT_UNICODE
+
 namespace qi    = boost::spirit::qi;
 namespace phx   = boost::phoenix;
 
 typedef std::string var;
+typedef std::string quoted_string;
 typedef int64_t integer;
 struct op_and;
 struct op_or;
@@ -112,21 +115,21 @@ struct printer :
     std::string
     operator()(const op_range& o) const
     {
-        return std::string("(range ")
+        return std::string("[")
             + boost::lexical_cast<std::string>(o.start)
             + " "
             + boost::lexical_cast<std::string>(o.limit)
-            + ")";
+            + "]";
     }
 
     std::string
     operator()(const op_slice& o) const
     {
         if (o.ranges.empty()) {
-            return std::string("(slice ") + o.index + ")";
+            return std::string("(slice \"") + o.index + "\")";
         }
         else {
-            return print("slice " + o.index, o.ranges.begin(), o.ranges.end());
+            return print("slice \"" + o.index + "\"", o.ranges.begin(), o.ranges.end());
         }
     }
 
@@ -166,13 +169,13 @@ template <typename Iterator, typename Skipper = qi::space_type>
         simple = expr_ | var_;
         var_ = qi::lexeme[ +qi::alpha ];
         byte_string_ = qi::lexeme['#' > +hex2 > '#'];
-        quoted_string_ = qi::lexeme['"' >> +(boost::spirit::standard::char_ - '"') >> '"'];
+        quoted_string_ %= qi::lexeme ['"' >> *(qi::char_ - qi::char_('\\') - qi::char_('"') | '\\' >> qi::char_) >> '"'];
         integer_ = boost::spirit::lexeme[qi::no_case["0x"] > qi::hex] | boost::spirit::lexeme['0' >> qi::oct] | qi::int_;
 
         range_ = ("[" > integer_ > integer_ > "]") [ qi::_val = phx::construct<op_range>(qi::_1, qi::_2) ];
 
         slice_ = "slice"
-            > (var_) [phx::bind(&op_slice::index, qi::_val) = qi::_1]
+            > (quoted_string_) [phx::bind(&op_slice::index, qi::_val) = qi::_1]
             > *(range_) [phx::push_back(phx::bind(&op_slice::ranges, qi::_val), qi::_1)];
 
         and_ = "and"
@@ -199,30 +202,34 @@ template <typename Iterator, typename Skipper = qi::space_type>
     }
 
   private:
-    qi::rule<Iterator, var(), Skipper>                                 var_;
-    qi::rule<Iterator, integer(), Skipper>                             integer_;
-    qi::rule<Iterator, op_range(), Skipper>                            range_;
-    qi::rule<Iterator, op_slice(), Skipper>                            slice_;
-    qi::rule<Iterator, op_and(), Skipper>                              and_;
-    qi::rule<Iterator, op_or(), Skipper>                               or_;
-    qi::rule<Iterator, op_not(), Skipper>                              not_;
-    qi::rule<Iterator, op_xor(), Skipper>                              xor_;
-    qi::rule<Iterator, expr(), Skipper>                                simple, expr_;
-    qi::rule<Iterator, std::string(), boost::spirit::utf8_string_type> quoted_string_;
-    qi::rule<Iterator, boost::spirit::binary_string_type()>            byte_string_;
+    qi::rule<Iterator, var(), Skipper>      var_;
+    qi::rule<Iterator, integer(), Skipper>  integer_;
+    qi::rule<Iterator, op_range(), Skipper> range_;
+    qi::rule<Iterator, op_slice(), Skipper> slice_;
+    qi::rule<Iterator, op_and(), Skipper>   and_;
+    qi::rule<Iterator, op_or(), Skipper>    or_;
+    qi::rule<Iterator, op_not(), Skipper>   not_;
+    qi::rule<Iterator, op_xor(), Skipper>   xor_;
+    qi::rule<Iterator, expr(), Skipper>     expr_;
+    qi::rule<Iterator, expr(), Skipper>     simple;
+
+    qi::rule<Iterator, boost::spirit::binary_string_type()>              byte_string_;
+    qi::rule<Iterator, std::string(), qi::space_type, qi::locals<char> > quoted_string_;
+
 };
 
 int main()
 {
     for (auto& input : std::list<std::string> {
-            "(slice a)",
-            "(slice a [1 2])",
-            "(slice a [1 2] [3 4])",
-            "(or (slice a))",
-            "(or (slice a [1 2]))",
-            "(or (slice a) (slice b))",
-            "(and (or (slice a) (slice b)) (or (slice a) (slice b)))",
-            "(not (and (or (slice a) (slice b)) (or (slice a) (slice b))))",
+            "(slice \"a\")",
+            "(slice \"a\" [1 2])",
+            "(slice \"a\" [1 2] [3 4])",
+            "(or (slice \"a\"))",
+            "(or (slice \"a\" [1 2]))",
+            "(or (slice \"a\") (slice \"b\"))",
+            "(or (slice \"a\") (slice \"b\" [2 4]))",
+            "(and (or (slice \"a\") (slice \"b\")) (or (slice \"a\") (slice \"b\")))",
+            "(not (and (or (slice \"a\") (slice \"b\")) (or (slice \"a\") (slice \"b\"))))",
             })
     {
         auto f(std::begin(input)), l(std::end(input));
