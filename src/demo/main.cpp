@@ -18,7 +18,6 @@
 namespace qi    = boost::spirit::qi;
 namespace phx   = boost::phoenix;
 
-typedef std::string var;
 typedef std::string quoted_string;
 typedef int64_t integer;
 struct op_and;
@@ -28,8 +27,7 @@ struct op_xor;
 struct op_range;
 struct op_slice;
 
-typedef boost::variant<var,
-                       integer,
+typedef boost::variant<integer,
                        op_range,
                        op_slice,
                        boost::recursive_wrapper<op_or>,
@@ -77,7 +75,7 @@ struct printer :
     boost::static_visitor<std::string>
 {
     std::string
-    operator()(const var& v) const
+    operator()(const std::string& v) const
     {
         return v;
     }
@@ -164,10 +162,8 @@ template <typename Iterator, typename Skipper = qi::space_type>
     {
         qi::uint_parser<unsigned char, 16, 2, 2> hex2;
 
-        expr_ = (('(' > (slice_ | or_ | and_ | xor_ | not_)  > ')') | var_);
+        expr_ = ('(' > (slice_ | or_ | and_ | xor_ | not_)  > ')');
 
-        simple = expr_ | var_;
-        var_ = qi::lexeme[ +qi::alpha ];
         byte_string_ = qi::lexeme['#' > +hex2 > '#'];
         quoted_string_ %= qi::lexeme ['"' >> *(qi::char_ - qi::char_('\\') - qi::char_('"') | '\\' >> qi::char_) >> '"'];
         integer_ = boost::spirit::lexeme[qi::no_case["0x"] > qi::hex] | boost::spirit::lexeme['0' >> qi::oct] | qi::int_;
@@ -195,14 +191,11 @@ template <typename Iterator, typename Skipper = qi::space_type>
         BOOST_SPIRIT_DEBUG_NODE(xor_);
         BOOST_SPIRIT_DEBUG_NODE(and_);
         BOOST_SPIRIT_DEBUG_NODE(not_);
-        BOOST_SPIRIT_DEBUG_NODE(simple);
         BOOST_SPIRIT_DEBUG_NODE(integer_);
-        BOOST_SPIRIT_DEBUG_NODE(var_);
         BOOST_SPIRIT_DEBUG_NODE(range_);
     }
 
   private:
-    qi::rule<Iterator, var(), Skipper>      var_;
     qi::rule<Iterator, integer(), Skipper>  integer_;
     qi::rule<Iterator, op_range(), Skipper> range_;
     qi::rule<Iterator, op_slice(), Skipper> slice_;
@@ -211,7 +204,6 @@ template <typename Iterator, typename Skipper = qi::space_type>
     qi::rule<Iterator, op_not(), Skipper>   not_;
     qi::rule<Iterator, op_xor(), Skipper>   xor_;
     qi::rule<Iterator, expr(), Skipper>     expr_;
-    qi::rule<Iterator, expr(), Skipper>     simple;
 
     qi::rule<Iterator, boost::spirit::binary_string_type()>              byte_string_;
     qi::rule<Iterator, std::string(), qi::space_type, qi::locals<char> > quoted_string_;
@@ -221,6 +213,7 @@ template <typename Iterator, typename Skipper = qi::space_type>
 int main()
 {
     for (auto& input : std::list<std::string> {
+            "(slice \"ταБЬℓσ\")",
             "(slice \"a\")",
             "(slice \"a\" [1 2])",
             "(slice \"a\" [1 2] [3 4])",
