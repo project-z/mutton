@@ -24,8 +24,6 @@
 #include <boost/variant/recursive_wrapper.hpp>
 
 namespace mtn {
-
-    typedef std::string quoted_string;
     struct op_and;
     struct op_not;
     struct op_or;
@@ -53,8 +51,7 @@ namespace mtn {
         uint64_t limit;
     };
 
-    typedef boost::variant<uint64_t,
-                           op_range,
+    typedef boost::variant<op_range,
                            op_slice,
                            op_regex,
                            boost::recursive_wrapper<op_or>,

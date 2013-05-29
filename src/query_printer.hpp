@@ -31,18 +31,6 @@ struct query_printer_t :
     boost::static_visitor<std::string>
 {
     std::string
-    operator()(const std::string& v) const
-    {
-        return v;
-    }
-
-    std::string
-    operator()(uint64_t v) const
-    {
-        return boost::lexical_cast<std::string>(v);
-    }
-
-    std::string
     operator()(const mtn::op_and& o) const
     {
         return print("&", o.children.begin(), o.children.end());
