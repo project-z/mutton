@@ -28,12 +28,8 @@
 #include <boost/spirit/include/phoenix_stl.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/spirit/include/support_utree.hpp>
-#include <boost/variant/recursive_wrapper.hpp>
 
-#include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string/join.hpp>
-
-#include <city.h>
+#include "query_ops.hpp"
 
 #define BOOST_SPIRIT_UNICODE
 
@@ -42,138 +38,72 @@ namespace phx   = boost::phoenix;
 
 namespace mtn {
 
-typedef std::string quoted_string;
-typedef int64_t integer;
-struct op_and;
-struct op_not;
-struct op_or;
-struct op_slice;
-struct op_xor;
-
-struct op_regex
-{
-    std::string pattern;
-};
-
-struct op_range
-{
-    op_range() : start(0), limit(0) {}
-    op_range(integer s, integer l) : start(s), limit(l) {}
-    op_range(const std::string& s) : start(hash(s)), limit(0) {}
-
-    uint64_t
-    hash(const std::string& input)
+    template <typename Iterator, typename Skipper = qi::space_type>
+    struct query_parser_t
+        : qi::grammar<Iterator, expr(), Skipper>
     {
-        return CityHash64(input.c_str(), input.size());
-    }
+        query_parser_t()
+            : query_parser_t::base_type(expr_)
+        {
+            qi::uint_parser<unsigned char, 16, 2, 2> hex2;
 
-    integer start;
-    integer limit;
-};
+            expr_ = ('(' >> (slice_ | or_ | and_ | xor_ | not_)  >> ')');
 
-typedef boost::variant<integer,
-                       op_range,
-                       op_slice,
-                       op_regex,
-                       boost::recursive_wrapper<op_or>,
-                       boost::recursive_wrapper<op_not>,
-                       boost::recursive_wrapper<op_and>,
-                       boost::recursive_wrapper<op_xor>,
-                       boost::recursive_wrapper<op_or>
-                       > expr;
+            byte_string_ = qi::lexeme['#' > +hex2 > '#'];
+            quoted_string_ %= qi::lexeme ['"' >> *(qi::char_ - qi::char_('\\') - qi::char_('"') | '\\' >> qi::char_) >> '"'];
+            uint_ = boost::spirit::lexeme[qi::no_case["0x"] > qi::hex] | boost::spirit::lexeme['0' >> qi::oct] | qi::uint_;
 
-struct op_slice
-{
-    std::string index;
-    std::vector<expr> values;
-};
+            // value_ = "(value"
+            //     >> (uint_) [qi::_val = phx::construct<op_range>(qi::_1, 0)]
+            //     >> (quoted_string_ | byte_string_) [phx::bind(&op_range::hash, qi::_val) = qi::_1]
+            //     > ")";
 
-struct op_and
-{
-    std::vector<expr> children;
-};
+            range_ = ("(range" > uint_ > uint_ > ")") [qi::_val = phx::construct<op_range>(qi::_1, qi::_2)];
 
-struct op_not
-{
-    expr child;
-};
+            regex_ = ("(regex" > quoted_string_  > ")") [phx::bind(&op_regex::pattern, qi::_val) = qi::_1];
 
-struct op_or
-{
-    std::vector<expr> children;
-};
+            slice_ = "slice"
+                > (quoted_string_) [phx::bind(&op_slice::index, qi::_val) = qi::_1]
+                > *(regex_ | range_ | value_) [phx::push_back(phx::bind(&op_slice::values, qi::_val), qi::_1)];
 
-struct op_xor
-{
-    std::vector<expr> children;
-};
+            and_ = "and"
+                > +(expr_) [phx::push_back(phx::bind(&op_and::children, qi::_val), qi::_1)];
 
+            not_ = "not"
+                > (expr_) [phx::bind(&op_not::child, qi::_val) = qi::_1];
 
-template <typename Iterator, typename Skipper = qi::space_type>
-struct query_parser_t : qi::grammar<Iterator, expr(), Skipper>
-{
-    query_parser_t()
-        : query_parser_t::base_type(expr_)
-    {
-        qi::uint_parser<unsigned char, 16, 2, 2> hex2;
+            or_ = "or"
+                > +(expr_) [phx::push_back(phx::bind(&op_or::children, qi::_val), qi::_1)];
 
-        expr_ = ('(' >> (slice_ | or_ | and_ | xor_ | not_)  >> ')');
+            xor_ = "xor"
+                > +(expr_) [phx::push_back(phx::bind(&op_xor::children, qi::_val), qi::_1)];
 
-        byte_string_ = qi::lexeme['#' > +hex2 > '#'];
-        quoted_string_ %= qi::lexeme ['"' >> *(qi::char_ - qi::char_('\\') - qi::char_('"') | '\\' >> qi::char_) >> '"'];
-        integer_ = boost::spirit::lexeme[qi::no_case["0x"] > qi::hex] | boost::spirit::lexeme['0' >> qi::oct] | qi::int_;
+            BOOST_SPIRIT_DEBUG_NODE(and_);
+            BOOST_SPIRIT_DEBUG_NODE(expr_);
+            BOOST_SPIRIT_DEBUG_NODE(uint_);
+            BOOST_SPIRIT_DEBUG_NODE(not_);
+            BOOST_SPIRIT_DEBUG_NODE(or_);
+            BOOST_SPIRIT_DEBUG_NODE(range_);
+            BOOST_SPIRIT_DEBUG_NODE(regex_);
+            BOOST_SPIRIT_DEBUG_NODE(value_);
+            BOOST_SPIRIT_DEBUG_NODE(xor_);
+        }
 
-        // value_ = "(value"
-        //     >> (integer_) [qi::_val = phx::construct<op_range>(qi::_1, 0)]
-        //     >> (quoted_string_ | byte_string_) [phx::bind(&op_range::hash, qi::_val) = qi::_1]
-        //     > ")";
+    private:
+        qi::rule<Iterator, expr(), Skipper>     expr_;
+        qi::rule<Iterator, uint64_t(), Skipper> uint_;
+        qi::rule<Iterator, op_and(), Skipper>   and_;
+        qi::rule<Iterator, op_not(), Skipper>   not_;
+        qi::rule<Iterator, op_or(), Skipper>    or_;
+        qi::rule<Iterator, op_range(), Skipper> range_;
+        qi::rule<Iterator, op_range(), Skipper> value_;
+        qi::rule<Iterator, op_regex(), Skipper> regex_;
+        qi::rule<Iterator, op_slice(), Skipper> slice_;
+        qi::rule<Iterator, op_xor(), Skipper>   xor_;
 
-        range_ = ("(range" > integer_ > integer_ > ")") [qi::_val = phx::construct<op_range>(qi::_1, qi::_2)];
-
-        regex_ = ("(regex" > quoted_string_  > ")") [phx::bind(&op_regex::pattern, qi::_val) = qi::_1];
-
-        slice_ = "slice"
-            > (quoted_string_) [phx::bind(&op_slice::index, qi::_val) = qi::_1]
-            > *(regex_ | range_ | value_) [phx::push_back(phx::bind(&op_slice::values, qi::_val), qi::_1)];
-
-        and_ = "and"
-            > +(expr_) [phx::push_back(phx::bind(&op_and::children, qi::_val), qi::_1)];
-
-        not_ = "not"
-            > (expr_) [phx::bind(&op_not::child, qi::_val) = qi::_1];
-
-        or_ = "or"
-            > +(expr_) [phx::push_back(phx::bind(&op_or::children, qi::_val), qi::_1)];
-
-        xor_ = "xor"
-            > +(expr_) [phx::push_back(phx::bind(&op_xor::children, qi::_val), qi::_1)];
-
-        BOOST_SPIRIT_DEBUG_NODE(and_);
-        BOOST_SPIRIT_DEBUG_NODE(expr_);
-        BOOST_SPIRIT_DEBUG_NODE(integer_);
-        BOOST_SPIRIT_DEBUG_NODE(not_);
-        BOOST_SPIRIT_DEBUG_NODE(or_);
-        BOOST_SPIRIT_DEBUG_NODE(range_);
-        BOOST_SPIRIT_DEBUG_NODE(regex_);
-        BOOST_SPIRIT_DEBUG_NODE(value_);
-        BOOST_SPIRIT_DEBUG_NODE(xor_);
-    }
-
-  private:
-    qi::rule<Iterator, expr(), Skipper>     expr_;
-    qi::rule<Iterator, integer(), Skipper>  integer_;
-    qi::rule<Iterator, op_and(), Skipper>   and_;
-    qi::rule<Iterator, op_not(), Skipper>   not_;
-    qi::rule<Iterator, op_or(), Skipper>    or_;
-    qi::rule<Iterator, op_range(), Skipper> range_;
-    qi::rule<Iterator, op_range(), Skipper> value_;
-    qi::rule<Iterator, op_regex(), Skipper> regex_;
-    qi::rule<Iterator, op_slice(), Skipper> slice_;
-    qi::rule<Iterator, op_xor(), Skipper>   xor_;
-
-    qi::rule<Iterator, boost::spirit::binary_string_type()>              byte_string_;
-    qi::rule<Iterator, std::string(), qi::space_type, qi::locals<char> > quoted_string_;
-};
+        qi::rule<Iterator, boost::spirit::binary_string_type()>              byte_string_;
+        qi::rule<Iterator, std::string(), qi::space_type, qi::locals<char> > quoted_string_;
+    };
 
 
 } // namespace mtn

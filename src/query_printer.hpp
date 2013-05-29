@@ -20,7 +20,10 @@
 #ifndef __MUTTON_QUERY_PRINTER_HPP_INCLUDED__
 #define __MUTTON_QUERY_PRINTER_HPP_INCLUDED__
 
-#include "query_parser.hpp"
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string/join.hpp>
+
+#include "query_ops.hpp"
 
 namespace mtn {
 
@@ -34,7 +37,7 @@ struct query_printer_t :
     }
 
     std::string
-    operator()(const mtn::integer v) const
+    operator()(uint64_t v) const
     {
         return boost::lexical_cast<std::string>(v);
     }
