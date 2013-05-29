@@ -12,7 +12,7 @@ set (libmutton_VERSION_STRING ${libmutton_VERSION_MAJOR}.${libmutton_VERSION_MIN
 #-------------------
 # Enable C++11
 #-------------------
-set(CMAKE_CXX_FLAGS "-Wall -Werror -g3 -O2 -std=c++11 -stdlib=libc++")
+set(CMAKE_CXX_FLAGS "-Wall -Werror -g3 -O2")
 
 #-------------------
 # setup deps
@@ -42,6 +42,14 @@ set(LIBS ${LIBS} ${CMAKE_THREAD_LIBS_INIT} )
 
 # LevelDB
 include(leveldb)
+
+# RE2
+get_cmake_property(_variableNames VARIABLES)
+foreach (_variableName ${_variableNames})
+    message(STATUS "${_variableName}=${${_variableName}}")
+endforeach()
+
+include(re2)
 
 # CityHash
 find_path(CityHash_INCLUDE_DIRS NAMES city.h HINTS /usr/include /usr/local/include)
