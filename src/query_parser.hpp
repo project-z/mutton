@@ -46,25 +46,21 @@ namespace mtn {
             : query_parser_t::base_type(expr_)
         {
             qi::uint_parser<unsigned char, 16, 2, 2> hex2;
+            qi::uint_parser<uint128_t, 10, 1, 39> uint;
 
             expr_ = ('(' >> (slice_ | or_ | and_ | xor_ | not_)  >> ')');
 
             byte_string_ = qi::lexeme['#' > +hex2 > '#'];
             quoted_string_ %= qi::lexeme ['"' >> *(qi::char_ - qi::char_('\\') - qi::char_('"') | '\\' >> qi::char_) >> '"'];
-            uint_ = boost::spirit::lexeme[qi::no_case["0x"] > qi::hex] | boost::spirit::lexeme['0' >> qi::oct] | qi::uint_;
+            uint_ = boost::spirit::lexeme[qi::no_case["0x"] > qi::hex] | uint;
 
-            // value_ = "(value"
-            //     >> (uint_) [qi::_val = phx::construct<op_range>(qi::_1, 0)]
-            //     >> (quoted_string_ | byte_string_) [phx::bind(&op_range::hash, qi::_val) = qi::_1]
-            //     > ")";
-
-            range_ = ("(range" > uint_ > uint_ > ")") [qi::_val = phx::construct<op_range>(qi::_1, qi::_2)];
+            range_ = ("(range" > uint_ > uint_ > ")") [qi::_val = phx::construct<mtn::range_t>(qi::_1, qi::_2)];
 
             regex_ = ("(regex" > quoted_string_  > ")") [phx::bind(&op_regex::pattern, qi::_val) = qi::_1];
 
             slice_ = "slice"
                 > (quoted_string_) [phx::bind(&op_slice::index, qi::_val) = qi::_1]
-                > *(regex_ | range_ | value_) [phx::push_back(phx::bind(&op_slice::values, qi::_val), qi::_1)];
+                > *(regex_ | range_) [phx::push_back(phx::bind(&op_slice::values, qi::_val), qi::_1)];
 
             and_ = "and"
                 > +(expr_) [phx::push_back(phx::bind(&op_and::children, qi::_val), qi::_1)];
@@ -85,21 +81,19 @@ namespace mtn {
             BOOST_SPIRIT_DEBUG_NODE(or_);
             BOOST_SPIRIT_DEBUG_NODE(range_);
             BOOST_SPIRIT_DEBUG_NODE(regex_);
-            BOOST_SPIRIT_DEBUG_NODE(value_);
             BOOST_SPIRIT_DEBUG_NODE(xor_);
         }
 
     private:
-        qi::rule<Iterator, expr(), Skipper>     expr_;
-        qi::rule<Iterator, uint64_t(), Skipper> uint_;
-        qi::rule<Iterator, op_and(), Skipper>   and_;
-        qi::rule<Iterator, op_not(), Skipper>   not_;
-        qi::rule<Iterator, op_or(), Skipper>    or_;
-        qi::rule<Iterator, op_range(), Skipper> range_;
-        qi::rule<Iterator, op_range(), Skipper> value_;
-        qi::rule<Iterator, op_regex(), Skipper> regex_;
-        qi::rule<Iterator, op_slice(), Skipper> slice_;
-        qi::rule<Iterator, op_xor(), Skipper>   xor_;
+        qi::rule<Iterator, expr(), Skipper>         expr_;
+        qi::rule<Iterator, uint128_t(), Skipper>    uint_;
+        qi::rule<Iterator, op_and(), Skipper>       and_;
+        qi::rule<Iterator, op_not(), Skipper>       not_;
+        qi::rule<Iterator, op_or(), Skipper>        or_;
+        qi::rule<Iterator, mtn::range_t(), Skipper> range_;
+        qi::rule<Iterator, op_regex(), Skipper>     regex_;
+        qi::rule<Iterator, op_slice(), Skipper>     slice_;
+        qi::rule<Iterator, op_xor(), Skipper>       xor_;
 
         qi::rule<Iterator, boost::spirit::binary_string_type()>              byte_string_;
         qi::rule<Iterator, std::string(), qi::space_type, qi::locals<char> > quoted_string_;

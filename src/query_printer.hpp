@@ -55,13 +55,11 @@ struct query_printer_t :
     }
 
     std::string
-    operator()(const mtn::op_range& o) const
+    operator()(const mtn::range_t& o) const
     {
-        return std::string("(range ")
-            + boost::lexical_cast<std::string>(o.start)
-            + " "
-            + boost::lexical_cast<std::string>(o.limit)
-            + ")";
+        std::stringstream message;
+        message << "(range " << o.start << " " << o.limit << ")";
+        return message.str();
     }
 
     std::string

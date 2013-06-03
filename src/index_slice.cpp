@@ -19,6 +19,7 @@
 
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/multiprecision/cpp_int.hpp>
 #include <stdint.h>
 
 #include "encode.hpp"
@@ -161,11 +162,13 @@ union_behavior(mtn::index_slice_t& a_index,
             ++b_iter;
         }
         else {
-            return mtn::status_t(MTN_ERROR_INDEX_OPERATION,
-                                 "shit's gone crazy in index union: "
-                                 + boost::lexical_cast<std::string>(a_iter->offset)
-                                 + ":" + boost::lexical_cast<std::string>(b_iter->offset)
-                                 + ":" + boost::lexical_cast<std::string>(output_iter->offset));
+            std::stringstream message;
+            message << "shit's gone crazy in index union: "
+                    << a_iter->offset
+                    << ":" << b_iter->offset
+                    << ":" << output_iter->offset;
+
+            return mtn::status_t(MTN_ERROR_INDEX_OPERATION, message.str());
         }
     }
     return mtn::status_t();
@@ -199,11 +202,11 @@ intersection_behavior(mtn::index_slice_t& a_index,
             ++output_iter;
         }
         else {
-            return mtn::status_t(MTN_ERROR_INDEX_OPERATION,
-                                 "shit's gone crazy in index intersection: "
-                                 + boost::lexical_cast<std::string>(a_iter->offset)
-                                 + ":" + boost::lexical_cast<std::string>(b_iter->offset)
-                                 + ":" + boost::lexical_cast<std::string>(output_iter->offset));
+            std::stringstream message;
+            message << "shit's gone crazy in index intersection: "
+                    << a_iter->offset
+                    << ":" << b_iter->offset
+                    << ":" << output_iter->offset;
         }
     }
     return mtn::status_t();

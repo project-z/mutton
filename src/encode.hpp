@@ -23,22 +23,25 @@
 #include <vector>
 #include <machine/endian.h>
 #include <stdint.h>
-#include <tmmintrin.h>
 
 #include "base_types.hpp"
 
 // Required to use stdint.h
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
-#endif
+#endif // __STDC_LIMIT_MACROS
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
+#define ntohlll(x) ((((uint128_t) ntohll(x)) << 64) | ntohll(x >> 64))
+#define htonlll(x) ntohlll(x)
 #define ntohll(x) (uint64_t) __builtin_bswap64(x)
 #define htonll(x) ntohll(x)
 #else
+#define ntohlll(x) (x)
+#define htonlll(x) (x)
 #define ntohll(x) (x)
 #define htonll(x) (x)
-#endif
+#endif // __BYTE_ORDER == __LITTLE_ENDIAN
 
 namespace mtn {
 
@@ -71,6 +74,14 @@ namespace mtn {
     }
 
     inline mtn::byte_t*
+    decode_uint128(const mtn::byte_t* input,
+                   uint128_t*         output)
+    {
+        *output = ntohlll(*(reinterpret_cast<const uint128_t*>(input)));
+        return (mtn::byte_t*) input + sizeof(uint128_t);
+    }
+
+    inline mtn::byte_t*
     decode_parition(const mtn::byte_t* input,
                     uint16_t*          output)
     {
@@ -87,17 +98,17 @@ namespace mtn {
     }
 
     inline mtn::byte_t*
-    decode_index_key(const mtn::byte_t* input,
-                     uint16_t*          partition,
-                     mtn::byte_t**      field,
-                     uint16_t*          field_size,
-                     uint64_t*          value,
-                     uint64_t*          offset)
+    decode_index_key(const mtn::byte_t*    input,
+                     uint16_t*             partition,
+                     mtn::byte_t**         field,
+                     uint16_t*             field_size,
+                     mtn::index_address_t* value,
+                     mtn::index_address_t* offset)
     {
         mtn::byte_t* output = decode_parition(input, partition);
         output = decode_bytes(output, field, field_size);
-        output = decode_uint64(output, value);
-        return decode_uint64(output, offset);
+        output = decode_uint128(output, value);
+        return decode_uint128(output, offset);
     }
 
 ////////////////////////////////////////////////////////////////////////
@@ -129,6 +140,14 @@ namespace mtn {
     }
 
     inline mtn::byte_t*
+    encode_uint128(uint128_t   input,
+                  mtn::byte_t* output)
+    {
+        *((uint128_t*) output) = htonlll(input);
+        return output + sizeof(input);
+    }
+
+    inline mtn::byte_t*
     encode_parition(uint16_t     input,
                     mtn::byte_t* output)
     {
@@ -145,35 +164,35 @@ namespace mtn {
     }
 
     inline size_t
-    get_index_key_size(uint16_t           partition,
-                       const mtn::byte_t* field,
-                       uint16_t           field_size,
-                       uint64_t           value,
-                       uint64_t           offset)
+    get_index_key_size(uint16_t             partition,
+                       const mtn::byte_t*   field,
+                       uint16_t             field_size,
+                       mtn::index_address_t value,
+                       mtn::index_address_t offset)
     {
         return sizeof(partition) + sizeof(uint16_t) + field_size + sizeof(value) + sizeof(offset);
     }
 
     inline mtn::byte_t*
-    encode_index_key(uint16_t           partition,
-                     const mtn::byte_t* field,
-                     uint16_t           field_size,
-                     uint64_t           value,
-                     uint64_t           offset,
-                     mtn::byte_t*       output)
+    encode_index_key(uint16_t             partition,
+                     const mtn::byte_t*   field,
+                     uint16_t             field_size,
+                     mtn::index_address_t value,
+                     mtn::index_address_t offset,
+                     mtn::byte_t*         output)
     {
         mtn::byte_t* pos = encode_parition(partition, &output[0]);
         pos = encode_bytes(field, field_size, pos);
-        pos = encode_uint64(value, pos);
-        return encode_uint64(offset, pos);
+        pos = encode_uint128(value, pos);
+        return encode_uint128(offset, pos);
     }
 
     inline void
     encode_index_key(uint16_t                  partition,
                      const mtn::byte_t*        field,
                      uint16_t                  field_size,
-                     uint64_t                  value,
-                     uint64_t                  offset,
+                     mtn::index_address_t      value,
+                     mtn::index_address_t      offset,
                      std::vector<mtn::byte_t>& output)
     {
         output.resize(get_index_key_size(partition, field, field_size, value, offset));

@@ -66,8 +66,8 @@ BOOST_AUTO_TEST_CASE(index_slice_norange)
     mtn::index_slice_t o;
     index.slice(o);
     BOOST_CHECK_EQUAL(1, o.size());
-    BOOST_CHECK_EQUAL(8, o.begin()->offset);
-    BOOST_CHECK_EQUAL(3, o.begin()->segment[0]);
+    BOOST_CHECK(8 == o.begin()->offset);
+    BOOST_CHECK(3 == o.begin()->segment[0]);
 }
 
 BOOST_AUTO_TEST_CASE(index_slice_single_range)
@@ -84,8 +84,8 @@ BOOST_AUTO_TEST_CASE(index_slice_single_range)
     mtn::index_slice_t o;
     index.slice(&range, 1, o);
     BOOST_CHECK_EQUAL(1, o.size());
-    BOOST_CHECK_EQUAL(8, o.begin()->offset);
-    BOOST_CHECK_EQUAL(1, o.begin()->segment[0]);
+    BOOST_CHECK(8 == o.begin()->offset);
+    BOOST_CHECK(1 == o.begin()->segment[0]);
 }
 
 BOOST_AUTO_TEST_CASE(index_slice_multiple_ranges)
@@ -106,8 +106,8 @@ BOOST_AUTO_TEST_CASE(index_slice_multiple_ranges)
     mtn::index_slice_t o;
     index.slice(&ranges[0], 2, o);
     BOOST_CHECK_EQUAL(1, o.size());
-    BOOST_CHECK_EQUAL(8, o.begin()->offset);
-    BOOST_CHECK_EQUAL(3, o.begin()->segment[0]);
+    BOOST_CHECK(8 == o.begin()->offset);
+    BOOST_CHECK(3 == o.begin()->segment[0]);
 }
 
 // BOOST_AUTO_TEST_CASE(index_index_hash)

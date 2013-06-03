@@ -17,13 +17,13 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <boost/foreach.hpp>
+// #include <boost/foreach.hpp>
 
 #include "range.hpp"
 #include "index.hpp"
 #include "trigram.hpp"
 
-typedef boost::counting_iterator<mtn::index_address_t> counting_iterator;
+// typedef boost::counting_iterator<mtn::index_address_t> counting_iterator;
 
 mtn::index_t::index_t(mtn::index_partition_t partition,
                       const byte_t*          field,
@@ -42,7 +42,8 @@ mtn::index_t::slice(mtn::range_t*             ranges,
     bool first_iteration = true;
 
     for (int r = 0; r < range_count; ++r) {
-        BOOST_FOREACH(mtn::index_address_t a, boost::make_iterator_range(counting_iterator(ranges[r].start), counting_iterator(ranges[r].limit))) {
+        for (mtn::index_address_t a = ranges[r].start; a < ranges[r].limit; ++a) {
+            // BOOST_FOREACH(mtn::index_address_t a, boost::make_iterator_range(counting_iterator(ranges[r].start), counting_iterator(ranges[r].limit))) {
             mtn::index_t::iterator iter = find(a);
 
             if (iter != end()) {
@@ -114,8 +115,10 @@ mtn::index_t::index_value_trigram(mtn::index_reader_t* reader,
     std::set<mtn::index_address_t> trigrams;
     mtn::trigram_t::to_trigrams(value, end, trigrams);
 
-    BOOST_FOREACH(mtn::index_address_t value, trigrams) {
-        status = index_value(reader, writer, value, who_or_what, state);
+    std::set<mtn::index_address_t>::iterator iter = trigrams.begin();
+    for (; iter != trigrams.end(); ++iter) {
+        // BOOST_FOREACH(mtn::index_address_t value, trigrams) {
+        status = index_value(reader, writer, *iter, who_or_what, state);
         if (!status) {
             return status;
         }

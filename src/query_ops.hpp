@@ -23,6 +23,8 @@
 #include <city.h>
 #include <boost/variant/recursive_wrapper.hpp>
 
+#include "range.hpp"
+
 namespace mtn {
     struct op_and;
     struct op_not;
@@ -35,23 +37,7 @@ namespace mtn {
         std::string pattern;
     };
 
-    struct op_range
-    {
-        op_range() : start(0), limit(0) {}
-        op_range(uint64_t s, uint64_t l) : start(s), limit(l) {}
-        op_range(const std::string& s) : start(hash(s)), limit(0) {}
-
-        uint64_t
-        hash(const std::string& input)
-        {
-            return CityHash64(input.c_str(), input.size());
-        }
-
-        uint64_t start;
-        uint64_t limit;
-    };
-
-    typedef boost::variant<op_range,
+    typedef boost::variant<mtn::range_t,
                            op_slice,
                            op_regex,
                            boost::recursive_wrapper<op_or>,
@@ -63,13 +49,21 @@ namespace mtn {
 
     struct op_slice
     {
-        std::string index;
-        std::vector<expr> values;
+        typedef std::vector<expr>          collection;
+        typedef collection::iterator       iterator;
+        typedef collection::const_iterator const_iterator;
+
+        std::string                        index;
+        collection                         values;
     };
 
     struct op_and
     {
-        std::vector<expr> children;
+        typedef std::vector<expr>          collection;
+        typedef collection::iterator       iterator;
+        typedef collection::const_iterator const_iterator;
+
+        collection                         children;
     };
 
     struct op_not
@@ -79,12 +73,20 @@ namespace mtn {
 
     struct op_or
     {
-        std::vector<expr> children;
+        typedef std::vector<expr>          collection;
+        typedef collection::iterator       iterator;
+        typedef collection::const_iterator const_iterator;
+
+        collection                         children;
     };
 
     struct op_xor
     {
-        std::vector<expr> children;
+        typedef std::vector<expr>          collection;
+        typedef collection::iterator       iterator;
+        typedef collection::const_iterator const_iterator;
+
+        collection                         children;
     };
 
 } // namespace mtn

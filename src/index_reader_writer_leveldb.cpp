@@ -77,11 +77,12 @@ mtn::index_reader_writer_leveldb_t::read_indexes(mtn::index_partition_t         
          iter->Valid() && memcmp(iter->key().data(), &stop_key[0], MTN_INDEX_SEGMENT_SIZE) < 0;
          iter->Next())
     {
-        uint16_t temp_partition      = 0;
-        byte_t*  temp_field          = NULL;
-        uint16_t temp_field_size     = 0;
-        uint64_t temp_value          = 0;
-        uint64_t offset              = 0;
+        uint16_t             temp_partition  = 0;
+        byte_t*              temp_field      = NULL;
+        uint16_t             temp_field_size = 0;
+        mtn::index_address_t temp_value      = 0;
+        mtn::index_address_t offset          = 0;
+
         assert(iter->value().size() == MTN_INDEX_SEGMENT_SIZE);
         mtn::decode_index_key(reinterpret_cast<const mtn::byte_t*>(iter->key().data()), &temp_partition, &temp_field, &temp_field_size, &temp_value, &offset);
 
@@ -130,12 +131,14 @@ mtn::index_reader_writer_leveldb_t::read_index_slice(mtn::index_partition_t part
          iter->Valid() && memcmp(iter->key().data(), &stop_key[0], MTN_INDEX_SEGMENT_SIZE) < 0;
          iter->Next())
     {
-        uint16_t temp_partition = 0;
-        mtn::byte_t*    temp_field = NULL;
-        uint16_t temp_field_size = 0;
-        uint64_t temp_value = 0;
-        uint64_t offset = 0;
+        uint16_t             temp_partition  = 0;
+        mtn::byte_t*         temp_field      = NULL;
+        uint16_t             temp_field_size = 0;
+        mtn::index_address_t temp_value      = 0;
+        mtn::index_address_t offset          = 0;
+
         assert(iter->value().size() == MTN_INDEX_SEGMENT_SIZE);
+
         mtn::decode_index_key(reinterpret_cast<const mtn::byte_t*>(iter->key().data()), &temp_partition, &temp_field, &temp_field_size, &temp_value, &offset);
         insert_iter = output->insert(insert_iter, new mtn::index_slice_t::index_node_t(offset, (const index_segment_ptr) iter->value().data()));
     }

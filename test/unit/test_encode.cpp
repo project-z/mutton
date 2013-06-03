@@ -18,6 +18,7 @@
 */
 
 #include <boost/test/unit_test.hpp>
+#include "base_types.hpp"
 #include "encode.hpp"
 
 BOOST_AUTO_TEST_SUITE(encode)
@@ -57,6 +58,15 @@ BOOST_AUTO_TEST_CASE(decode_uint64)
     BOOST_CHECK_EQUAL(0x1122334455667788, output);
 }
 
+BOOST_AUTO_TEST_CASE(decode_uint128)
+{
+    mtn::byte_t input[] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
+    uint128_t output = 0;
+    BOOST_CHECK_EQUAL(input + sizeof(uint128_t), mtn::decode_uint128(input, &output));
+    BOOST_CHECK_EQUAL(0x1122334455667788, (uint64_t) output);
+    BOOST_CHECK_EQUAL(0x1122334455667788, (uint64_t) (output >> 64));
+}
+
 BOOST_AUTO_TEST_CASE(decode_parition)
 {
     mtn::byte_t input[] = {0x11, 0x22};
@@ -78,20 +88,24 @@ BOOST_AUTO_TEST_CASE(decode_bytes)
 
 BOOST_AUTO_TEST_CASE(decode_index_key)
 {
-    mtn::byte_t input[] = {0x01, 0x02, 0x00, 0x02, 0x03, 0x04, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0xDD, 0xEE, 0xAA, 0xDD, 0xBB, 0xEE, 0xEE, 0xFF};
-    uint16_t partition = 0;
-    mtn::byte_t*    field = NULL;
-    uint16_t field_size = 0;
-    uint64_t value = 0;
-    uint64_t offset = 0;
+    mtn::byte_t input[]     = {0x01, 0x02, 0x00, 0x02, 0x03, 0x04, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88,
+                               0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0xDD, 0xEE, 0xAA, 0xDD, 0xBB, 0xEE,
+                               0xEE, 0xFF, 0xDD, 0xEE, 0xAA, 0xDD, 0xBB, 0xEE, 0xEE, 0xFF};
+    uint16_t     partition  = 0;
+    mtn::byte_t* field      = NULL;
+    uint16_t     field_size = 0;
+    uint128_t    value      = 0;
+    uint128_t    offset     = 0;
 
     BOOST_CHECK_EQUAL(input + sizeof(input), mtn::decode_index_key(input, &partition, &field, &field_size, &value, &offset));
     BOOST_CHECK_EQUAL(0x0102, partition);
     BOOST_CHECK_EQUAL(0x03, field[0]);
     BOOST_CHECK_EQUAL(0x04, field[1]);
     BOOST_CHECK_EQUAL(2, field_size);
-    BOOST_CHECK_EQUAL(0x1122334455667788, value);
-    BOOST_CHECK_EQUAL(0xDDEEAADDBBEEEEFF, offset);
+    BOOST_CHECK_EQUAL(0x1122334455667788, (uint64_t) value);
+    BOOST_CHECK_EQUAL(0xDDEEAADDBBEEEEFF, (uint64_t) offset);
+    BOOST_CHECK_EQUAL(0x1122334455667788, (uint64_t) (value >> 64));
+    BOOST_CHECK_EQUAL(0xDDEEAADDBBEEEEFF, (uint64_t) (offset >> 64));
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -153,13 +167,18 @@ BOOST_AUTO_TEST_CASE(encode_bytes)
 BOOST_AUTO_TEST_CASE(encode_index_key)
 {
 
-    mtn::byte_t     output_ref[] = {0x01, 0x02, 0x00, 0x02, 0x03, 0x04, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0xDD, 0xEE, 0xAA, 0xDD, 0xBB, 0xEE, 0xEE, 0xFF};
-    mtn::byte_t     output[22];
-    uint16_t partition    = 0x0102;
-    mtn::byte_t     field[]      = {0x03, 0x04};
-    uint16_t field_size   = 2;
-    uint64_t value        = 0x1122334455667788;
-    uint64_t offset       = 0xDDEEAADDBBEEEEFF;
+    mtn::byte_t output_ref[] = {0x01, 0x02,
+                                0x00, 0x02, 0x03, 0x04,
+                                0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88,
+                                0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88,
+                                0xDD, 0xEE, 0xAA, 0xDD, 0xBB, 0xEE, 0xEE, 0xFF,
+                                0xDD, 0xEE, 0xAA, 0xDD, 0xBB, 0xEE, 0xEE, 0xFF};
+    mtn::byte_t output[38];
+    uint16_t    partition    = 0x0102;
+    mtn::byte_t field[]      = {0x03, 0x04};
+    uint16_t    field_size   = 2;
+    uint128_t   value        = ((uint128_t) 0x1122334455667788) << 64 | 0x1122334455667788;
+    uint128_t   offset       = ((uint128_t) 0xDDEEAADDBBEEEEFF) << 64 | 0xDDEEAADDBBEEEEFF;
 
     BOOST_CHECK_EQUAL(output + sizeof(output), mtn::encode_index_key(partition, field, field_size, value, offset, output));
     BOOST_CHECK(memcmp(output_ref, output, sizeof(output)) == 0);

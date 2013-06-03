@@ -33,7 +33,7 @@ BOOST_AUTO_TEST_CASE(simple)
     BOOST_CHECK_EQUAL(102, output.one);
     BOOST_CHECK_EQUAL(111, output.two);
     BOOST_CHECK_EQUAL(111, output.three);
-    BOOST_CHECK_EQUAL(449053481852041171ULL, output.hash());
+    BOOST_CHECK(449053481852041171ULL == output.hash());
 }
 
 BOOST_AUTO_TEST_CASE(small)
@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE(small)
     BOOST_CHECK_EQUAL(102, output.one);
     BOOST_CHECK_EQUAL(111, output.two);
     BOOST_CHECK_EQUAL(0, output.three);
-    BOOST_CHECK_EQUAL(14721480736911785443ULL, output.hash());
+    BOOST_CHECK(14721480736911785443ULL == output.hash());
 }
 
 BOOST_AUTO_TEST_CASE(loop)

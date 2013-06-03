@@ -51,13 +51,13 @@ BOOST_AUTO_TEST_SUITE(_index_slice)
 BOOST_AUTO_TEST_CASE(node_constructor_offset)
 {
     mtn::index_slice_t::index_node_t n(2);
-    BOOST_CHECK_EQUAL(2, n.offset);
+    BOOST_CHECK(2 == n.offset);
 }
 
 BOOST_AUTO_TEST_CASE(node_constructor_data)
 {
     mtn::index_slice_t::index_node_t n(2, SEGMENT_EVERY_OTHER_ODD);
-    BOOST_CHECK_EQUAL(2, n.offset);
+    BOOST_CHECK(2 == n.offset);
     BOOST_CHECK_EQUAL(0, memcmp(n.segment, SEGMENT_EVERY_OTHER_ODD, MTN_INDEX_SEGMENT_SIZE));
 }
 
@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE(node_constructor_copy)
 {
     mtn::index_slice_t::index_node_t a(2, SEGMENT_EVERY_OTHER_ODD);
     mtn::index_slice_t::index_node_t b(a);
-    BOOST_CHECK_EQUAL(2, b.offset);
+    BOOST_CHECK(2 == b.offset);
     BOOST_CHECK_EQUAL(0, memcmp(b.segment, SEGMENT_EVERY_OTHER_ODD, MTN_INDEX_SEGMENT_SIZE));
     BOOST_CHECK(a.segment != b.segment);
 }
@@ -199,7 +199,7 @@ BOOST_AUTO_TEST_CASE(slice_set_bit)
 
     o.bit(&reader_writer, &reader_writer, 2048, true);
     BOOST_CHECK_EQUAL(1, o.size());
-    BOOST_CHECK_EQUAL(8, o.begin()->offset);
+    BOOST_CHECK(8 == o.begin()->offset);
 
     mtn::index_segment_ptr segment = o.begin()->segment;
     BOOST_CHECK_EQUAL(0, memcmp(segment, SEGMENT_ONE, MTN_INDEX_SEGMENT_SIZE));
@@ -208,7 +208,7 @@ BOOST_AUTO_TEST_CASE(slice_set_bit)
     o.bit(&reader_writer, &reader_writer, 2048, false);
     BOOST_CHECK(!o.bit(2048));
     BOOST_CHECK_EQUAL(1, o.size());
-    BOOST_CHECK_EQUAL(8, o.begin()->offset);
+    BOOST_CHECK(8 == o.begin()->offset);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
