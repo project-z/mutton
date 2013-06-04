@@ -22,7 +22,6 @@
 
 #include <set>
 
-#include "city.h"
 #include "utf8.h"
 
 #include "base_types.hpp"
@@ -73,7 +72,7 @@ namespace mtn {
         inline mtn::index_address_t
         hash()
         {
-            return CityHash64(reinterpret_cast<char*>(this), sizeof(uint32_t) * 3);
+            return ((uint128_t) one ) << 64 | ((uint128_t) two) << 32 | ((uint128_t) three);
         }
 
         static inline void

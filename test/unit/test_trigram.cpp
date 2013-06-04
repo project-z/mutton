@@ -33,7 +33,10 @@ BOOST_AUTO_TEST_CASE(simple)
     BOOST_CHECK_EQUAL(102, output.one);
     BOOST_CHECK_EQUAL(111, output.two);
     BOOST_CHECK_EQUAL(111, output.three);
-    BOOST_CHECK(449053481852041171ULL == output.hash());
+
+    BOOST_CHECK_EQUAL(102, (uint32_t) (output.hash() >> 64));
+    BOOST_CHECK_EQUAL(111, (uint32_t) (output.hash() >> 32));
+    BOOST_CHECK_EQUAL(111, (uint32_t) output.hash());
 }
 
 BOOST_AUTO_TEST_CASE(small)
@@ -47,7 +50,23 @@ BOOST_AUTO_TEST_CASE(small)
     BOOST_CHECK_EQUAL(102, output.one);
     BOOST_CHECK_EQUAL(111, output.two);
     BOOST_CHECK_EQUAL(0, output.three);
-    BOOST_CHECK(14721480736911785443ULL == output.hash());
+
+    BOOST_CHECK_EQUAL(102, (uint32_t) (output.hash() >> 64));
+    BOOST_CHECK_EQUAL(111, (uint32_t) (output.hash() >> 32));
+    BOOST_CHECK_EQUAL(0, (uint32_t) output.hash());
+}
+
+BOOST_AUTO_TEST_CASE(order)
+{
+    std::string input1 = "fo";
+    std::string input2 = "foo";
+    mtn::trigram_t tri1;
+    mtn::trigram_t tri2;
+
+    mtn::trigram_t::init(input1.c_str(), input1.c_str() + input1.size(), &tri1);
+    mtn::trigram_t::init(input2.c_str(), input2.c_str() + input2.size(), &tri2);
+
+    BOOST_CHECK(tri1.hash() < tri2.hash());
 }
 
 BOOST_AUTO_TEST_CASE(loop)

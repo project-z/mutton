@@ -126,16 +126,16 @@ mtn::index_t::index_value_trigram(mtn::index_reader_t* reader,
     return status;
 }
 
-mtn::status_t
-mtn::index_t::index_value_hash(mtn::index_reader_t* reader,
-                               mtn::index_writer_t* writer,
-                               const char*          value,
-                               size_t               len,
-                               mtn::index_address_t who_or_what,
-                               bool                 state)
-{
-    return index_value(reader, writer, CityHash64(value, len), who_or_what, state);
-}
+// mtn::status_t
+// mtn::index_t::index_value_hash(mtn::index_reader_t* reader,
+//                                mtn::index_writer_t* writer,
+//                                const char*          value,
+//                                size_t               len,
+//                                mtn::index_address_t who_or_what,
+//                                bool                 state)
+// {
+//     return index_value(reader, writer, CityHash64(value, len), who_or_what, state);
+// }
 
 mtn::status_t
 mtn::index_t::indexed_value(mtn::index_reader_t* reader,

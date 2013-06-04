@@ -75,13 +75,13 @@ namespace mtn {
                             mtn::index_address_t who_or_what,
                             bool                 state);
 
-        mtn::status_t
-        index_value_hash(mtn::index_reader_t* reader,
-                         mtn::index_writer_t* writer,
-                         const char*          value,
-                         size_t               len,
-                         mtn::index_address_t who_or_what,
-                         bool                 state);
+        // mtn::status_t
+        // index_value_hash(mtn::index_reader_t* reader,
+        //                  mtn::index_writer_t* writer,
+        //                  const char*          value,
+        //                  size_t               len,
+        //                  mtn::index_address_t who_or_what,
+        //                  bool                 state);
 
         mtn::status_t
         indexed_value(mtn::index_reader_t* reader,

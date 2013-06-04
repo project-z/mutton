@@ -46,22 +46,22 @@ include(leveldb)
 # RE2
 include(re2)
 
-# CityHash
-find_path(CityHash_INCLUDE_DIRS NAMES city.h HINTS /usr/include /usr/local/include)
-find_library(CityHash_LIBRARIES NAMES libcityhash.a libcityhash.lib libcityhash.dylib HINTS /usr/lib /usr/local/lib)
+# # CityHash
+# find_path(CityHash_INCLUDE_DIRS NAMES city.h HINTS /usr/include /usr/local/include)
+# find_library(CityHash_LIBRARIES NAMES libcityhash.a libcityhash.lib libcityhash.dylib HINTS /usr/lib /usr/local/lib)
 
-if(CityHash_INCLUDE_DIRS AND CityHash_LIBRARIES)
-  set(CityHash_FOUND TRUE)
-endif(CityHash_INCLUDE_DIRS AND CityHash_LIBRARIES)
+# if(CityHash_INCLUDE_DIRS AND CityHash_LIBRARIES)
+#   set(CityHash_FOUND TRUE)
+# endif(CityHash_INCLUDE_DIRS AND CityHash_LIBRARIES)
 
-if(CityHash_FOUND)
-  message(STATUS "Found CityHash: ${CityHash_LIBRARIES}")
-else(CityHash_FOUND)
-  message(FATAL_ERROR "Could not find CityHash library.")
-endif(CityHash_FOUND)
+# if(CityHash_FOUND)
+#   message(STATUS "Found CityHash: ${CityHash_LIBRARIES}")
+# else(CityHash_FOUND)
+#   message(FATAL_ERROR "Could not find CityHash library.")
+# endif(CityHash_FOUND)
 
-set(INCLUDES ${INCLUDES} ${CityHash_INCLUDE_DIRS} )
-set(LIBS ${LIBS} ${CityHash_LIBRARIES} )
+# set(INCLUDES ${INCLUDES} ${CityHash_INCLUDE_DIRS} )
+# set(LIBS ${LIBS} ${CityHash_LIBRARIES} )
 
 # Lua 5.1
 find_package(Lua51 REQUIRED)
