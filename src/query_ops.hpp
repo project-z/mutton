@@ -32,14 +32,9 @@ namespace mtn {
     struct op_slice;
     struct op_xor;
 
-    struct op_regex
-    {
-        std::string pattern;
-    };
-
     typedef boost::variant<mtn::range_t,
+                           mtn::regex_t
                            op_slice,
-                           op_regex,
                            boost::recursive_wrapper<op_or>,
                            boost::recursive_wrapper<op_not>,
                            boost::recursive_wrapper<op_and>,

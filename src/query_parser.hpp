@@ -56,7 +56,7 @@ namespace mtn {
 
             range_ = ("(range" > uint_ > uint_ > ")") [qi::_val = phx::construct<mtn::range_t>(qi::_1, qi::_2)];
 
-            regex_ = ("(regex" > quoted_string_  > ")") [phx::bind(&op_regex::pattern, qi::_val) = qi::_1];
+            regex_ = ("(regex" > quoted_string_  > ")") [phx::bind(&mtn::regex_t::pattern, qi::_val) = qi::_1];
 
             slice_ = "slice"
                 > (quoted_string_) [phx::bind(&op_slice::index, qi::_val) = qi::_1]
@@ -91,7 +91,7 @@ namespace mtn {
         qi::rule<Iterator, op_not(), Skipper>       not_;
         qi::rule<Iterator, op_or(), Skipper>        or_;
         qi::rule<Iterator, mtn::range_t(), Skipper> range_;
-        qi::rule<Iterator, op_regex(), Skipper>     regex_;
+        qi::rule<Iterator, mtn::regex_t(), Skipper> regex_;
         qi::rule<Iterator, op_slice(), Skipper>     slice_;
         qi::rule<Iterator, op_xor(), Skipper>       xor_;
 

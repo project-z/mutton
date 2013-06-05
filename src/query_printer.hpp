@@ -63,7 +63,7 @@ struct query_printer_t :
     }
 
     std::string
-    operator()(const mtn::op_regex& o) const
+    operator()(const mtn::regex_t& o) const
     {
         return std::string("(regex \"") + o.pattern + "\")";
     }

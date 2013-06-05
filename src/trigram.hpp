@@ -100,7 +100,12 @@ namespace mtn {
             output.reserve(trigrams.size());
             std::set<mtn::index_address_t>::iterator iter = trigrams.begin();
             for (;iter != trigrams.end(); ++iter) {
-                output.push_back(mtn::range_t(*iter, *iter + 1));
+                if (((uint32_t) *iter) == 0) {
+                    output.push_back(mtn::range_t(*iter, *iter | (((uint128_t) 0x0000000000000000) << 64 | 0x1111111111111111)));
+                }
+                else {
+                    output.push_back(mtn::range_t(*iter, *iter + 1));
+                }
             }
         }
 

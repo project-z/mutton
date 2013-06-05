@@ -1,10 +1,6 @@
 #include "query_parser.hpp"
 #include "query_printer.hpp"
 
-#include <re2/filtered_re2.h>
-#include <re2/stringpiece.h>
-#include <re2/re2.h>
-
 std::ostream&
 operator<<(std::ostream& os,
            const mtn::expr& e)
@@ -15,20 +11,6 @@ operator<<(std::ostream& os,
 
 int main()
 {
-    re2::FilteredRE2 re2;
-    re2::StringPiece pattern("foobiz.*bar");
-    RE2::Options options;
-
-    std::vector<std::string> pieces;
-
-    int id = 0;
-    re2.Add(pattern, options, &id);
-    re2.Compile(&pieces);
-
-    BOOST_FOREACH(const std::string& p, pieces) {
-        std::cout << "piece: " << p << "\n";
-    }
-
     std::string test_strings[] = {
         "(slice \"ταБЬℓσ\")",
         "(slice \"a\")",
