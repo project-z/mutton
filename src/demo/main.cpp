@@ -1,5 +1,6 @@
 #include "query_parser.hpp"
 #include "query_printer.hpp"
+#include "naive_query_planner.hpp"
 
 std::ostream&
 operator<<(std::ostream& os,

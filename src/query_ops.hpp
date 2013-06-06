@@ -24,6 +24,7 @@
 #include <boost/variant/recursive_wrapper.hpp>
 
 #include "range.hpp"
+#include "regex.hpp"
 
 namespace mtn {
     struct op_and;
@@ -33,7 +34,7 @@ namespace mtn {
     struct op_xor;
 
     typedef boost::variant<mtn::range_t,
-                           mtn::regex_t
+                           mtn::regex_t,
                            op_slice,
                            boost::recursive_wrapper<op_or>,
                            boost::recursive_wrapper<op_not>,
