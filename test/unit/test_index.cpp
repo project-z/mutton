@@ -28,29 +28,35 @@ BOOST_AUTO_TEST_SUITE(_index)
 
 BOOST_AUTO_TEST_CASE(index_partition)
 {
-    mtn::index_t index(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6);
+    mtn::index_t index(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6);
     BOOST_CHECK_EQUAL(1, index.partition());
+}
+
+BOOST_AUTO_TEST_CASE(index_bucket)
+{
+    mtn::index_t index(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6);
+    BOOST_CHECK_EQUAL(0, memcmp(reinterpret_cast<const mtn::byte_t*>("bizbang"), &index.bucket()[0], 7));
 }
 
 BOOST_AUTO_TEST_CASE(index_field)
 {
-    mtn::index_t index(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6);
-    BOOST_CHECK_EQUAL(0, memcmp(reinterpret_cast<const mtn::byte_t*>("foobar"), index.field(), 6));
+    mtn::index_t index(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6);
+    BOOST_CHECK_EQUAL(0, memcmp(reinterpret_cast<const mtn::byte_t*>("foobar"), &index.field()[0], 6));
 }
 
 BOOST_AUTO_TEST_CASE(index_size)
 {
-    mtn::index_t index(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6);
+    mtn::index_t index(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6);
     BOOST_CHECK_EQUAL(0, index.size());
-    index.insert(1, new mtn::index_slice_t(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 1));
-    index.insert(2, new mtn::index_slice_t(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2));
+    index.insert(1, new mtn::index_slice_t(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 1));
+    index.insert(2, new mtn::index_slice_t(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2));
     BOOST_CHECK_EQUAL(2, index.size());
 }
 
 BOOST_AUTO_TEST_CASE(index_find)
 {
-    mtn::index_t index(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6);
-    index.insert(1, new mtn::index_slice_t(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 1));
+    mtn::index_t index(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6);
+    index.insert(1, new mtn::index_slice_t(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 1));
     BOOST_CHECK(index.find(1) != index.end());
     BOOST_CHECK(index.find(2) == index.end());
 }
@@ -59,7 +65,7 @@ BOOST_AUTO_TEST_CASE(index_slice_norange)
 {
     index_reader_writer_memory_t reader_writer;
 
-    mtn::index_t index(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6);
+    mtn::index_t index(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6);
     index.index_value(&reader_writer, &reader_writer, 1, 2048, true);
     index.index_value(&reader_writer, &reader_writer, 3, 2049, true);
 
@@ -74,7 +80,7 @@ BOOST_AUTO_TEST_CASE(index_slice_single_range)
 {
     index_reader_writer_memory_t reader_writer;
 
-    mtn::index_t index(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6);
+    mtn::index_t index(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6);
     index.index_value(&reader_writer, &reader_writer, 1, 2048, true);
     index.index_value(&reader_writer, &reader_writer, 2, 1024, true);
     index.index_value(&reader_writer, &reader_writer, 3, 2049, true);
@@ -92,7 +98,7 @@ BOOST_AUTO_TEST_CASE(index_slice_multiple_ranges)
 {
     index_reader_writer_memory_t reader_writer;
 
-    mtn::index_t index(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6);
+    mtn::index_t index(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6);
     index.index_value(&reader_writer, &reader_writer, 1, 2048, true);
     index.index_value(&reader_writer, &reader_writer, 2, 1024, true);
     index.index_value(&reader_writer, &reader_writer, 3, 2049, true);

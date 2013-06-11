@@ -43,39 +43,39 @@ namespace mtn {
 
         virtual mtn::status_t
         read_indexes(mtn::index_partition_t                partition,
-                     const mtn::byte_t*                    start_field,
-                     size_t                                start_field_size,
-                     const mtn::byte_t*                    end_field,
-                     size_t                                end_field_size,
+                     const std::vector<mtn::byte_t>&       start_bucket,
+                     const std::vector<mtn::byte_t>&       start_field,
+                     const std::vector<mtn::byte_t>&       end_bucket,
+                     const std::vector<mtn::byte_t>&       end_field,
                      mtn::index_reader_t::index_container* output) = 0;
 
         virtual mtn::status_t
-        read_index(mtn::index_partition_t partition,
-                   const mtn::byte_t*     field,
-                   size_t                 field_size,
+        read_index(mtn::index_partition_t          partition,
+                   const std::vector<mtn::byte_t>& bucket,
+                   const std::vector<mtn::byte_t>& field,
                    mtn::index_t*          output) = 0;
 
         virtual mtn::status_t
-        read_index_slice(mtn::index_partition_t partition,
-                         const mtn::byte_t*     field,
-                         size_t                 field_size,
-                         mtn::index_address_t   value,
-                         mtn::index_slice_t*    output) = 0;
+        read_index_slice(mtn::index_partition_t          partition,
+                         const std::vector<mtn::byte_t>& bucket,
+                         const std::vector<mtn::byte_t>& field,
+                         mtn::index_address_t            value,
+                         mtn::index_slice_t*             output) = 0;
 
         virtual mtn::status_t
-        read_segment(mtn::index_partition_t partition,
-                     const byte_t*          field,
-                     size_t                 field_size,
-                     mtn::index_address_t   value,
-                     mtn::index_address_t   offset,
-                     mtn::index_segment_ptr output) = 0;
+        read_segment(mtn::index_partition_t          partition,
+                     const std::vector<mtn::byte_t>& bucket,
+                     const std::vector<mtn::byte_t>& field,
+                     mtn::index_address_t            value,
+                     mtn::index_address_t            offset,
+                     mtn::index_segment_ptr          output) = 0;
 
         virtual mtn::status_t
-        estimateSize(mtn::index_partition_t partition,
-                     const byte_t*          field,
-                     size_t                 field_size,
-                     mtn::index_address_t   value,
-                     uint64_t*              output) = 0;
+        estimateSize(mtn::index_partition_t          partition,
+                     const std::vector<mtn::byte_t>& bucket,
+                     const std::vector<mtn::byte_t>& field,
+                     mtn::index_address_t            value,
+                     uint64_t*                       output) = 0;
     };
 
 } // namespace mtn

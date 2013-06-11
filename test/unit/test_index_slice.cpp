@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE(node_constructor_copy)
 
 BOOST_AUTO_TEST_CASE(slice_size)
 {
-    mtn::index_slice_t index(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
+    mtn::index_slice_t index(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
     BOOST_CHECK_EQUAL(0, index.size());
     index.insert(index.begin(), new mtn::index_slice_t::index_node_t(0));
     index.insert(index.begin(), new mtn::index_slice_t::index_node_t(2));
@@ -81,9 +81,9 @@ BOOST_AUTO_TEST_CASE(slice_size)
 
 BOOST_AUTO_TEST_CASE(slice_union_joint)
 {
-    mtn::index_slice_t a(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
-    mtn::index_slice_t b(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
-    mtn::index_slice_t o(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
+    mtn::index_slice_t a(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
+    mtn::index_slice_t b(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
+    mtn::index_slice_t o(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
     a.insert(a.begin(), new mtn::index_slice_t::index_node_t(0, SEGMENT_EVERY_OTHER_EVEN));
     b.insert(b.begin(), new mtn::index_slice_t::index_node_t(0, SEGMENT_EVERY_OTHER_ODD));
     BOOST_CHECK(mtn::index_slice_t::execute(mtn::MTN_INDEX_OP_UNION, a, b, o));
@@ -93,9 +93,9 @@ BOOST_AUTO_TEST_CASE(slice_union_joint)
 
 BOOST_AUTO_TEST_CASE(slice_union_disjoint)
 {
-    mtn::index_slice_t a(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
-    mtn::index_slice_t b(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
-    mtn::index_slice_t o(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
+    mtn::index_slice_t a(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
+    mtn::index_slice_t b(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
+    mtn::index_slice_t o(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
     a.insert(a.begin(), new mtn::index_slice_t::index_node_t(0, SEGMENT_EVERY_OTHER_EVEN));
     b.insert(b.begin(), new mtn::index_slice_t::index_node_t(1, SEGMENT_EVERY_OTHER_ODD));
     BOOST_CHECK(mtn::index_slice_t::execute(mtn::MTN_INDEX_OP_UNION, a, b, o));
@@ -106,9 +106,9 @@ BOOST_AUTO_TEST_CASE(slice_union_disjoint)
 
 BOOST_AUTO_TEST_CASE(slice_intersection_joint_nomatch)
 {
-    mtn::index_slice_t a(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
-    mtn::index_slice_t b(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
-    mtn::index_slice_t o(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
+    mtn::index_slice_t a(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
+    mtn::index_slice_t b(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
+    mtn::index_slice_t o(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
     a.insert(a.begin(), new mtn::index_slice_t::index_node_t(0, SEGMENT_EVERY_OTHER_EVEN));
     b.insert(b.begin(), new mtn::index_slice_t::index_node_t(0, SEGMENT_EVERY_OTHER_ODD));
     BOOST_CHECK(mtn::index_slice_t::execute(mtn::MTN_INDEX_OP_INTERSECTION, a, b, o));
@@ -118,9 +118,9 @@ BOOST_AUTO_TEST_CASE(slice_intersection_joint_nomatch)
 
 BOOST_AUTO_TEST_CASE(slice_intersection_joint_match)
 {
-    mtn::index_slice_t a(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
-    mtn::index_slice_t b(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
-    mtn::index_slice_t o(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
+    mtn::index_slice_t a(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
+    mtn::index_slice_t b(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
+    mtn::index_slice_t o(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
     a.insert(a.begin(), new mtn::index_slice_t::index_node_t(0, SEGMENT_EVERY_OTHER_EVEN));
     b.insert(b.begin(), new mtn::index_slice_t::index_node_t(0, SEGMENT_EVERY));
     BOOST_CHECK(mtn::index_slice_t::execute(mtn::MTN_INDEX_OP_INTERSECTION, a, b, o));
@@ -130,9 +130,9 @@ BOOST_AUTO_TEST_CASE(slice_intersection_joint_match)
 
 BOOST_AUTO_TEST_CASE(slice_intersection_disjoint)
 {
-    mtn::index_slice_t a(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
-    mtn::index_slice_t b(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
-    mtn::index_slice_t o(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
+    mtn::index_slice_t a(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
+    mtn::index_slice_t b(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
+    mtn::index_slice_t o(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
     a.insert(a.begin(), new mtn::index_slice_t::index_node_t(0, SEGMENT_EVERY_OTHER_EVEN));
     b.insert(b.begin(), new mtn::index_slice_t::index_node_t(1, SEGMENT_EVERY_OTHER_ODD));
     BOOST_CHECK(mtn::index_slice_t::execute(mtn::MTN_INDEX_OP_INTERSECTION, a, b, o));
@@ -141,8 +141,8 @@ BOOST_AUTO_TEST_CASE(slice_intersection_disjoint)
 
 BOOST_AUTO_TEST_CASE(slice_intersection_joint_match_overwrite)
 {
-    mtn::index_slice_t a(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
-    mtn::index_slice_t b(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
+    mtn::index_slice_t a(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
+    mtn::index_slice_t b(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
     a.insert(a.begin(), new mtn::index_slice_t::index_node_t(0, SEGMENT_EVERY_OTHER_EVEN));
     b.insert(b.begin(), new mtn::index_slice_t::index_node_t(0, SEGMENT_EVERY));
     BOOST_CHECK(mtn::index_slice_t::execute(mtn::MTN_INDEX_OP_INTERSECTION, a, b, b));
@@ -152,9 +152,9 @@ BOOST_AUTO_TEST_CASE(slice_intersection_joint_match_overwrite)
 
 BOOST_AUTO_TEST_CASE(slice_intersection_output_contains_data)
 {
-    mtn::index_slice_t a(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
-    mtn::index_slice_t b(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
-    mtn::index_slice_t o(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
+    mtn::index_slice_t a(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
+    mtn::index_slice_t b(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
+    mtn::index_slice_t o(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
     a.insert(a.begin(), new mtn::index_slice_t::index_node_t(0, SEGMENT_EVERY_OTHER_EVEN));
     b.insert(b.begin(), new mtn::index_slice_t::index_node_t(0, SEGMENT_EVERY));
     o.insert(o.begin(), new mtn::index_slice_t::index_node_t(0, SEGMENT_NONE));
@@ -165,9 +165,9 @@ BOOST_AUTO_TEST_CASE(slice_intersection_output_contains_data)
 
 BOOST_AUTO_TEST_CASE(slice_intersection_output_contains_data_at_beginning)
 {
-    mtn::index_slice_t a(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
-    mtn::index_slice_t b(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
-    mtn::index_slice_t o(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
+    mtn::index_slice_t a(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
+    mtn::index_slice_t b(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
+    mtn::index_slice_t o(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
     a.insert(a.begin(), new mtn::index_slice_t::index_node_t(1, SEGMENT_EVERY_OTHER_EVEN));
     b.insert(b.begin(), new mtn::index_slice_t::index_node_t(1, SEGMENT_EVERY));
     o.insert(o.begin(), new mtn::index_slice_t::index_node_t(0, SEGMENT_NONE));
@@ -178,9 +178,9 @@ BOOST_AUTO_TEST_CASE(slice_intersection_output_contains_data_at_beginning)
 
 BOOST_AUTO_TEST_CASE(slice_intersection_output_contains_data_at_end)
 {
-    mtn::index_slice_t a(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
-    mtn::index_slice_t b(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
-    mtn::index_slice_t o(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
+    mtn::index_slice_t a(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
+    mtn::index_slice_t b(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
+    mtn::index_slice_t o(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 3);
     a.insert(a.begin(), new mtn::index_slice_t::index_node_t(1, SEGMENT_EVERY_OTHER_EVEN));
     b.insert(b.begin(), new mtn::index_slice_t::index_node_t(1, SEGMENT_EVERY));
     o.insert(o.begin(), new mtn::index_slice_t::index_node_t(2, SEGMENT_NONE));
@@ -192,7 +192,7 @@ BOOST_AUTO_TEST_CASE(slice_intersection_output_contains_data_at_end)
 BOOST_AUTO_TEST_CASE(slice_set_bit)
 {
     index_reader_writer_memory_t reader_writer;
-    mtn::index_slice_t o(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
+    mtn::index_slice_t o(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
 
     BOOST_CHECK(!o.bit(2048));
     BOOST_CHECK_EQUAL(0, o.size());

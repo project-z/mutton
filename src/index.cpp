@@ -25,10 +25,21 @@
 
 // typedef boost::counting_iterator<mtn::index_address_t> counting_iterator;
 
-mtn::index_t::index_t(mtn::index_partition_t partition,
-                      const byte_t*          field,
-                      size_t                 field_size) :
+mtn::index_t::index_t(mtn::index_partition_t          partition,
+                      const std::vector<mtn::byte_t>& bucket,
+                      const std::vector<mtn::byte_t>& field) :
     _partition(partition),
+    _bucket(bucket),
+    _field(field)
+{}
+
+mtn::index_t::index_t(mtn::index_partition_t          partition,
+                      const mtn::byte_t*              bucket,
+                      size_t                          bucket_size,
+                      const mtn::byte_t*              field,
+                      size_t                          field_size) :
+    _partition(partition),
+    _bucket(bucket, bucket + bucket_size),
     _field(field, field + field_size)
 {}
 
@@ -43,9 +54,8 @@ mtn::index_t::slice(mtn::range_t*             ranges,
 
     for (int r = 0; r < range_count; ++r) {
         for (mtn::index_address_t a = ranges[r].start; a < ranges[r].limit; ++a) {
-            // BOOST_FOREACH(mtn::index_address_t a, boost::make_iterator_range(counting_iterator(ranges[r].start), counting_iterator(ranges[r].limit))) {
-            mtn::index_t::iterator iter = find(a);
 
+            mtn::index_t::iterator iter = find(a);
             if (iter != end()) {
                 if (first_iteration) {
                     output = *(iter->second);
@@ -94,9 +104,9 @@ mtn::index_t::index_value(mtn::index_reader_t* reader,
                           mtn::index_address_t who_or_what,
                           bool                 state)
 {
-    mtn::index_t::iterator iter = _index.find(value);
+    mtn::index_t::iterator iter = iter = _index.find(value);
     if (iter == _index.end()) {
-        iter = insert(value, new mtn::index_slice_t(_partition, &_field[0], _field.size(), value)).first;
+        iter = insert(value, new mtn::index_slice_t(_partition, _bucket, _field, value)).first;
     }
 
     iter->second->bit(reader, writer, who_or_what, state);
@@ -174,16 +184,4 @@ mtn::index_partition_t
 mtn::index_t::partition() const
 {
     return _partition;
-}
-
-const mtn::byte_t*
-mtn::index_t::field() const
-{
-    return &_field[0];
-}
-
-size_t
-mtn::index_t::field_size() const
-{
-    return _field.size();
 }

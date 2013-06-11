@@ -34,6 +34,8 @@
 #define MTN_INDEX_SEGMENT_SIZE MTN_INDEX_SEGMENT_LENGTH * sizeof(uint64_t)
 
 typedef __uint128_t uint128_t;
+#define INDEX_ADDRESS_MAX ((uint128_t) 0xFFFFFFFFFFFFFFFF) << 64 | 0xFFFFFFFFFFFFFFFF
+#define INDEX_ADDRESS_MIN ((uint128_t) 0x0000000000000000) << 64 | 0x0000000000000000
 
 inline std::ostream&
 operator<<(std::ostream& stream,
@@ -55,6 +57,21 @@ namespace mtn {
         MTN_INDEX_OP_INTERSECTION = 0,
         MTN_INDEX_OP_UNION = 1,
         MTN_INDEX_OP_SYMMETRIC_DIFFERENCE = 2
+    };
+
+    struct index_address_comparator_t
+    {
+        bool operator()(mtn::index_address_t a, mtn::index_address_t b)
+        {
+            uint64_t high_a = (uint64_t) (a >> 64);
+            uint64_t high_b = (uint64_t) (b >> 64);
+
+            if (high_a != high_b) {
+                return high_a < high_b;
+            }
+
+            return  (uint64_t) a < (uint64_t) b;
+        }
     };
 
 } // namespace mtn

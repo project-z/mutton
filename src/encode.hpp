@@ -100,12 +100,15 @@ namespace mtn {
     inline mtn::byte_t*
     decode_index_key(const mtn::byte_t*    input,
                      uint16_t*             partition,
+                     mtn::byte_t**         bucket,
+                     uint16_t*             bucket_size,
                      mtn::byte_t**         field,
                      uint16_t*             field_size,
                      mtn::index_address_t* value,
                      mtn::index_address_t* offset)
     {
         mtn::byte_t* output = decode_parition(input, partition);
+        output = decode_bytes(output, bucket, bucket_size);
         output = decode_bytes(output, field, field_size);
         output = decode_uint128(output, value);
         return decode_uint128(output, offset);
@@ -165,16 +168,18 @@ namespace mtn {
 
     inline size_t
     get_index_key_size(uint16_t             partition,
-                       const mtn::byte_t*   field,
+                       uint16_t             bucket_size,
                        uint16_t             field_size,
                        mtn::index_address_t value,
                        mtn::index_address_t offset)
     {
-        return sizeof(partition) + sizeof(uint16_t) + field_size + sizeof(value) + sizeof(offset);
+        return sizeof(partition) + sizeof(uint16_t) + bucket_size + field_size + sizeof(value) + sizeof(offset);
     }
 
     inline mtn::byte_t*
     encode_index_key(uint16_t             partition,
+                     const mtn::byte_t*   bucket,
+                     uint16_t             bucket_size,
                      const mtn::byte_t*   field,
                      uint16_t             field_size,
                      mtn::index_address_t value,
@@ -182,6 +187,7 @@ namespace mtn {
                      mtn::byte_t*         output)
     {
         mtn::byte_t* pos = encode_parition(partition, &output[0]);
+        pos = encode_bytes(bucket, bucket_size, pos);
         pos = encode_bytes(field, field_size, pos);
         pos = encode_uint128(value, pos);
         return encode_uint128(offset, pos);
@@ -189,14 +195,16 @@ namespace mtn {
 
     inline void
     encode_index_key(uint16_t                  partition,
+                     const mtn::byte_t*        bucket,
+                     uint16_t                  bucket_size,
                      const mtn::byte_t*        field,
                      uint16_t                  field_size,
                      mtn::index_address_t      value,
                      mtn::index_address_t      offset,
                      std::vector<mtn::byte_t>& output)
     {
-        output.resize(get_index_key_size(partition, field, field_size, value, offset));
-        encode_index_key(partition, field, field_size, value, offset, &output[0]);
+        output.resize(get_index_key_size(partition, bucket_size, field_size, value, offset));
+        encode_index_key(partition, bucket, bucket_size, field, field_size, value, offset, &output[0]);
     }
 
 } // namespace mtn

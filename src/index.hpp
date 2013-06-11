@@ -39,12 +39,18 @@ namespace mtn {
     {
     public:
         typedef mtn::index_slice_t type;
-        typedef boost::ptr_map<mtn::index_address_t, mtn::index_slice_t> index_container;
+        typedef boost::ptr_map<mtn::index_address_t, mtn::index_slice_t, mtn::index_address_comparator_t> index_container;
         typedef index_container::iterator iterator;
 
-        index_t(mtn::index_partition_t partition,
-                const byte_t*          field,
-                size_t                 field_size);
+        index_t(mtn::index_partition_t          partition,
+                const std::vector<mtn::byte_t>& bucket,
+                const std::vector<mtn::byte_t>& field);
+
+        index_t(mtn::index_partition_t          partition,
+                const mtn::byte_t*              bucket,
+                size_t                          bucket_size,
+                const mtn::byte_t*              field,
+                size_t                          field_size);
 
         mtn::status_t
         slice(mtn::index_slice_t&       output);
@@ -99,11 +105,17 @@ namespace mtn {
         index_partition_t
         partition() const;
 
-        const byte_t*
-        field() const;
+        inline const std::vector<mtn::byte_t>&
+        bucket() const
+        {
+            return _bucket;
+        }
 
-        size_t
-        field_size() const;
+        inline const std::vector<mtn::byte_t>&
+        field() const
+        {
+            return _field;
+        }
 
         inline iterator
         find(mtn::index_address_t a)
@@ -156,9 +168,10 @@ namespace mtn {
         }
 
     private:
-        index_container     _index;
-        index_partition_t   _partition;
-        std::vector<byte_t> _field;
+        index_container          _index;
+        index_partition_t        _partition;
+        std::vector<mtn::byte_t> _bucket;
+        std::vector<mtn::byte_t> _field;
     };
 
 
