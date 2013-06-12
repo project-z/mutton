@@ -27,10 +27,10 @@ columns -> event_name : counter
 ### Indexes
 
 * Indexes are stored on disk in [leveldb](https://code.google.com/p/leveldb/)
-* All index addresses spaces are 64 bit
+* All index addresses spaces are 128 bit
 * Index chunks are 256 bytes
 * Offsets are 16 bytes (64 bits)
-* If the index value can't be transformed to a 64bit unsigned int, it must be hashed by [cityhash](https://code.google.com/p/cityhash/).
+* If the index value can't be transformed to a 128bit unsigned int, it must be hashed by [cityhash](https://code.google.com/p/cityhash/).
 * In level db all keys are contained within the same namespace. Need to prepend byte sequence to keys to partition keyspaces. Partition byte sequence are 16 bits (2 bytes).
 * Fields [prod, event] are encodeded as [bytes] where the first uint16 is the size of the byte sequence
 * Because of hash collsion we can't rely upon hash values alone to find unique IDs. Anytime a hash is employed we must keep a dictionary mapping hash values to actual value.
