@@ -150,7 +150,7 @@ public:
                  const std::vector<mtn::byte_t>&       start_field,
                  const std::vector<mtn::byte_t>&       end_bucket,
                  const std::vector<mtn::byte_t>&       end_field,
-                 mtn::index_reader_t::index_container* output)
+                 mtn::index_reader_t::index_container& output)
     {
         index_key_t start_key(partition, start_bucket, start_field, 0);
         index_key_t end_key(partition, end_bucket, end_field, 0);
@@ -163,7 +163,7 @@ public:
 
             if (iter->first.field != current_field) {
                 mtn::index_reader_t::index_container::key_type key(iter->first.field.begin(), iter->first.field.end());
-                current_index = output->insert(
+                current_index = output.insert(
                     key,
                     new mtn::index_t(partition,
                                      iter->first.bucket.c_str(),
@@ -183,14 +183,15 @@ public:
     read_index(mtn::index_partition_t          partition,
                const std::vector<mtn::byte_t>& bucket,
                const std::vector<mtn::byte_t>& field,
-               mtn::index_t*                   output)
+               mtn::index_t**                  output)
     {
         index_key_t start_key(partition, bucket, field, 0);
         index_key_t end_key(partition, bucket, field, INDEX_ADDRESS_MAX);
 
+        *output = new mtn::index_t(partition, bucket, field);
         index_container_t::iterator iter = _index.lower_bound(start_key);
         for (; iter != _index.end() && iter->first <= end_key; ++iter) {
-            output->insert(iter->second->value(), new mtn::index_slice_t(*iter->second));
+            (*output)->insert(iter->second->value(), new mtn::index_slice_t(*iter->second));
         }
         return mtn::status_t();
     }
@@ -200,12 +201,12 @@ public:
                      const std::vector<mtn::byte_t>& bucket,
                      const std::vector<mtn::byte_t>& field,
                      mtn::index_address_t            value,
-                     mtn::index_slice_t*             output)
+                     mtn::index_slice_t&             output)
     {
         index_key_t key(partition, bucket, field, value);
         index_container_t::iterator iter = _index.find(key);
         if (iter != _index.end()) {
-            *output = *iter->second;
+            output = *iter->second;
         }
         return mtn::status_t();
     }

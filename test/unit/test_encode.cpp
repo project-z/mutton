@@ -196,4 +196,30 @@ BOOST_AUTO_TEST_CASE(encode_index_key)
     BOOST_CHECK(memcmp(output_ref, output, sizeof(output)) == 0);
 }
 
+BOOST_AUTO_TEST_CASE(encode_index_key_vector)
+{
+
+    mtn::byte_t output_ref[] = {0x01, 0x02,
+                                0x00, 0x02, 0x03, 0x04,
+                                0x00, 0x02, 0x05, 0x06,
+                                0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88,
+                                0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88,
+                                0xDD, 0xEE, 0xAA, 0xDD, 0xBB, 0xEE, 0xEE, 0xFF,
+                                0xDD, 0xEE, 0xAA, 0xDD, 0xBB, 0xEE, 0xEE, 0xFF};
+
+    std::vector<mtn::byte_t> output;
+
+    uint16_t    partition    = 0x0102;
+    mtn::byte_t bucket[]     = {0x03, 0x04};
+    uint16_t    bucket_size  = 2;
+    mtn::byte_t field[]      = {0x05, 0x06};
+    uint16_t    field_size   = 2;
+    uint128_t   value        = ((uint128_t) 0x1122334455667788) << 64 | 0x1122334455667788;
+    uint128_t   offset       = ((uint128_t) 0xDDEEAADDBBEEEEFF) << 64 | 0xDDEEAADDBBEEEEFF;
+
+    mtn::encode_index_key(partition, bucket, bucket_size, field, field_size, value, offset, output);
+    BOOST_CHECK_EQUAL(sizeof(output_ref), output.size());
+    BOOST_CHECK(memcmp(output_ref, &output[0], output.size()) == 0);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

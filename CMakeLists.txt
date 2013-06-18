@@ -12,7 +12,7 @@ set (libmutton_VERSION_STRING ${libmutton_VERSION_MAJOR}.${libmutton_VERSION_MIN
 #-------------------
 # Enable C++11
 #-------------------
-set(CMAKE_CXX_FLAGS "-Wall -Werror -g3 -O2")
+set(CMAKE_CXX_FLAGS "-Wall -Werror -g3 -O0")
 
 #-------------------
 # setup deps
@@ -33,8 +33,9 @@ set(INCLUDES ${INCLUDES} ${PROJECT_SOURCE_DIR}/ext/utf8/source)
 
 # Boost
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost 1.47.0 REQUIRED)
+find_package(Boost 1.47.0 COMPONENTS system filesystem REQUIRED )
 set(INCLUDES ${INCLUDES} ${Boost_INCLUDE_DIRS} )
+set(LIBS ${LIBS} ${Boost_LIBRARIES} )
 
 # Threading
 find_package(Threads)

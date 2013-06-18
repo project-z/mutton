@@ -35,14 +35,20 @@ mtn::status_t
 mtn::index_reader_writer_leveldb_t::read_index(mtn::index_partition_t          partition,
                                                const std::vector<mtn::byte_t>& bucket,
                                                const std::vector<mtn::byte_t>& field,
-                                               mtn::index_t*                   output)
+                                               mtn::index_t**                  output)
 {
     mtn::index_reader_t::index_container container;
-    mtn::status_t status = read_indexes(partition, bucket, field, std::vector<mtn::byte_t>(), std::vector<mtn::byte_t>(), &container);
+    mtn::status_t status = read_indexes(partition, bucket, field, std::vector<mtn::byte_t>(), std::vector<mtn::byte_t>(), container);
 
     if (status) {
-        output = container.release(container.begin()).release();
+        if (!container.empty()) {
+            *output = container.release(container.begin()).release();
+        }
+        else {
+            *output = new mtn::index_t(partition, bucket, field);
+        }
     }
+
     return status;
 }
 
@@ -52,13 +58,13 @@ mtn::index_reader_writer_leveldb_t::read_indexes(mtn::index_partition_t         
                                                  const std::vector<mtn::byte_t>&       start_field,
                                                  const std::vector<mtn::byte_t>&       end_bucket,
                                                  const std::vector<mtn::byte_t>&       end_field,
-                                                 mtn::index_reader_t::index_container* output)
+                                                 mtn::index_reader_t::index_container& output)
 {
     std::vector<mtn::byte_t> start_key;
     std::vector<mtn::byte_t> stop_key;
     encode_index_key(partition, &start_bucket[0], start_bucket.size(), &start_field[0], start_field.size(), 0, 0, start_key);
 
-    if (end_bucket.empty() && end_field.empty()) {
+    if (!end_bucket.empty() && !end_field.empty()) {
         encode_index_key(partition, &end_bucket[0], end_bucket.size(), &end_field[0], end_field.size(), INDEX_ADDRESS_MAX, INDEX_ADDRESS_MAX, stop_key);
     }
     else {
@@ -66,6 +72,7 @@ mtn::index_reader_writer_leveldb_t::read_indexes(mtn::index_partition_t         
     }
 
     leveldb::Slice start_slice(reinterpret_cast<char*>(&start_key[0]), start_key.size());
+    leveldb::Slice stop_slice(reinterpret_cast<char*>(&stop_key[0]), stop_key.size());
 
     std::vector<mtn::byte_t> current_bucket;
     std::vector<mtn::byte_t> current_field;
@@ -75,7 +82,7 @@ mtn::index_reader_writer_leveldb_t::read_indexes(mtn::index_partition_t         
 
     std::auto_ptr<leveldb::Iterator> iter(_db->NewIterator(_read_options));
     for (iter->Seek(start_slice);
-         iter->Valid() && memcmp(iter->key().data(), &stop_key[0], MTN_INDEX_SEGMENT_SIZE) < 0;
+         iter->Valid() && iter->key().compare(stop_slice) < 0;
          iter->Next())
     {
         uint16_t             temp_partition   = 0;
@@ -105,12 +112,12 @@ mtn::index_reader_writer_leveldb_t::read_indexes(mtn::index_partition_t         
             std::vector<mtn::byte_t> key;
             key.assign(temp_field, temp_field + temp_field_size);
             current_field.assign(temp_field, temp_field + temp_field_size);
-            current_index = output->insert(key,
-                                           new mtn::index_t(temp_partition,
-                                                            temp_bucket,
-                                                            temp_bucket_size,
-                                                            temp_field,
-                                                            temp_field_size)
+            current_index = output.insert(key,
+                                          new mtn::index_t(temp_partition,
+                                                           temp_bucket,
+                                                           temp_bucket_size,
+                                                           temp_field,
+                                                           temp_field_size)
                 ).first->second;
 
             current_slice_value = INDEX_ADDRESS_MAX;
@@ -142,7 +149,7 @@ mtn::index_reader_writer_leveldb_t::read_index_slice(mtn::index_partition_t     
                                                      const std::vector<mtn::byte_t>& bucket,
                                                      const std::vector<mtn::byte_t>& field,
                                                      mtn::index_address_t            value,
-                                                     mtn::index_slice_t*             output)
+                                                     mtn::index_slice_t&             output)
 {
     std::vector<mtn::byte_t> start_key;
     std::vector<mtn::byte_t> stop_key;
@@ -150,7 +157,7 @@ mtn::index_reader_writer_leveldb_t::read_index_slice(mtn::index_partition_t     
     encode_index_key(partition, &bucket[0], bucket.size(), &field[0], field.size(), value, INDEX_ADDRESS_MAX, stop_key);
     leveldb::Slice start_slice(reinterpret_cast<char*>(&start_key[0]), start_key.size());
 
-    mtn::index_slice_t::iterator insert_iter = output->begin();
+    mtn::index_slice_t::iterator insert_iter = output.begin();
 
     std::auto_ptr<leveldb::Iterator> iter(_db->NewIterator(_read_options));
     for (iter->Seek(start_slice);
@@ -167,7 +174,7 @@ mtn::index_reader_writer_leveldb_t::read_index_slice(mtn::index_partition_t     
 
         assert(iter->value().size() == MTN_INDEX_SEGMENT_SIZE);
         mtn::decode_index_key(reinterpret_cast<const mtn::byte_t*>(iter->key().data()), &temp_partition, &temp_bucket, &temp_bucket_size, &temp_field, &temp_field_size, &temp_value, &offset);
-        insert_iter = output->insert(insert_iter, new mtn::index_slice_t::index_node_t(offset, (const index_segment_ptr) iter->value().data()));
+        insert_iter = output.insert(insert_iter, new mtn::index_slice_t::index_node_t(offset, (const index_segment_ptr) iter->value().data()));
     }
     return mtn::status_t(); // XXX TODO better error handling
 }
@@ -181,8 +188,8 @@ mtn::index_reader_writer_leveldb_t::read_segment(mtn::index_partition_t         
                                                  mtn::index_segment_ptr          output)
 {
     std::vector<mtn::byte_t> key;
-    leveldb::Slice key_slice(reinterpret_cast<char*>(&key[0]), key.size());
     encode_index_key(partition, &bucket[0], bucket.size(), &field[0], field.size(), value, offset, key);
+    leveldb::Slice key_slice(reinterpret_cast<char*>(&key[0]), key.size());
 
     std::auto_ptr<leveldb::Iterator> iter(_db->NewIterator(_read_options));
     iter->Seek(key_slice);

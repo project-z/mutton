@@ -47,20 +47,20 @@ namespace mtn {
                      const std::vector<mtn::byte_t>&       start_field,
                      const std::vector<mtn::byte_t>&       end_bucket,
                      const std::vector<mtn::byte_t>&       end_field,
-                     mtn::index_reader_t::index_container* output) = 0;
+                     mtn::index_reader_t::index_container& output) = 0;
 
         virtual mtn::status_t
         read_index(mtn::index_partition_t          partition,
                    const std::vector<mtn::byte_t>& bucket,
                    const std::vector<mtn::byte_t>& field,
-                   mtn::index_t*          output) = 0;
+                   mtn::index_t**                  output) = 0;
 
         virtual mtn::status_t
         read_index_slice(mtn::index_partition_t          partition,
                          const std::vector<mtn::byte_t>& bucket,
                          const std::vector<mtn::byte_t>& field,
                          mtn::index_address_t            value,
-                         mtn::index_slice_t*             output) = 0;
+                         mtn::index_slice_t&             output) = 0;
 
         virtual mtn::status_t
         read_segment(mtn::index_partition_t          partition,

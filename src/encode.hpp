@@ -173,7 +173,11 @@ namespace mtn {
                        mtn::index_address_t value,
                        mtn::index_address_t offset)
     {
-        return sizeof(partition) + sizeof(uint16_t) + bucket_size + field_size + sizeof(value) + sizeof(offset);
+        return sizeof(partition)
+            + sizeof(bucket_size) + bucket_size
+            + sizeof(field_size) + field_size
+            + sizeof(value)
+            + sizeof(offset);
     }
 
     inline mtn::byte_t*
