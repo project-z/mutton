@@ -20,6 +20,7 @@
 #ifndef __MUTTON_NAIVE_QUERY_PLANNER_HPP_INCLUDED__
 #define __MUTTON_NAIVE_QUERY_PLANNER_HPP_INCLUDED__
 
+#include "context.hpp"
 #include "index.hpp"
 #include "index_slice.hpp"
 #include "query_ops.hpp"
@@ -84,66 +85,92 @@ namespace mtn {
     boost::static_visitor<mtn::index_slice_t>
     {
 
+        naive_query_planner_t(mtn::index_partition_t partition,
+                              mtn::context_t&        context,
+                              const std::vector<byte_t>& bucket) :
+            _partition(partition),
+            _context(context),
+            _bucket(bucket)
+        {};
+
         mtn::index_slice_t
-        operator()(const mtn::op_or& o) const
+        operator()(const mtn::op_or& o)
         {
             mtn::index_slice_t result;
             mtn::op_or::const_iterator iter = o.children.begin();
             for (; iter != o.children.end(); ++iter) {
+                if (!_status) {
+                    break;
+                }
                 mtn::index_slice_t temp_slice = boost::apply_visitor(*this, *iter);
-                mtn::index_slice_t::execute(MTN_INDEX_OP_UNION, temp_slice, result, result);
+                _status = mtn::index_slice_t::execute(MTN_INDEX_OP_UNION, temp_slice, result, result);
             }
             return result;
         }
 
         mtn::index_slice_t
-        operator()(const mtn::op_and& o) const
+        operator()(const mtn::op_and& o)
         {
             mtn::index_slice_t result;
             mtn::op_and::const_iterator iter = o.children.begin();
             for (; iter != o.children.end(); ++iter) {
+                if (!_status) {
+                    break;
+                }
                 mtn::index_slice_t temp_slice = boost::apply_visitor(*this, *iter);
-                mtn::index_slice_t::execute(MTN_INDEX_OP_INTERSECTION, temp_slice, result, result);
+                _status = mtn::index_slice_t::execute(MTN_INDEX_OP_INTERSECTION, temp_slice, result, result);
             }
             return result;
         }
 
         mtn::index_slice_t
-        operator()(const mtn::op_xor& o) const
+        operator()(const mtn::op_xor& o)
         {
             mtn::index_slice_t result;
             mtn::op_xor::const_iterator iter = o.children.begin();
             for (; iter != o.children.end(); ++iter) {
+                if (!_status) {
+                    break;
+                }
                 mtn::index_slice_t temp_slice = boost::apply_visitor(*this, *iter);
-                mtn::index_slice_t::execute(MTN_INDEX_OP_SYMMETRIC_DIFFERENCE, temp_slice, result, result);
+                _status = mtn::index_slice_t::execute(MTN_INDEX_OP_SYMMETRIC_DIFFERENCE, temp_slice, result, result);
             }
             return result;
         }
 
         mtn::index_slice_t
-        operator()(const mtn::op_not& o) const
+        operator()(const mtn::op_not& o)
         {
-            return mtn::index_slice_t();
+            throw "XXX TODO fix me";
         }
 
         mtn::index_slice_t
-        operator()(const mtn::range_t&) const
+        operator()(const mtn::range_t&)
         {
             throw "shouldn't happen";
         }
 
         mtn::index_slice_t
-        operator()(const mtn::regex_t&) const
+        operator()(const mtn::regex_t&)
         {
             throw "shouldn't happen";
         }
 
         mtn::index_slice_t
-        operator()(const mtn::op_slice& o) const
+        operator()(const mtn::op_slice& o)
         {
-            mtn::index_t index;
-            std::vector<mtn::range_t> ranges;
             mtn::index_slice_t result;
+            if (!_status) {
+                return result;
+            }
+
+            mtn::index_t* index = NULL;
+            _status = _context.get_index(_partition, _bucket, o.to_vector(), index);
+            if (!_status) {
+                return result;
+            }
+
+            std::vector<mtn::range_t> ranges;
             range_visitor_t visitor(ranges);
 
             mtn::op_slice::const_iterator iter = o.values.begin();
@@ -151,12 +178,24 @@ namespace mtn {
                 boost::apply_visitor(visitor, *iter);
             }
 
-            index.slice(&ranges[0],
-                        ranges.size(),
-                        MTN_INDEX_OP_UNION,
-                        result);
+            index->slice(&ranges[0],
+                         ranges.size(),
+                         MTN_INDEX_OP_UNION,
+                         result);
             return result;
         }
+
+        inline const mtn::status_t&
+        status()
+        {
+            return _status;
+        }
+
+    private:
+        mtn::status_t            _status;
+        mtn::index_partition_t   _partition;
+        mtn::context_t&          _context;
+        std::vector<mtn::byte_t> _bucket;
     };
 
 } // namespace mtn

@@ -49,6 +49,12 @@ namespace mtn {
         typedef collection::iterator       iterator;
         typedef collection::const_iterator const_iterator;
 
+        inline std::vector<mtn::byte_t>
+        to_vector() const
+        {
+            return std::vector<mtn::byte_t>(index.begin(), index.end());
+        }
+
         std::string                        index;
         collection                         values;
     };

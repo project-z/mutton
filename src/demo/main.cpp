@@ -1,6 +1,7 @@
 #include "query_parser.hpp"
 #include "query_printer.hpp"
 #include "naive_query_planner.hpp"
+#include "context.hpp"
 
 std::ostream&
 operator<<(std::ostream& os,
@@ -44,7 +45,13 @@ int main()
                 std::cerr << "invalid input\n";
             }
             else {
+                mtn::byte_t bucket_name_array[] = "bizbang";
+                mtn::context_t context;
+                std::vector<mtn::byte_t> bucket(bucket_name_array, bucket_name_array + 7);
+                mtn::naive_query_planner_t planner(1, context, bucket);
+                mtn::index_slice_t slice = boost::apply_visitor(planner, result);
                 std::cout << "result: " << result << "\n";
+                std::cout << "        " << planner.status().message << "\n";
             }
         }
         catch (const qi::expectation_failure<std::string::const_iterator>& e)
