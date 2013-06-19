@@ -27,9 +27,9 @@ BOOST_AUTO_TEST_CASE(simple)
     std::string input = "foobar";
     mtn::trigram_t output;
 
-    char* new_ptr = mtn::trigram_t::init(input.c_str(), input.c_str() + input.size(), &output);
+    std::string::iterator iter = mtn::trigram_t::init(input.begin(), input.end(), output);
 
-    BOOST_CHECK_EQUAL(input.c_str() + 3, new_ptr);
+    BOOST_CHECK(input.begin() + 3 == iter);
     BOOST_CHECK_EQUAL(102, output.one);
     BOOST_CHECK_EQUAL(111, output.two);
     BOOST_CHECK_EQUAL(111, output.three);
@@ -44,9 +44,9 @@ BOOST_AUTO_TEST_CASE(small)
     std::string input = "fo";
     mtn::trigram_t output;
 
-    char* new_ptr = mtn::trigram_t::init(input.c_str(), input.c_str() + input.size(), &output);
+    std::string::iterator iter = mtn::trigram_t::init(input.begin(), input.end(), output);
 
-    BOOST_CHECK_EQUAL(input.c_str() + 2, new_ptr);
+    BOOST_CHECK(input.begin() + 2 == iter);
     BOOST_CHECK_EQUAL(102, output.one);
     BOOST_CHECK_EQUAL(111, output.two);
     BOOST_CHECK_EQUAL(0, output.three);
@@ -63,8 +63,8 @@ BOOST_AUTO_TEST_CASE(order)
     mtn::trigram_t tri1;
     mtn::trigram_t tri2;
 
-    mtn::trigram_t::init(input1.c_str(), input1.c_str() + input1.size(), &tri1);
-    mtn::trigram_t::init(input2.c_str(), input2.c_str() + input2.size(), &tri2);
+    mtn::trigram_t::init(input1.begin(), input1.end(), tri1);
+    mtn::trigram_t::init(input2.begin(), input2.end(), tri2);
 
     BOOST_CHECK(tri1.hash() < tri2.hash());
 }
@@ -75,16 +75,12 @@ BOOST_AUTO_TEST_CASE(loop)
     mtn::trigram_t output;
 
     int counter = 0;
-    char* pos = const_cast<char*>(input.c_str());
-    const char* end = pos + input.size();
+    std::string::iterator pos = input.begin();
 
-    for (;;) {
-        pos = mtn::trigram_t::init(pos, end, &output);
-        ++counter;
-        if (pos == end) {
-            break;
-        }
+    while (pos != input.end()) {
         output.zero();
+        pos = mtn::trigram_t::init(pos, input.end(), output);
+        ++counter;
     }
 
     BOOST_CHECK_EQUAL(111, output.one);

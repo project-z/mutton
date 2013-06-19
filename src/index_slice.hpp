@@ -96,8 +96,8 @@ namespace mtn {
         //         index_address_t           value);
 
         mtn::status_t
-        bit(mtn::index_reader_t* reader,
-            mtn::index_writer_t* writer,
+        bit(mtn::index_reader_t& reader,
+            mtn::index_writer_t& writer,
             index_address_t      bit,
             bool                 state);
 

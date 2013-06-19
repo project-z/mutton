@@ -21,6 +21,7 @@
 #define __MUTTON_QUERY_OPS_HPP_INCLUDED__
 
 #include <city.h>
+#include <boost/variant.hpp>
 #include <boost/variant/recursive_wrapper.hpp>
 
 #include "range.hpp"

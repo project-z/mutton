@@ -22,7 +22,7 @@
 #include "fixtures.hpp"
 #include "query_parser.hpp"
 
-BOOST_AUTO_TEST_SUITE(_query_planner)
+BOOST_AUTO_TEST_SUITE(_query_parser)
 
 BOOST_AUTO_TEST_CASE(test_slice_ascii)
 {

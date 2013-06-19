@@ -20,6 +20,7 @@
 #ifndef __MUTTON_INDEX_HPP_INCLUDED__
 #define __MUTTON_INDEX_HPP_INCLUDED__
 
+#include <set>
 #include <vector>
 #include <boost/noncopyable.hpp>
 #include <boost/ptr_container/ptr_map.hpp>
@@ -27,6 +28,7 @@
 #include "base_types.hpp"
 #include "index_slice.hpp"
 #include "status.hpp"
+#include "trigram.hpp"
 
 namespace mtn {
 
@@ -67,38 +69,45 @@ namespace mtn {
               mtn::index_slice_t&       output);
 
         mtn::status_t
-        index_value(mtn::index_reader_t* reader,
-                    mtn::index_writer_t* writer,
+        index_value(mtn::index_reader_t& reader,
+                    mtn::index_writer_t& writer,
                     mtn::index_address_t value,
                     mtn::index_address_t who_or_what,
                     bool                 state);
 
-        mtn::status_t
-        index_value_trigram(mtn::index_reader_t* reader,
-                            mtn::index_writer_t* writer,
-                            const char*          value,
-                            const char*          end,
+        template<class InputIterator>
+        inline mtn::status_t
+        index_value_trigram(mtn::index_reader_t& reader,
+                            mtn::index_writer_t& writer,
+                            InputIterator        first,
+                            InputIterator        last,
                             mtn::index_address_t who_or_what,
-                            bool                 state);
+                            bool                 state)
+        {
+            mtn::status_t status;
+            std::set<mtn::index_address_t> trigrams;
+            mtn::trigram_t::to_trigrams(first, last, trigrams);
 
-        // mtn::status_t
-        // index_value_hash(mtn::index_reader_t* reader,
-        //                  mtn::index_writer_t* writer,
-        //                  const char*          value,
-        //                  size_t               len,
-        //                  mtn::index_address_t who_or_what,
-        //                  bool                 state);
+            std::set<mtn::index_address_t>::iterator iter = trigrams.begin();
+            for (; iter != trigrams.end(); ++iter) {
+                status = index_value(reader, writer, *iter, who_or_what, state);
+                if (!status) {
+                    return status;
+                }
+            }
+            return status;
+        }
 
         mtn::status_t
-        indexed_value(mtn::index_reader_t* reader,
-                      mtn::index_writer_t* writer,
+        indexed_value(mtn::index_reader_t& reader,
+                      mtn::index_writer_t& writer,
                       mtn::index_address_t value,
                       mtn::index_address_t who_or_what,
                       bool*                state);
 
         mtn::status_t
-        indexed_value(mtn::index_reader_t* reader,
-                      mtn::index_writer_t* writer,
+        indexed_value(mtn::index_reader_t& reader,
+                      mtn::index_writer_t& writer,
                       mtn::index_address_t value,
                       mtn::index_slice_t** who_or_what);
 

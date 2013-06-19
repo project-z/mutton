@@ -66,8 +66,8 @@ BOOST_AUTO_TEST_CASE(index_slice_norange)
     index_reader_writer_memory_t reader_writer;
 
     mtn::index_t index(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6);
-    index.index_value(&reader_writer, &reader_writer, 1, 2048, true);
-    index.index_value(&reader_writer, &reader_writer, 3, 2049, true);
+    index.index_value(reader_writer, reader_writer, 1, 2048, true);
+    index.index_value(reader_writer, reader_writer, 3, 2049, true);
 
     mtn::index_slice_t o;
     index.slice(o);
@@ -81,9 +81,9 @@ BOOST_AUTO_TEST_CASE(index_slice_single_range)
     index_reader_writer_memory_t reader_writer;
 
     mtn::index_t index(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6);
-    index.index_value(&reader_writer, &reader_writer, 1, 2048, true);
-    index.index_value(&reader_writer, &reader_writer, 2, 1024, true);
-    index.index_value(&reader_writer, &reader_writer, 3, 2049, true);
+    index.index_value(reader_writer, reader_writer, 1, 2048, true);
+    index.index_value(reader_writer, reader_writer, 2, 1024, true);
+    index.index_value(reader_writer, reader_writer, 3, 2049, true);
 
     mtn::range_t range(0, 2);
 
@@ -99,10 +99,10 @@ BOOST_AUTO_TEST_CASE(index_slice_multiple_ranges)
     index_reader_writer_memory_t reader_writer;
 
     mtn::index_t index(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6);
-    index.index_value(&reader_writer, &reader_writer, 1, 2048, true);
-    index.index_value(&reader_writer, &reader_writer, 2, 1024, true);
-    index.index_value(&reader_writer, &reader_writer, 3, 2049, true);
-    index.index_value(&reader_writer, &reader_writer, 4, 3049, true);
+    index.index_value(reader_writer, reader_writer, 1, 2048, true);
+    index.index_value(reader_writer, reader_writer, 2, 1024, true);
+    index.index_value(reader_writer, reader_writer, 3, 2049, true);
+    index.index_value(reader_writer, reader_writer, 4, 3049, true);
 
     std::vector<mtn::range_t> ranges;
     ranges.reserve(2);
@@ -121,7 +121,7 @@ BOOST_AUTO_TEST_CASE(index_slice_multiple_ranges)
 //     index_reader_writer_memory_t reader_writer;
 
 //     mtn::index_t index(1, reinterpret_cast<const mtn::byte_t*>("foobar"), 6);
-//     index.index_value_hash(&reader_writer, &reader_writer, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2048, true);
+//     index.index_value_hash(reader_writer, reader_writer, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2048, true);
 //     std::cout << "foobar: " << CityHash64(reinterpret_cast<const mtn::byte_t*>("foobar"), 6) << std::endl;
 
 //     mtn::index_slice_t o;

@@ -166,7 +166,7 @@ BOOST_AUTO_TEST_CASE(slice_set_bit_simple)
     mtn::index_t* index_one = NULL;
     rw.read_index(1, bucket, field, &index_one);
     BOOST_CHECK(NULL != index_one);
-    BOOST_CHECK(index_one->index_value(&rw, &rw, 1, 1, true));
+    BOOST_CHECK(index_one->index_value(rw, rw, 1, 1, true));
     BOOST_CHECK_EQUAL(1, index_one->size());
 
     mtn::index_slice_t slice_one;
@@ -202,7 +202,7 @@ BOOST_AUTO_TEST_CASE(slice_set_bit_larger_offset)
     mtn::index_t* index_one = NULL;
     rw.read_index(1, bucket, field, &index_one);
     BOOST_CHECK(NULL != index_one);
-    BOOST_CHECK(index_one->index_value(&rw, &rw, 2048, 1, true));
+    BOOST_CHECK(index_one->index_value(rw, rw, 2048, 1, true));
 
     mtn::index_slice_t slice_one;
     BOOST_CHECK(!slice_one.bit(1));
@@ -235,7 +235,7 @@ BOOST_AUTO_TEST_CASE(slice_set_bit_larger_user)
     mtn::index_t* index_one = NULL;
     rw.read_index(1, bucket, field, &index_one);
     BOOST_CHECK(NULL != index_one);
-    BOOST_CHECK(index_one->index_value(&rw, &rw, 2048, 4096, true));
+    BOOST_CHECK(index_one->index_value(rw, rw, 2048, 4096, true));
 
     mtn::index_slice_t slice_one;
     BOOST_CHECK(!slice_one.bit(4096));

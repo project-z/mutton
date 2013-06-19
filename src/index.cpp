@@ -17,13 +17,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// #include <boost/foreach.hpp>
-
 #include "range.hpp"
 #include "index.hpp"
-#include "trigram.hpp"
-
-// typedef boost::counting_iterator<mtn::index_address_t> counting_iterator;
 
 mtn::index_t::index_t(mtn::index_partition_t          partition,
                       const std::vector<mtn::byte_t>& bucket,
@@ -98,8 +93,8 @@ mtn::index_t::slice(mtn::index_slice_t& output)
 }
 
 mtn::status_t
-mtn::index_t::index_value(mtn::index_reader_t* reader,
-                          mtn::index_writer_t* writer,
+mtn::index_t::index_value(mtn::index_reader_t& reader,
+                          mtn::index_writer_t& writer,
                           mtn::index_address_t value,
                           mtn::index_address_t who_or_what,
                           bool                 state)
@@ -114,42 +109,8 @@ mtn::index_t::index_value(mtn::index_reader_t* reader,
 }
 
 mtn::status_t
-mtn::index_t::index_value_trigram(mtn::index_reader_t* reader,
-                                  mtn::index_writer_t* writer,
-                                  const char*          value,
-                                  const char*          end,
-                                  mtn::index_address_t who_or_what,
-                                  bool                 state)
-{
-    mtn::status_t status;
-    std::set<mtn::index_address_t> trigrams;
-    mtn::trigram_t::to_trigrams(value, end, trigrams);
-
-    std::set<mtn::index_address_t>::iterator iter = trigrams.begin();
-    for (; iter != trigrams.end(); ++iter) {
-        // BOOST_FOREACH(mtn::index_address_t value, trigrams) {
-        status = index_value(reader, writer, *iter, who_or_what, state);
-        if (!status) {
-            return status;
-        }
-    }
-    return status;
-}
-
-// mtn::status_t
-// mtn::index_t::index_value_hash(mtn::index_reader_t* reader,
-//                                mtn::index_writer_t* writer,
-//                                const char*          value,
-//                                size_t               len,
-//                                mtn::index_address_t who_or_what,
-//                                bool                 state)
-// {
-//     return index_value(reader, writer, CityHash64(value, len), who_or_what, state);
-// }
-
-mtn::status_t
-mtn::index_t::indexed_value(mtn::index_reader_t* reader,
-                            mtn::index_writer_t* writer,
+mtn::index_t::indexed_value(mtn::index_reader_t& reader,
+                            mtn::index_writer_t& writer,
                             mtn::index_address_t value,
                             mtn::index_address_t who_or_what,
                             bool*                state)
@@ -165,8 +126,8 @@ mtn::index_t::indexed_value(mtn::index_reader_t* reader,
 }
 
 mtn::status_t
-mtn::index_t::indexed_value(mtn::index_reader_t* reader,
-                            mtn::index_writer_t* writer,
+mtn::index_t::indexed_value(mtn::index_reader_t& reader,
+                            mtn::index_writer_t& writer,
                             mtn::index_address_t value,
                             mtn::index_slice_t** who_or_what)
 {

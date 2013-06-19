@@ -320,8 +320,8 @@ mtn::index_slice_t::execute(index_operation_enum operation,
 // }
 
 mtn::status_t
-mtn::index_slice_t::bit(mtn::index_reader_t* reader,
-                        mtn::index_writer_t* writer,
+mtn::index_slice_t::bit(mtn::index_reader_t& reader,
+                        mtn::index_writer_t& writer,
                         mtn::index_address_t bit,
                         bool                 state)
 {
@@ -335,12 +335,12 @@ mtn::index_slice_t::bit(mtn::index_reader_t* reader,
     mtn::status_t status;
     if (it == end() || it->offset != offset) {
         it = mtn::index_slice_t::iterator(_index_slice.insert(it.base(), new index_node_t(offset)));
-        status = reader->read_segment(_partition, _bucket, _field, _value, offset, it->segment);
+        status = reader.read_segment(_partition, _bucket, _field, _value, offset, it->segment);
     }
 
     if (status) {
         set_bit(it->segment, offset_index, bit_offset, state);
-        status = writer->write_segment(_partition, _bucket, _field, _value, offset, it->segment);
+        status = writer.write_segment(_partition, _bucket, _field, _value, offset, it->segment);
     }
     return status;
 }

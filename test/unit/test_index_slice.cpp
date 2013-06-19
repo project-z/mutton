@@ -197,7 +197,7 @@ BOOST_AUTO_TEST_CASE(slice_set_bit)
     BOOST_CHECK(!o.bit(2048));
     BOOST_CHECK_EQUAL(0, o.size());
 
-    o.bit(&reader_writer, &reader_writer, 2048, true);
+    o.bit(reader_writer, reader_writer, 2048, true);
     BOOST_CHECK_EQUAL(1, o.size());
     BOOST_CHECK(8 == o.begin()->offset);
 
@@ -205,7 +205,7 @@ BOOST_AUTO_TEST_CASE(slice_set_bit)
     BOOST_CHECK_EQUAL(0, memcmp(segment, SEGMENT_ONE, MTN_INDEX_SEGMENT_SIZE));
     BOOST_CHECK(o.bit(2048));
 
-    o.bit(&reader_writer, &reader_writer, 2048, false);
+    o.bit(reader_writer, reader_writer, 2048, false);
     BOOST_CHECK(!o.bit(2048));
     BOOST_CHECK_EQUAL(1, o.size());
     BOOST_CHECK(8 == o.begin()->offset);
