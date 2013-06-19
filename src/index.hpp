@@ -20,6 +20,7 @@
 #ifndef __MUTTON_INDEX_HPP_INCLUDED__
 #define __MUTTON_INDEX_HPP_INCLUDED__
 
+#include <set>
 #include <vector>
 #include <boost/noncopyable.hpp>
 #include <boost/ptr_container/ptr_map.hpp>
@@ -27,6 +28,7 @@
 #include "base_types.hpp"
 #include "index_slice.hpp"
 #include "status.hpp"
+#include "trigram.hpp"
 
 namespace mtn {
 
@@ -39,12 +41,18 @@ namespace mtn {
     {
     public:
         typedef mtn::index_slice_t type;
-        typedef boost::ptr_map<mtn::index_address_t, mtn::index_slice_t> index_container;
+        typedef boost::ptr_map<mtn::index_address_t, mtn::index_slice_t, mtn::index_address_comparator_t> index_container;
         typedef index_container::iterator iterator;
 
-        index_t(mtn::index_partition_t partition,
-                const byte_t*          field,
-                size_t                 field_size);
+        index_t(mtn::index_partition_t          partition,
+                const std::vector<mtn::byte_t>& bucket,
+                const std::vector<mtn::byte_t>& field);
+
+        index_t(mtn::index_partition_t          partition,
+                const mtn::byte_t*              bucket,
+                size_t                          bucket_size,
+                const mtn::byte_t*              field,
+                size_t                          field_size);
 
         mtn::status_t
         slice(mtn::index_slice_t&       output);
@@ -61,49 +69,62 @@ namespace mtn {
               mtn::index_slice_t&       output);
 
         mtn::status_t
-        index_value(mtn::index_reader_t* reader,
-                    mtn::index_writer_t* writer,
+        index_value(mtn::index_reader_t& reader,
+                    mtn::index_writer_t& writer,
                     mtn::index_address_t value,
                     mtn::index_address_t who_or_what,
                     bool                 state);
 
-        mtn::status_t
-        index_value_trigram(mtn::index_reader_t* reader,
-                            mtn::index_writer_t* writer,
-                            const char*          value,
-                            const char*          end,
+        template<class InputIterator>
+        inline mtn::status_t
+        index_value_trigram(mtn::index_reader_t& reader,
+                            mtn::index_writer_t& writer,
+                            InputIterator        first,
+                            InputIterator        last,
                             mtn::index_address_t who_or_what,
-                            bool                 state);
+                            bool                 state)
+        {
+            mtn::status_t status;
+            std::set<mtn::index_address_t> trigrams;
+            mtn::trigram_t::to_trigrams(first, last, trigrams);
+
+            std::set<mtn::index_address_t>::iterator iter = trigrams.begin();
+            for (; iter != trigrams.end(); ++iter) {
+                status = index_value(reader, writer, *iter, who_or_what, state);
+                if (!status) {
+                    return status;
+                }
+            }
+            return status;
+        }
 
         mtn::status_t
-        index_value_hash(mtn::index_reader_t* reader,
-                         mtn::index_writer_t* writer,
-                         const char*          value,
-                         size_t               len,
-                         mtn::index_address_t who_or_what,
-                         bool                 state);
-
-        mtn::status_t
-        indexed_value(mtn::index_reader_t* reader,
-                      mtn::index_writer_t* writer,
+        indexed_value(mtn::index_reader_t& reader,
+                      mtn::index_writer_t& writer,
                       mtn::index_address_t value,
                       mtn::index_address_t who_or_what,
                       bool*                state);
 
         mtn::status_t
-        indexed_value(mtn::index_reader_t* reader,
-                      mtn::index_writer_t* writer,
+        indexed_value(mtn::index_reader_t& reader,
+                      mtn::index_writer_t& writer,
                       mtn::index_address_t value,
                       mtn::index_slice_t** who_or_what);
 
         index_partition_t
         partition() const;
 
-        const byte_t*
-        field() const;
+        inline const std::vector<mtn::byte_t>&
+        bucket() const
+        {
+            return _bucket;
+        }
 
-        size_t
-        field_size() const;
+        inline const std::vector<mtn::byte_t>&
+        field() const
+        {
+            return _field;
+        }
 
         inline iterator
         find(mtn::index_address_t a)
@@ -156,9 +177,10 @@ namespace mtn {
         }
 
     private:
-        index_container     _index;
-        index_partition_t   _partition;
-        std::vector<byte_t> _field;
+        index_container          _index;
+        index_partition_t        _partition;
+        std::vector<mtn::byte_t> _bucket;
+        std::vector<mtn::byte_t> _field;
     };
 
 

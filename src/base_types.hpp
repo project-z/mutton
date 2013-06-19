@@ -20,19 +20,58 @@
 #ifndef __MUTTON_BASE_TYPES_HPP_INCLUDED__
 #define __MUTTON_BASE_TYPES_HPP_INCLUDED__
 
+#ifndef _GLIBCXX_CSTDINT
+#define _GLIBCXX_CSTDINT 1
+#endif
+
+#include <iomanip>
+#include <ostream>
+#include <sstream>
+#include <stdint.h>
+#include <tmmintrin.h>
+
 #define MTN_INDEX_SEGMENT_LENGTH 32
 #define MTN_INDEX_SEGMENT_SIZE MTN_INDEX_SEGMENT_LENGTH * sizeof(uint64_t)
 
+typedef __uint128_t uint128_t;
+#define INDEX_ADDRESS_MAX ((uint128_t) 0xFFFFFFFFFFFFFFFF) << 64 | 0xFFFFFFFFFFFFFFFF
+#define INDEX_ADDRESS_MIN ((uint128_t) 0x0000000000000000) << 64 | 0x0000000000000000
+
+inline std::ostream&
+operator<<(std::ostream& stream,
+           uint128_t     value)
+{
+    stream << "0x" << std::hex << std::setw(16) << std::setfill('0') << (uint64_t) (value >> 64);
+    stream << std::hex << std::setw(16) << std::setfill('0') << (uint64_t) value;
+    return stream;
+}
+
 namespace mtn {
     typedef uint16_t      index_partition_t;
-    typedef uint64_t      index_address_t;
+    typedef uint128_t     index_address_t;
     typedef uint64_t      index_segment_t[MTN_INDEX_SEGMENT_LENGTH];
     typedef uint64_t*     index_segment_ptr;
     typedef unsigned char byte_t;
 
     enum index_operation_enum {
         MTN_INDEX_OP_INTERSECTION = 0,
-        MTN_INDEX_OP_UNION = 1
+        MTN_INDEX_OP_UNION = 1,
+        MTN_INDEX_OP_SYMMETRIC_DIFFERENCE = 2
+    };
+
+    struct index_address_comparator_t
+    {
+        bool operator()(mtn::index_address_t a, mtn::index_address_t b)
+        {
+            uint64_t high_a = (uint64_t) (a >> 64);
+            uint64_t high_b = (uint64_t) (b >> 64);
+
+            if (high_a != high_b) {
+                return high_a < high_b;
+            }
+
+            return  (uint64_t) a < (uint64_t) b;
+        }
     };
 
 } // namespace mtn

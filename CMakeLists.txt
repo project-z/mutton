@@ -12,7 +12,7 @@ set (libmutton_VERSION_STRING ${libmutton_VERSION_MAJOR}.${libmutton_VERSION_MIN
 #-------------------
 # Enable C++11
 #-------------------
-set(CMAKE_CXX_FLAGS "-Wall -Werror -g3 -O2 -std=c++11 -stdlib=libc++")
+set(CMAKE_CXX_FLAGS "-Wall -Werror -g3 -O0")
 
 #-------------------
 # setup deps
@@ -33,8 +33,9 @@ set(INCLUDES ${INCLUDES} ${PROJECT_SOURCE_DIR}/ext/utf8/source)
 
 # Boost
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost 1.47.0 REQUIRED)
+find_package(Boost 1.47.0 COMPONENTS system filesystem REQUIRED )
 set(INCLUDES ${INCLUDES} ${Boost_INCLUDE_DIRS} )
+set(LIBS ${LIBS} ${Boost_LIBRARIES} )
 
 # Threading
 find_package(Threads)
@@ -43,22 +44,25 @@ set(LIBS ${LIBS} ${CMAKE_THREAD_LIBS_INIT} )
 # LevelDB
 include(leveldb)
 
-# CityHash
-find_path(CityHash_INCLUDE_DIRS NAMES city.h HINTS /usr/include /usr/local/include)
-find_library(CityHash_LIBRARIES NAMES libcityhash.a libcityhash.lib libcityhash.dylib HINTS /usr/lib /usr/local/lib)
+# RE2
+include(re2)
 
-if(CityHash_INCLUDE_DIRS AND CityHash_LIBRARIES)
-  set(CityHash_FOUND TRUE)
-endif(CityHash_INCLUDE_DIRS AND CityHash_LIBRARIES)
+# # CityHash
+# find_path(CityHash_INCLUDE_DIRS NAMES city.h HINTS /usr/include /usr/local/include)
+# find_library(CityHash_LIBRARIES NAMES libcityhash.a libcityhash.lib libcityhash.dylib HINTS /usr/lib /usr/local/lib)
 
-if(CityHash_FOUND)
-  message(STATUS "Found CityHash: ${CityHash_LIBRARIES}")
-else(CityHash_FOUND)
-  message(FATAL_ERROR "Could not find CityHash library.")
-endif(CityHash_FOUND)
+# if(CityHash_INCLUDE_DIRS AND CityHash_LIBRARIES)
+#   set(CityHash_FOUND TRUE)
+# endif(CityHash_INCLUDE_DIRS AND CityHash_LIBRARIES)
 
-set(INCLUDES ${INCLUDES} ${CityHash_INCLUDE_DIRS} )
-set(LIBS ${LIBS} ${CityHash_LIBRARIES} )
+# if(CityHash_FOUND)
+#   message(STATUS "Found CityHash: ${CityHash_LIBRARIES}")
+# else(CityHash_FOUND)
+#   message(FATAL_ERROR "Could not find CityHash library.")
+# endif(CityHash_FOUND)
+
+# set(INCLUDES ${INCLUDES} ${CityHash_INCLUDE_DIRS} )
+# set(LIBS ${LIBS} ${CityHash_LIBRARIES} )
 
 # Lua 5.1
 find_package(Lua51 REQUIRED)
@@ -120,4 +124,4 @@ add_subdirectory(test/unit)
 #-------------------
 # the demo program
 #-------------------
-# add_subdirectory(src/demo EXCLUDE_FROM_ALL)
+add_subdirectory(src/demo EXCLUDE_FROM_ALL)

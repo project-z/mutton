@@ -19,6 +19,7 @@
 
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/multiprecision/cpp_int.hpp>
 #include <stdint.h>
 
 #include "encode.hpp"
@@ -161,11 +162,13 @@ union_behavior(mtn::index_slice_t& a_index,
             ++b_iter;
         }
         else {
-            return mtn::status_t(MTN_ERROR_INDEX_OPERATION,
-                                 "shit's gone crazy in index union: "
-                                 + boost::lexical_cast<std::string>(a_iter->offset)
-                                 + ":" + boost::lexical_cast<std::string>(b_iter->offset)
-                                 + ":" + boost::lexical_cast<std::string>(output_iter->offset));
+            std::stringstream message;
+            message << "shit's gone crazy in index union: "
+                    << a_iter->offset
+                    << ":" << b_iter->offset
+                    << ":" << output_iter->offset;
+
+            return mtn::status_t(MTN_ERROR_INDEX_OPERATION, message.str());
         }
     }
     return mtn::status_t();
@@ -199,11 +202,11 @@ intersection_behavior(mtn::index_slice_t& a_index,
             ++output_iter;
         }
         else {
-            return mtn::status_t(MTN_ERROR_INDEX_OPERATION,
-                                 "shit's gone crazy in index intersection: "
-                                 + boost::lexical_cast<std::string>(a_iter->offset)
-                                 + ":" + boost::lexical_cast<std::string>(b_iter->offset)
-                                 + ":" + boost::lexical_cast<std::string>(output_iter->offset));
+            std::stringstream message;
+            message << "shit's gone crazy in index intersection: "
+                    << a_iter->offset
+                    << ":" << b_iter->offset
+                    << ":" << output_iter->offset;
         }
     }
     return mtn::status_t();
@@ -237,18 +240,31 @@ mtn::index_slice_t::index_slice_t() :
     _value(0)
 {}
 
-mtn::index_slice_t::index_slice_t(mtn::index_partition_t partition,
-                                  const mtn::byte_t*     field,
-                                  size_t                 field_size,
-                                  mtn::index_address_t   value) :
+mtn::index_slice_t::index_slice_t(mtn::index_partition_t          partition,
+                                  const std::vector<mtn::byte_t>& bucket,
+                                  const std::vector<mtn::byte_t>& field,
+                                  mtn::index_address_t            value) :
     _partition(partition),
+    _bucket(bucket),
+    _field(field),
+    _value(value)
+{}
+
+mtn::index_slice_t::index_slice_t(mtn::index_partition_t          partition,
+                                  const mtn::byte_t*              bucket,
+                                  size_t                          bucket_size,
+                                  const mtn::byte_t*              field,
+                                  size_t                          field_size,
+                                  mtn::index_address_t            value) :
+    _partition(partition),
+    _bucket(bucket, bucket + bucket_size),
     _field(field, field + field_size),
     _value(value)
 {}
 
 mtn::index_slice_t::index_slice_t(const mtn::index_slice_t::index_slice_t& other)  :
     _partition(other.partition()),
-    _field(other.field(), other.field() + other.field_size()),
+    _field(other.field()),
     _value(other.value())
 {
     for (mtn::index_slice_t::const_iterator iter = other.cbegin(); iter != other.cend(); ++iter) {
@@ -271,41 +287,41 @@ mtn::index_slice_t::execute(index_operation_enum operation,
     return mtn::status_t(MTN_ERROR_INDEX_OPERATION, "unkown/unsupported index operation");
 }
 
-mtn::status_t
-mtn::index_slice_t::execute(mtn::index_operation_enum operation,
-                            mtn::index_reader_t*      reader,
-                            mtn::index_partition_t    partition,
-                            const mtn::byte_t*        field,
-                            size_t                    field_size,
-                            mtn::index_address_t      value,
-                            mtn::index_slice_t&       output)
-{
-    mtn::status_t status = reader->read_index_slice(partition, field, field_size, value, &output);
-    if (status) {
-        status = execute(operation, *this, output, output);
-    }
-    return status;
-}
+// mtn::status_t
+// mtn::index_slice_t::execute(mtn::index_operation_enum operation,
+//                             mtn::index_reader_t*      reader,
+//                             mtn::index_partition_t    partition,
+//                             const mtn::byte_t*        field,
+//                             size_t                    field_size,
+//                             mtn::index_address_t      value,
+//                             mtn::index_slice_t&       output)
+// {
+//     mtn::status_t status = reader->read_index_slice(partition, field, field_size, value, &output);
+//     if (status) {
+//         status = execute(operation, *this, output, output);
+//     }
+//     return status;
+// }
+
+// mtn::status_t
+// mtn::index_slice_t::execute(mtn::index_operation_enum operation,
+//                             mtn::index_reader_t*      reader,
+//                             mtn::index_partition_t    partition,
+//                             const mtn::byte_t*        field,
+//                             size_t                    field_size,
+//                             mtn::index_address_t      value)
+// {
+//     mtn::index_slice_t other_index(partition, field, field_size, value);
+//     mtn::status_t status = reader->read_index_slice(partition, field, field_size, value, &other_index);
+//     if (status) {
+//         status = execute(operation, *this, other_index, *this);
+//     }
+//     return status;
+// }
 
 mtn::status_t
-mtn::index_slice_t::execute(mtn::index_operation_enum operation,
-                            mtn::index_reader_t*      reader,
-                            mtn::index_partition_t    partition,
-                            const mtn::byte_t*        field,
-                            size_t                    field_size,
-                            mtn::index_address_t      value)
-{
-    mtn::index_slice_t other_index(partition, field, field_size, value);
-    mtn::status_t status = reader->read_index_slice(partition, field, field_size, value, &other_index);
-    if (status) {
-        status = execute(operation, *this, other_index, *this);
-    }
-    return status;
-}
-
-mtn::status_t
-mtn::index_slice_t::bit(mtn::index_reader_t* reader,
-                        mtn::index_writer_t* writer,
+mtn::index_slice_t::bit(mtn::index_reader_t& reader,
+                        mtn::index_writer_t& writer,
                         mtn::index_address_t bit,
                         bool                 state)
 {
@@ -319,12 +335,12 @@ mtn::index_slice_t::bit(mtn::index_reader_t* reader,
     mtn::status_t status;
     if (it == end() || it->offset != offset) {
         it = mtn::index_slice_t::iterator(_index_slice.insert(it.base(), new index_node_t(offset)));
-        status = reader->read_segment(_partition, &_field[0], _field.size(), _value, offset, it->segment);
+        status = reader.read_segment(_partition, _bucket, _field, _value, offset, it->segment);
     }
 
     if (status) {
         set_bit(it->segment, offset_index, bit_offset, state);
-        status = writer->write_segment(_partition, &_field[0], _field.size(), _value, offset, it->segment);
+        status = writer.write_segment(_partition, _bucket, _field, _value, offset, it->segment);
     }
     return status;
 }
@@ -345,34 +361,10 @@ mtn::index_slice_t::bit(index_address_t      bit)
     return (it->segment[bucket_index] & 1 << bit_offset);
 }
 
-mtn::index_partition_t
-mtn::index_slice_t::partition() const
-{
-    return _partition;
-}
-
-const mtn::byte_t*
-mtn::index_slice_t::field() const
-{
-    return &_field[0];
-}
-
-size_t
-mtn::index_slice_t::field_size() const
-{
-    return _field.size();
-}
-
-mtn::index_address_t
-mtn::index_slice_t::value() const
-{
-    return _value;
-}
-
 mtn::index_slice_t&
 mtn::index_slice_t::operator=(const index_slice_t& other)
 {
-    _field.assign(other.field(), other.field() + other.field_size());
+    _field = other.field();
     _partition = other.partition();
     _value = other.value();
 

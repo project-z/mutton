@@ -22,7 +22,6 @@
 
 #include <set>
 
-#include "city.h"
 #include "utf8.h"
 
 #include "base_types.hpp"
@@ -52,42 +51,43 @@ namespace mtn {
             three = 0;
         }
 
-        inline static char*
-        init(const char* input,
-             const char* end,
-             trigram_t*  output)
+        template<class InputIterator>
+        inline static InputIterator
+        init(InputIterator input,
+             InputIterator end,
+             trigram_t&    output)
         {
-            char* input_pos = const_cast<char*>(input);
-            uint32_t* output_pos = reinterpret_cast<uint32_t*>(output);
-
-            while (input_pos < end && output_pos < reinterpret_cast<uint32_t*>(output) + 3) {
-                *output_pos = utf8::next(input_pos, const_cast<char*>(end));
-                if (*output_pos == 0) {
-                    continue;
-                }
-                output_pos += 1;
+            output.one = utf8::next(input, end);
+            if (input == end) {
+                return input;
             }
-            return input_pos;
+
+            output.two = utf8::next(input, end);
+            if (input == end) {
+                return input;
+            }
+
+            output.three = utf8::next(input, end);
+            return input;
         }
 
         inline mtn::index_address_t
         hash()
         {
-            return CityHash64(reinterpret_cast<char*>(this), sizeof(uint32_t) * 3);
+            return ((uint128_t) one ) << 64 | ((uint128_t) two) << 32 | ((uint128_t) three);
         }
 
+        template<class InputIterator>
         static inline void
-        to_trigrams(const char* start,
-                    const char* end,
+        to_trigrams(InputIterator first,
+                    InputIterator last,
                     std::set<mtn::index_address_t>& output)
         {
             mtn::trigram_t trigram;
-            char* pos = const_cast<char*>(start);
-
             for (;;) {
-                pos = mtn::trigram_t::init(pos, end, &trigram);
+                first = mtn::trigram_t::init(first, last, trigram);
                 output.insert(trigram.hash());
-                if (pos == end) {
+                if (first == last) {
                     break;
                 }
                 trigram.zero();
@@ -101,17 +101,23 @@ namespace mtn {
             output.reserve(trigrams.size());
             std::set<mtn::index_address_t>::iterator iter = trigrams.begin();
             for (;iter != trigrams.end(); ++iter) {
-                output.push_back(mtn::range_t(*iter, *iter + 1));
+                if (((uint32_t) *iter) == 0) {
+                    output.push_back(mtn::range_t(*iter, *iter | (((uint128_t) 0x0000000000000000) << 64 | 0x1111111111111111)));
+                }
+                else {
+                    output.push_back(mtn::range_t(*iter, *iter + 1));
+                }
             }
         }
 
+        template<class InputIterator>
         static inline void
-        to_ranges(const char*                start,
-                  const char*                end,
+        to_ranges(InputIterator              first,
+                  InputIterator              last,
                   std::vector<mtn::range_t>& output)
         {
             std::set<mtn::index_address_t> trigrams;
-            to_trigrams(start, end, trigrams);
+            to_trigrams(first, last, trigrams);
             to_ranges(trigrams, output);
         }
 

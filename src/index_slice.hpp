@@ -20,6 +20,7 @@
 #ifndef __MUTTON_INDEX_SLICE_HPP_INCLUDED__
 #define __MUTTON_INDEX_SLICE_HPP_INCLUDED__
 
+#include <string>
 #include <vector>
 #include <boost/ptr_container/ptr_list.hpp>
 
@@ -57,10 +58,17 @@ namespace mtn {
 
         index_slice_t();
 
-        index_slice_t(index_partition_t partition,
-                      const byte_t*     field,
-                      size_t            field_size,
-                      index_address_t   value);
+        index_slice_t(index_partition_t               partition,
+                      const std::vector<mtn::byte_t>& bucket,
+                      const std::vector<mtn::byte_t>& field,
+                      index_address_t                 value);
+
+        index_slice_t(mtn::index_partition_t          partition,
+                      const mtn::byte_t*              bucket,
+                      size_t                          bucket_size,
+                      const mtn::byte_t*              field,
+                      size_t                          field_size,
+                      index_address_t                 value);
 
         index_slice_t(const index_slice_t& other);
 
@@ -70,46 +78,58 @@ namespace mtn {
                 index_slice_t&       b_index,
                 index_slice_t&       output);
 
-        mtn::status_t
-        execute(mtn::index_operation_enum operation,
-                mtn::index_reader_t*      reader,
-                index_partition_t         partition,
-                const byte_t*             field,
-                size_t                    field_size,
-                index_address_t           value,
-                index_slice_t&            output);
+        // mtn::status_t
+        // execute(mtn::index_operation_enum operation,
+        //         mtn::index_reader_t*      reader,
+        //         index_partition_t         partition,
+        //         const byte_t*             field,
+        //         size_t                    field_size,
+        //         index_address_t           value,
+        //         index_slice_t&            output);
+
+        // mtn::status_t
+        // execute(mtn::index_operation_enum operation,
+        //         mtn::index_reader_t*      reader,
+        //         index_partition_t         partition,
+        //         const byte_t*             field,
+        //         size_t                    field_size,
+        //         index_address_t           value);
 
         mtn::status_t
-        execute(mtn::index_operation_enum operation,
-                mtn::index_reader_t*      reader,
-                index_partition_t         partition,
-                const byte_t*             field,
-                size_t                    field_size,
-                index_address_t           value);
-
-        mtn::status_t
-        bit(mtn::index_reader_t* reader,
-            mtn::index_writer_t* writer,
+        bit(mtn::index_reader_t& reader,
+            mtn::index_writer_t& writer,
             index_address_t      bit,
             bool                 state);
 
         bool
         bit(index_address_t      bit);
 
-        index_partition_t
-        partition() const;
-
-        const byte_t*
-        field() const;
-
-        size_t
-        field_size() const;
-
-        index_address_t
-        value() const;
-
         mtn::index_slice_t&
         operator=(const index_slice_t& other);
+
+        inline mtn::index_partition_t
+        partition() const
+        {
+            return _partition;
+        }
+
+        inline const std::vector<mtn::byte_t>&
+        bucket() const
+        {
+            return _bucket;
+        }
+
+        inline const std::vector<mtn::byte_t>&
+        field() const
+        {
+            return _field;
+        }
+
+        inline mtn::index_address_t
+        value() const
+        {
+            return _value;
+        }
 
         inline iterator
         begin()
@@ -168,10 +188,11 @@ namespace mtn {
         }
 
     private:
-        slice_container     _index_slice;
-        index_partition_t   _partition;
-        std::vector<byte_t> _field;
-        index_address_t     _value;
+        slice_container          _index_slice;
+        index_partition_t        _partition;
+        std::vector<mtn::byte_t> _bucket;
+        std::vector<mtn::byte_t> _field;
+        index_address_t          _value;
     };
 
 } // namespace mtn

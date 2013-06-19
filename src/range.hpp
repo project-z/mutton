@@ -20,19 +20,19 @@
 #ifndef __MUTTON_RANGE_HPP_INCLUDED__
 #define __MUTTON_RANGE_HPP_INCLUDED__
 
-#include <boost/iterator/counting_iterator.hpp>
-#include <boost/range/iterator_range.hpp>
+// #include <boost/iterator/counting_iterator.hpp>
+// #include <boost/range/iterator_range.hpp>
 
 #include "base_types.hpp"
 
 namespace mtn {
 
     struct range_t {
-        mtn::index_address_t start;
-        mtn::index_address_t limit;
+        mtn::index_address_t __attribute__((aligned(16))) start;
+        mtn::index_address_t __attribute__((aligned(16))) limit;
 
-        typedef boost::counting_iterator<mtn::index_address_t> counting_iterator;
-        typedef boost::iterator_range<counting_iterator> iterator;
+        // typedef boost::counting_iterator<mtn::index_address_t> counting_iterator;
+        // typedef boost::iterator_range<counting_iterator> iterator;
 
         range_t() :
             start(0),
@@ -44,18 +44,6 @@ namespace mtn {
             start(s),
             limit(l)
         {}
-
-        inline bool
-        in_range(mtn::index_address_t value)
-        {
-            return value >= start && value < limit;
-        }
-
-        inline iterator
-        get_iterator()
-        {
-            return boost::make_iterator_range(counting_iterator(start), counting_iterator(limit));
-        }
     };
 
 } // namespace mtn

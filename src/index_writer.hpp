@@ -36,11 +36,11 @@ namespace mtn {
         {}
 
         virtual mtn::status_t
-        write_segment(index_partition_t partition,
-                      const byte_t*     field,
-                      size_t            field_size,
-                      index_address_t   value,
-                      index_address_t   offset,
+        write_segment(index_partition_t               partition,
+                      const std::vector<mtn::byte_t>& bucket,
+                      const std::vector<mtn::byte_t>& field,
+                      index_address_t                 value,
+                      index_address_t                 offset,
                       index_segment_ptr input) = 0;
 
     };
