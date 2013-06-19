@@ -39,8 +39,7 @@ namespace mtn {
                            boost::recursive_wrapper<op_or>,
                            boost::recursive_wrapper<op_not>,
                            boost::recursive_wrapper<op_and>,
-                           boost::recursive_wrapper<op_xor>,
-                           boost::recursive_wrapper<op_or>
+                           boost::recursive_wrapper<op_xor>
                            > expr;
 
     struct op_slice
