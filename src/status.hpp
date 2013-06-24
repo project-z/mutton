@@ -26,6 +26,7 @@
 #define MTN_ERROR_UNKOWN 1
 #define MTN_ERROR_INDEX_OPERATION 2
 #define MTN_ERROR_NOT_FOUND 3
+#define MTN_ERROR_BAD_REGEX 4
 
 namespace mtn {
 

@@ -26,7 +26,7 @@
 
 BOOST_AUTO_TEST_SUITE(_query_planner)
 
-BOOST_AUTO_TEST_CASE(test_slice_ascii)
+BOOST_AUTO_TEST_CASE(test_slice)
 {
     std::string input = "(slice \"foobar\")";
     std::string::const_iterator f(input.begin());
@@ -44,14 +44,100 @@ BOOST_AUTO_TEST_CASE(test_slice_ascii)
 
     index_reader_writer_memory_t rw;
     mtn::context_t context(rw, rw);
-    mtn::index_t* index = NULL;
-    context.create_index(1, bucket, field, &index);
-    BOOST_CHECK(index);
-
+    context.index_value(1, bucket, field, 1, 2, true);
 
     mtn::naive_query_planner_t planner(1, context, bucket);
     mtn::index_slice_t result = boost::apply_visitor(planner, query);
     BOOST_CHECK(planner.status());
+    BOOST_CHECK_EQUAL(1, result.size());
+    BOOST_CHECK(result.bit(2));
+}
+
+BOOST_AUTO_TEST_CASE(test_slice_range)
+{
+    std::string input = "(slice \"foobar\" (range 100 200))";
+    std::string::const_iterator f(input.begin());
+    std::string::const_iterator l(input.end());
+    mtn::query_parser_t<std::string::const_iterator> p;
+
+    mtn::expr query;
+    BOOST_CHECK(qi::phrase_parse(f, l, p, qi::space, query));
+
+    mtn::byte_t bucket_name_array[] = "bizbang";
+    std::vector<mtn::byte_t> bucket(bucket_name_array, bucket_name_array + 7);
+
+    mtn::byte_t field_name_array[] = "foobar";
+    std::vector<mtn::byte_t> field(field_name_array, field_name_array + 6);
+
+    index_reader_writer_memory_t rw;
+    mtn::context_t context(rw, rw);
+    context.index_value(1, bucket, field, 1, 1, true);
+    context.index_value(1, bucket, field, 100, 2, true);
+
+    mtn::naive_query_planner_t planner(1, context, bucket);
+    mtn::index_slice_t result = boost::apply_visitor(planner, query);
+    BOOST_CHECK(planner.status());
+    BOOST_CHECK_EQUAL(1, result.size());
+    BOOST_CHECK(!result.bit(1));
+    BOOST_CHECK(result.bit(2));
+}
+
+BOOST_AUTO_TEST_CASE(test_slice_regex)
+{
+    std::string input = "(slice \"foobar\" (regex \"foo.*\"))";
+    std::string::const_iterator f(input.begin());
+    std::string::const_iterator l(input.end());
+    mtn::query_parser_t<std::string::const_iterator> p;
+
+    mtn::expr query;
+    BOOST_CHECK(qi::phrase_parse(f, l, p, qi::space, query));
+
+    mtn::byte_t bucket_name_array[] = "bizbang";
+    std::vector<mtn::byte_t> bucket(bucket_name_array, bucket_name_array + 7);
+
+    mtn::byte_t field_name_array[] = "foobar";
+    std::vector<mtn::byte_t> field(field_name_array, field_name_array + 6);
+
+    index_reader_writer_memory_t rw;
+    mtn::context_t context(rw, rw);
+
+    std::string value = "foobar";
+    context.index_value_trigram(1, bucket, field, value.begin(), value.end(), 1, true);
+
+    mtn::naive_query_planner_t planner(1, context, bucket);
+    mtn::index_slice_t result = boost::apply_visitor(planner, query);
+    BOOST_CHECK(planner.status());
+    BOOST_CHECK_EQUAL(1, result.size());
+    BOOST_CHECK(result.bit(1));
+}
+
+BOOST_AUTO_TEST_CASE(test_slice_regex_partial_trigram)
+{
+    std::string input = "(slice \"foobar\" (regex \"foob.*\"))";
+    std::string::const_iterator f(input.begin());
+    std::string::const_iterator l(input.end());
+    mtn::query_parser_t<std::string::const_iterator> p;
+
+    mtn::expr query;
+    BOOST_CHECK(qi::phrase_parse(f, l, p, qi::space, query));
+
+    mtn::byte_t bucket_name_array[] = "bizbang";
+    std::vector<mtn::byte_t> bucket(bucket_name_array, bucket_name_array + 7);
+
+    mtn::byte_t field_name_array[] = "foobar";
+    std::vector<mtn::byte_t> field(field_name_array, field_name_array + 6);
+
+    index_reader_writer_memory_t rw;
+    mtn::context_t context(rw, rw);
+
+    std::string value = "foobar";
+    context.index_value_trigram(1, bucket, field, value.begin(), value.end(), 1, true);
+
+    mtn::naive_query_planner_t planner(1, context, bucket);
+    mtn::index_slice_t result = boost::apply_visitor(planner, query);
+    BOOST_CHECK(planner.status());
+    BOOST_CHECK_EQUAL(1, result.size());
+    BOOST_CHECK(result.bit(1));
 }
 
 

@@ -165,23 +165,28 @@ namespace mtn {
             }
 
             mtn::index_t* index = NULL;
-            _status = _context.get_index(_partition, _bucket, o.to_vector(), index);
+            _status = _context.get_index(_partition, _bucket, o.to_vector(), &index);
             if (!_status) {
                 return result;
             }
 
-            std::vector<mtn::range_t> ranges;
-            range_visitor_t visitor(ranges);
-
-            mtn::op_slice::const_iterator iter = o.values.begin();
-            for (; iter != o.values.end(); ++iter) {
-                boost::apply_visitor(visitor, *iter);
+            if (o.values.empty()) {
+                index->slice(result);
             }
+            else {
+                std::vector<mtn::range_t> ranges;
+                range_visitor_t visitor(ranges);
 
-            index->slice(&ranges[0],
-                         ranges.size(),
-                         MTN_INDEX_OP_UNION,
-                         result);
+                mtn::op_slice::const_iterator iter = o.values.begin();
+                for (; iter != o.values.end(); ++iter) {
+                    boost::apply_visitor(visitor, *iter);
+                }
+
+                index->slice(&ranges[0],
+                             ranges.size(),
+                             MTN_INDEX_OP_UNION,
+                             result);
+            }
             return result;
         }
 

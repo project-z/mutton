@@ -48,20 +48,18 @@ mtn::index_t::slice(mtn::range_t*             ranges,
     bool first_iteration = true;
 
     for (int r = 0; r < range_count; ++r) {
-        for (mtn::index_address_t a = ranges[r].start; a < ranges[r].limit; ++a) {
 
-            mtn::index_t::iterator iter = find(a);
-            if (iter != end()) {
-                if (first_iteration) {
-                    output = *(iter->second);
-                    first_iteration = false;
-                }
-                else {
-                    status = output.execute(operation, *(iter->second), output, output);
-                    if (!status) {
-                        return status;
-                    }
-                }
+        mtn::index_t::iterator iter = _index.lower_bound(ranges[r].start);
+        if (first_iteration && iter != end() && iter->first < ranges[r].limit) {
+            output = *(iter->second);
+            first_iteration = false;
+            ++iter;
+        }
+
+        for (; iter != end() && iter->first < ranges[r].limit; ++iter) {
+            status = output.execute(operation, *(iter->second), output, output);
+            if (!status) {
+                return status;
             }
         }
     }
@@ -82,7 +80,7 @@ mtn::index_t::slice(mtn::index_slice_t& output)
 {
     mtn::status_t status;
 
-    for (mtn::index_t::iterator iter = begin(); iter != end(); ++iter) {
+    for (mtn::index_t::iterator iter = _index.begin(); iter != _index.end(); ++iter) {
         status = output.execute(mtn::MTN_INDEX_OP_UNION, *(iter->second), output, output);
         if (!status) {
             return status;

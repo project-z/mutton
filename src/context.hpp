@@ -47,7 +47,7 @@ namespace mtn {
         get_index(mtn::index_partition_t          partition,
                   const std::vector<mtn::byte_t>& bucket,
                   const std::vector<mtn::byte_t>& field,
-                  const mtn::index_t*             output)
+                  mtn::index_t**                  output)
         {
             index_key_t key;
             key.reserve(bucket.size() + field.size());
@@ -57,7 +57,7 @@ namespace mtn {
             mtn::status_t status;
             index_container_t::iterator iter = _indexes.find(key);
             if (iter != _indexes.end()) {
-                output = iter->second;
+                *output = iter->second;
                 return status;
             }
 
