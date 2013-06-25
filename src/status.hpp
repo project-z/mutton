@@ -21,7 +21,6 @@
 #define __MUTTON_STATUS_H_
 
 #include <string>
-#include "libcql/cql.hpp"
 
 #define MTN_ERROR_UNKOWN 1
 #define MTN_ERROR_INDEX_OPERATION 2
