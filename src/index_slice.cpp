@@ -47,10 +47,10 @@ set_bit(mtn::index_segment_ptr input,
         bool                   val)
 {
     if (val) {
-        input[bucket_index] |= 1 << bit_offset;
+        input[bucket_index] |= 1ULL << bit_offset;
     }
     else {
-        input[bucket_index] &= 0 << bit_offset;
+        input[bucket_index] &= 0ULL << bit_offset;
     }
 }
 
@@ -358,7 +358,7 @@ mtn::index_slice_t::bit(index_address_t      bit)
     if (it == end() || it->offset != bucket) {
         return false;
     }
-    return (it->segment[bucket_index] & 1 << bit_offset);
+    return (it->segment[bucket_index] & 1ULL << bit_offset);
 }
 
 mtn::index_slice_t&

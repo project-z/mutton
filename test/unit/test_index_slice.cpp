@@ -211,4 +211,24 @@ BOOST_AUTO_TEST_CASE(slice_set_bit)
     BOOST_CHECK(8 == o.begin()->offset);
 }
 
+BOOST_AUTO_TEST_CASE(slice_check_bit_32)
+{
+   index_reader_writer_memory_t reader_writer;
+    mtn::index_slice_t o(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
+
+    BOOST_CHECK(!o.bit(32));
+    o.bit(reader_writer, reader_writer, 0, true);
+    BOOST_CHECK(!o.bit(32));
+}
+
+BOOST_AUTO_TEST_CASE(slice_set_bit_32)
+{
+   index_reader_writer_memory_t reader_writer;
+    mtn::index_slice_t o(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
+
+    BOOST_CHECK(!o.bit(32));
+    o.bit(reader_writer, reader_writer, 32, true);
+    BOOST_CHECK(o.bit(32));
+}
+
 BOOST_AUTO_TEST_SUITE_END()
