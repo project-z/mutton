@@ -73,6 +73,14 @@ add_custom_target (AppDependencies ALL
   DEPENDS ${APP_DEPENDENCIES}
   COMMENT "Installing any missing dependencies.")
 
+if(DEFINED ENV{VERBOSE})
+  message(STATUS "All Variables")
+  get_cmake_property(_variableNames VARIABLES)
+  foreach (_variableName ${_variableNames})
+    message(STATUS "${_variableName}=${${_variableName}}")
+  endforeach()
+endif()
+
 #-------------------
 # libmutton static, shared and executable
 #-------------------
