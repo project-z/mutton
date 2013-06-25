@@ -12,7 +12,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
     set(ABBREV "LevelDB")
     set(${ABBREV}_NAME         ${ABBREV})
-    set(${ABBREV}_INCLUDE_DIRS ${EXT_PREFIX}/include)
+    set(${ABBREV}_INCLUDE_DIRS ${EXT_PREFIX}/src/LevelDB/include)
     set(APP_DEPENDENCIES ${APP_DEPENDENCIES} ${ABBREV})
 
     message("Installing ${LevelDB_NAME} into ext build area: ${EXT_PREFIX} ...")
