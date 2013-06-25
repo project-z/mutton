@@ -22,8 +22,6 @@
 #include "index.hpp"
 #include "range.hpp"
 
-#include "city.h"
-
 BOOST_AUTO_TEST_SUITE(_index)
 
 BOOST_AUTO_TEST_CASE(index_partition)
