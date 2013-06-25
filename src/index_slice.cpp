@@ -30,14 +30,14 @@
 
 inline void
 get_address(mtn::index_address_t    position,
-            mtn::index_address_t*   bucket,
-            mtn::index_partition_t* bucket_index,
+            mtn::index_address_t*   segment,
+            mtn::index_partition_t* segment_index,
             mtn::index_partition_t* bit_offset)
 {
-    *bucket = position >> 8; // div by 256
-    mtn::index_partition_t bucket_offset = position & 0xFF; // mod by 256
-    *bucket_index = bucket_offset >> 6; // div by 64
-    *bit_offset = bucket_offset & 0x3F; // mod by 64
+    *segment = position >> 8; // div by 256
+    mtn::index_partition_t segment_offset = position & 0xFF; // mod by 256
+    *segment_index = segment_offset >> 6; // div by 64
+    *bit_offset = segment_offset & 0x3F; // mod by 64
 }
 
 inline void
@@ -287,78 +287,46 @@ mtn::index_slice_t::execute(index_operation_enum operation,
     return mtn::status_t(MTN_ERROR_INDEX_OPERATION, "unkown/unsupported index operation");
 }
 
-// mtn::status_t
-// mtn::index_slice_t::execute(mtn::index_operation_enum operation,
-//                             mtn::index_reader_t*      reader,
-//                             mtn::index_partition_t    partition,
-//                             const mtn::byte_t*        field,
-//                             size_t                    field_size,
-//                             mtn::index_address_t      value,
-//                             mtn::index_slice_t&       output)
-// {
-//     mtn::status_t status = reader->read_index_slice(partition, field, field_size, value, &output);
-//     if (status) {
-//         status = execute(operation, *this, output, output);
-//     }
-//     return status;
-// }
-
-// mtn::status_t
-// mtn::index_slice_t::execute(mtn::index_operation_enum operation,
-//                             mtn::index_reader_t*      reader,
-//                             mtn::index_partition_t    partition,
-//                             const mtn::byte_t*        field,
-//                             size_t                    field_size,
-//                             mtn::index_address_t      value)
-// {
-//     mtn::index_slice_t other_index(partition, field, field_size, value);
-//     mtn::status_t status = reader->read_index_slice(partition, field, field_size, value, &other_index);
-//     if (status) {
-//         status = execute(operation, *this, other_index, *this);
-//     }
-//     return status;
-// }
-
 mtn::status_t
 mtn::index_slice_t::bit(mtn::index_reader_t& reader,
                         mtn::index_writer_t& writer,
                         mtn::index_address_t bit,
                         bool                 state)
 {
-    mtn::index_address_t   offset       = 0;
-    mtn::index_partition_t offset_index = 0;
-    mtn::index_partition_t bit_offset   = 0;
-    get_address(bit, &offset, &offset_index, &bit_offset);
+    mtn::index_address_t   segment       = 0;
+    mtn::index_partition_t segment_index = 0;
+    mtn::index_partition_t bit_offset    = 0;
+    get_address(bit, &segment, &segment_index, &bit_offset);
 
-    mtn::index_slice_t::iterator it = find_insertion_point(begin(), end(), offset);
+    mtn::index_slice_t::iterator it = find_insertion_point(begin(), end(), segment);
 
     mtn::status_t status;
-    if (it == end() || it->offset != offset) {
-        it = mtn::index_slice_t::iterator(_index_slice.insert(it.base(), new index_node_t(offset)));
-        status = reader.read_segment(_partition, _bucket, _field, _value, offset, it->segment);
+    if (it == end() || it->offset != segment) {
+        it = mtn::index_slice_t::iterator(_index_slice.insert(it.base(), new index_node_t(segment)));
+        status = reader.read_segment(_partition, _bucket, _field, _value, segment, it->segment);
     }
 
     if (status) {
-        set_bit(it->segment, offset_index, bit_offset, state);
-        status = writer.write_segment(_partition, _bucket, _field, _value, offset, it->segment);
+        set_bit(it->segment, segment_index, bit_offset, state);
+        status = writer.write_segment(_partition, _bucket, _field, _value, segment, it->segment);
     }
     return status;
 }
 
 bool
-mtn::index_slice_t::bit(index_address_t      bit)
+mtn::index_slice_t::bit(index_address_t bit)
 {
-    mtn::index_address_t        bucket       = 0;
-    mtn::index_partition_t      bucket_index = 0;
-    mtn::index_partition_t      bit_offset   = 0;
-    get_address(bit, &bucket, &bucket_index, &bit_offset);
+    mtn::index_address_t   segment       = 0;
+    mtn::index_partition_t segment_index = 0;
+    mtn::index_partition_t bit_offset    = 0;
+    get_address(bit, &segment, &segment_index, &bit_offset);
 
-    mtn::index_slice_t::iterator it = find_insertion_point(begin(), end(), bucket);
+    mtn::index_slice_t::iterator it = find_insertion_point(begin(), end(), segment);
 
-    if (it == end() || it->offset != bucket) {
+    if (it == end() || it->offset != segment) {
         return false;
     }
-    return (it->segment[bucket_index] & 1ULL << bit_offset);
+    return (it->segment[segment_index] & 1ULL << bit_offset);
 }
 
 mtn::index_slice_t&

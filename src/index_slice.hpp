@@ -78,23 +78,6 @@ namespace mtn {
                 index_slice_t&       b_index,
                 index_slice_t&       output);
 
-        // mtn::status_t
-        // execute(mtn::index_operation_enum operation,
-        //         mtn::index_reader_t*      reader,
-        //         index_partition_t         partition,
-        //         const byte_t*             field,
-        //         size_t                    field_size,
-        //         index_address_t           value,
-        //         index_slice_t&            output);
-
-        // mtn::status_t
-        // execute(mtn::index_operation_enum operation,
-        //         mtn::index_reader_t*      reader,
-        //         index_partition_t         partition,
-        //         const byte_t*             field,
-        //         size_t                    field_size,
-        //         index_address_t           value);
-
         mtn::status_t
         bit(mtn::index_reader_t& reader,
             mtn::index_writer_t& writer,
