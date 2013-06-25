@@ -139,7 +139,7 @@ namespace mtn {
         }
 
         mtn::index_slice_t
-        operator()(const mtn::op_not& o)
+        operator()(const mtn::op_not&)
         {
             throw "XXX TODO fix me";
         }

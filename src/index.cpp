@@ -47,7 +47,7 @@ mtn::index_t::slice(mtn::range_t*             ranges,
     mtn::status_t status;
     bool first_iteration = true;
 
-    for (int r = 0; r < range_count; ++r) {
+    for (size_t r = 0; r < range_count; ++r) {
 
         mtn::index_t::iterator iter = _index.lower_bound(ranges[r].start);
         if (first_iteration && iter != end() && iter->first < ranges[r].limit) {
@@ -107,8 +107,8 @@ mtn::index_t::index_value(mtn::index_reader_t& reader,
 }
 
 mtn::status_t
-mtn::index_t::indexed_value(mtn::index_reader_t& reader,
-                            mtn::index_writer_t& writer,
+mtn::index_t::indexed_value(mtn::index_reader_t&,
+                            mtn::index_writer_t&,
                             mtn::index_address_t value,
                             mtn::index_address_t who_or_what,
                             bool*                state)
@@ -124,8 +124,8 @@ mtn::index_t::indexed_value(mtn::index_reader_t& reader,
 }
 
 mtn::status_t
-mtn::index_t::indexed_value(mtn::index_reader_t& reader,
-                            mtn::index_writer_t& writer,
+mtn::index_t::indexed_value(mtn::index_reader_t&,
+                            mtn::index_writer_t&,
                             mtn::index_address_t value,
                             mtn::index_slice_t** who_or_what)
 {

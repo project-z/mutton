@@ -10,12 +10,6 @@ set (libmutton_VERSION_MINOR 5)
 set (libmutton_VERSION_STRING ${libmutton_VERSION_MAJOR}.${libmutton_VERSION_MINOR})
 
 #-------------------
-# Set compiler flags
-#-------------------
-# -pedantic -Wextra -Werror
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O0")
-
-#-------------------
 # setup deps
 #-------------------
 set(EXT_PREFIX ${PROJECT_SOURCE_DIR}/ext)
@@ -84,6 +78,19 @@ add_library(${PROJECT_LIB_NAME}-static STATIC ${SRC_FILES})
 target_link_libraries(${PROJECT_LIB_NAME} ${LIBS})
 SET_TARGET_PROPERTIES(${PROJECT_LIB_NAME}-static PROPERTIES OUTPUT_NAME ${PROJECT_LIB_NAME})
 SET_TARGET_PROPERTIES(${PROJECT_LIB_NAME} PROPERTIES VERSION ${libmutton_VERSION_MAJOR}.${libmutton_VERSION_MINOR} SOVERSION ${libmutton_VERSION_MAJOR})
+
+#-------------------
+# Set compiler flags
+#-------------------
+set(PROJECT_COMPILER_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Wall -pedantic -Wextra -Werror -Wno-long-long")
+
+set_property(
+  TARGET ${PROJECT_LIB_NAME}
+  APPEND PROPERTY COMPILE_FLAGS ${PROJECT_COMPILER_FLAGS})
+
+set_property(
+  TARGET ${PROJECT_LIB_NAME}-static
+  APPEND PROPERTY COMPILE_FLAGS ${PROJECT_COMPILER_FLAGS})
 
 #-------------------
 # install target

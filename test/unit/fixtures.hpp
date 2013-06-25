@@ -237,11 +237,11 @@ public:
     }
 
     mtn::status_t
-    estimateSize(mtn::index_partition_t          partition,
-                 const std::vector<mtn::byte_t>& bucket,
-                 const std::vector<mtn::byte_t>& field,
-                 mtn::index_address_t            value,
-                 uint64_t*                       output)
+    estimateSize(mtn::index_partition_t,
+                 const std::vector<mtn::byte_t>&,
+                 const std::vector<mtn::byte_t>&,
+                 mtn::index_address_t,
+                 uint64_t* output)
     {
         *output = 0;
         return mtn::status_t();
