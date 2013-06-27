@@ -43,10 +43,10 @@ BOOST_AUTO_TEST_CASE(test_slice)
     std::vector<mtn::byte_t> field(field_name_array, field_name_array + 6);
 
     index_reader_writer_memory_t rw;
-    mtn::context_t context(rw, rw);
+    mtn::context_t<index_reader_writer_memory_t> context(new index_reader_writer_memory_t());
     context.index_value(1, bucket, field, 1, 2, true);
 
-    mtn::naive_query_planner_t planner(1, context, bucket);
+    mtn::naive_query_planner_t<mtn::context_t<index_reader_writer_memory_t> > planner(1, context, bucket);
     mtn::index_slice_t result = boost::apply_visitor(planner, query);
     BOOST_CHECK(planner.status());
     BOOST_CHECK_EQUAL(1, result.size());
@@ -70,11 +70,11 @@ BOOST_AUTO_TEST_CASE(test_slice_range)
     std::vector<mtn::byte_t> field(field_name_array, field_name_array + 6);
 
     index_reader_writer_memory_t rw;
-    mtn::context_t context(rw, rw);
+    mtn::context_t<index_reader_writer_memory_t> context(new index_reader_writer_memory_t());
     context.index_value(1, bucket, field, 1, 1, true);
     context.index_value(1, bucket, field, 100, 2, true);
 
-    mtn::naive_query_planner_t planner(1, context, bucket);
+    mtn::naive_query_planner_t<mtn::context_t<index_reader_writer_memory_t> > planner(1, context, bucket);
     mtn::index_slice_t result = boost::apply_visitor(planner, query);
     BOOST_CHECK(planner.status());
     BOOST_CHECK_EQUAL(1, result.size());
@@ -99,12 +99,12 @@ BOOST_AUTO_TEST_CASE(test_slice_regex)
     std::vector<mtn::byte_t> field(field_name_array, field_name_array + 6);
 
     index_reader_writer_memory_t rw;
-    mtn::context_t context(rw, rw);
+    mtn::context_t<index_reader_writer_memory_t> context(new index_reader_writer_memory_t());
 
     std::string value = "foobar";
     context.index_value_trigram(1, bucket, field, value.begin(), value.end(), 1, true);
 
-    mtn::naive_query_planner_t planner(1, context, bucket);
+    mtn::naive_query_planner_t<mtn::context_t<index_reader_writer_memory_t> > planner(1, context, bucket);
     mtn::index_slice_t result = boost::apply_visitor(planner, query);
     BOOST_CHECK(planner.status());
     BOOST_CHECK_EQUAL(1, result.size());
@@ -128,12 +128,12 @@ BOOST_AUTO_TEST_CASE(test_slice_regex_partial_trigram)
     std::vector<mtn::byte_t> field(field_name_array, field_name_array + 6);
 
     index_reader_writer_memory_t rw;
-    mtn::context_t context(rw, rw);
+    mtn::context_t<index_reader_writer_memory_t> context(new index_reader_writer_memory_t());
 
     std::string value = "foobar";
     context.index_value_trigram(1, bucket, field, value.begin(), value.end(), 1, true);
 
-    mtn::naive_query_planner_t planner(1, context, bucket);
+    mtn::naive_query_planner_t<mtn::context_t<index_reader_writer_memory_t> > planner(1, context, bucket);
     mtn::index_slice_t result = boost::apply_visitor(planner, query);
     BOOST_CHECK(planner.status());
     BOOST_CHECK_EQUAL(1, result.size());

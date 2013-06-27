@@ -30,12 +30,10 @@
 #include <stdint.h>
 #include <tmmintrin.h>
 
+#include "libmutton/mutton.h"
+
 #define MTN_INDEX_SEGMENT_LENGTH 32
 #define MTN_INDEX_SEGMENT_SIZE MTN_INDEX_SEGMENT_LENGTH * sizeof(uint64_t)
-
-typedef __uint128_t uint128_t;
-#define INDEX_ADDRESS_MAX ((uint128_t) 0xFFFFFFFFFFFFFFFF) << 64 | 0xFFFFFFFFFFFFFFFF
-#define INDEX_ADDRESS_MIN ((uint128_t) 0x0000000000000000) << 64 | 0x0000000000000000
 
 inline std::ostream&
 operator<<(std::ostream& stream,
@@ -47,8 +45,6 @@ operator<<(std::ostream& stream,
 }
 
 namespace mtn {
-    typedef uint16_t      index_partition_t;
-    typedef uint128_t     index_address_t;
     typedef uint64_t      index_segment_t[MTN_INDEX_SEGMENT_LENGTH];
     typedef uint64_t*     index_segment_ptr;
     typedef unsigned char byte_t;
@@ -61,7 +57,7 @@ namespace mtn {
 
     struct index_address_comparator_t
     {
-        bool operator()(mtn::index_address_t a, mtn::index_address_t b)
+        bool operator()(mtn_index_address_t a, mtn_index_address_t b)
         {
             uint64_t high_a = (uint64_t) (a >> 64);
             uint64_t high_b = (uint64_t) (b >> 64);

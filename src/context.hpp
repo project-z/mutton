@@ -28,23 +28,19 @@
 
 namespace mtn {
 
-    class index_reader_t;
-    class index_writer_t;
-
+    template<class ReaderWriter>
     class context_t {
     public:
 
         typedef std::vector<mtn::byte_t> index_key_t;
         typedef boost::ptr_map<index_key_t, mtn::index_t> index_container_t;
 
-        context_t(mtn::index_reader_t& reader,
-                  mtn::index_writer_t& writer) :
-            _reader(reader),
-            _writer(writer)
+        context_t(ReaderWriter* rw) :
+            _rw(rw)
         {}
 
         inline mtn::status_t
-        get_index(mtn::index_partition_t          partition,
+        get_index(mtn_index_partition_t,
                   const std::vector<mtn::byte_t>& bucket,
                   const std::vector<mtn::byte_t>& field,
                   mtn::index_t**                  output)
@@ -68,7 +64,7 @@ namespace mtn {
         }
 
         inline mtn::status_t
-        create_index(mtn::index_partition_t          partition,
+        create_index(mtn_index_partition_t           partition,
                      const std::vector<mtn::byte_t>& bucket,
                      const std::vector<mtn::byte_t>& field,
                      mtn::index_t**                  output)
@@ -104,43 +100,42 @@ namespace mtn {
         }
 
         inline mtn::status_t
-        index_value(mtn::index_partition_t          partition,
+        index_value(mtn_index_partition_t          partition,
                     const std::vector<mtn::byte_t>& bucket,
                     const std::vector<mtn::byte_t>& field,
-                    mtn::index_address_t            value,
-                    mtn::index_address_t            who_or_what,
+                    mtn_index_address_t            value,
+                    mtn_index_address_t            who_or_what,
                     bool                            state)
         {
             mtn::index_t* index = NULL;
             mtn::status_t create_status = create_index(partition, bucket, field, &index);
             if (create_status && index) {
-                return index->index_value(_reader, _writer, value, who_or_what, state);
+                return index->index_value(*_rw, value, who_or_what, state);
             }
             return create_status;
         }
 
         template<class InputIterator>
         inline mtn::status_t
-        index_value_trigram(mtn::index_partition_t          partition,
+        index_value_trigram(mtn_index_partition_t          partition,
                             const std::vector<mtn::byte_t>& bucket,
                             const std::vector<mtn::byte_t>& field,
                             InputIterator                   first,
                             InputIterator                   last,
-                            mtn::index_address_t            who_or_what,
+                            mtn_index_address_t            who_or_what,
                             bool                            state)
         {
             mtn::index_t* index = NULL;
             mtn::status_t create_status = create_index(partition, bucket, field, &index);
             if (create_status && index) {
-                return index->index_value_trigram(_reader, _writer, first, last, who_or_what, state);
+                return index->index_value_trigram(*_rw, first, last, who_or_what, state);
             }
             return create_status;
         }
 
     private:
-        mtn::index_reader_t& _reader;
-        mtn::index_writer_t& _writer;
-        index_container_t    _indexes;
+        std::auto_ptr<ReaderWriter> _rw;
+        index_container_t           _indexes;
     };
 
 } // namespace mtn

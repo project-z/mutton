@@ -29,22 +29,21 @@
 
 namespace mtn {
 
-    class index_reader_t;
-    class index_writer_t;
+    class index_reader_writer_t;
 
     class index_slice_t
     {
     public:
 
         struct index_node_t {
-            index_address_t offset;
+            mtn_index_address_t offset;
             index_segment_t segment;
 
             index_node_t(const index_node_t& node);
 
-            index_node_t(index_address_t offset);
+            index_node_t(mtn_index_address_t offset);
 
-            index_node_t(index_address_t         offset,
+            index_node_t(mtn_index_address_t     offset,
                          const index_segment_ptr data);
 
             void
@@ -58,17 +57,17 @@ namespace mtn {
 
         index_slice_t();
 
-        index_slice_t(index_partition_t               partition,
+        index_slice_t(mtn_index_partition_t           partition,
                       const std::vector<mtn::byte_t>& bucket,
                       const std::vector<mtn::byte_t>& field,
-                      index_address_t                 value);
+                      mtn_index_address_t             value);
 
-        index_slice_t(mtn::index_partition_t          partition,
-                      const mtn::byte_t*              bucket,
-                      size_t                          bucket_size,
-                      const mtn::byte_t*              field,
-                      size_t                          field_size,
-                      index_address_t                 value);
+        index_slice_t(mtn_index_partition_t partition,
+                      const mtn::byte_t*    bucket,
+                      size_t                bucket_size,
+                      const mtn::byte_t*    field,
+                      size_t                field_size,
+                      mtn_index_address_t   value);
 
         index_slice_t(const index_slice_t& other);
 
@@ -79,18 +78,17 @@ namespace mtn {
                 index_slice_t&       output);
 
         mtn::status_t
-        bit(mtn::index_reader_t& reader,
-            mtn::index_writer_t& writer,
-            index_address_t      bit,
-            bool                 state);
+        bit(mtn::index_reader_writer_t& rw,
+            mtn_index_address_t         bit,
+            bool                        state);
 
         bool
-        bit(index_address_t      bit);
+        bit(mtn_index_address_t bit);
 
         mtn::index_slice_t&
         operator=(const index_slice_t& other);
 
-        inline mtn::index_partition_t
+        inline mtn_index_partition_t
         partition() const
         {
             return _partition;
@@ -108,7 +106,7 @@ namespace mtn {
             return _field;
         }
 
-        inline mtn::index_address_t
+        inline mtn_index_address_t
         value() const
         {
             return _value;
@@ -172,10 +170,10 @@ namespace mtn {
 
     private:
         slice_container          _index_slice;
-        index_partition_t        _partition;
+        mtn_index_partition_t    _partition;
         std::vector<mtn::byte_t> _bucket;
         std::vector<mtn::byte_t> _field;
-        index_address_t          _value;
+        mtn_index_address_t      _value;
     };
 
 } // namespace mtn

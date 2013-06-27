@@ -20,7 +20,7 @@
 #include "range.hpp"
 #include "index.hpp"
 
-mtn::index_t::index_t(mtn::index_partition_t          partition,
+mtn::index_t::index_t(mtn_index_partition_t           partition,
                       const std::vector<mtn::byte_t>& bucket,
                       const std::vector<mtn::byte_t>& field) :
     _partition(partition),
@@ -28,11 +28,11 @@ mtn::index_t::index_t(mtn::index_partition_t          partition,
     _field(field)
 {}
 
-mtn::index_t::index_t(mtn::index_partition_t          partition,
-                      const mtn::byte_t*              bucket,
-                      size_t                          bucket_size,
-                      const mtn::byte_t*              field,
-                      size_t                          field_size) :
+mtn::index_t::index_t(mtn_index_partition_t partition,
+                      const mtn::byte_t*    bucket,
+                      size_t                bucket_size,
+                      const mtn::byte_t*    field,
+                      size_t                field_size) :
     _partition(partition),
     _bucket(bucket, bucket + bucket_size),
     _field(field, field + field_size)
@@ -68,9 +68,9 @@ mtn::index_t::slice(mtn::range_t*             ranges,
 }
 
 mtn::status_t
-mtn::index_t::slice(mtn::range_t*             ranges,
-                    size_t                    range_count,
-                    mtn::index_slice_t&       output)
+mtn::index_t::slice(mtn::range_t*       ranges,
+                    size_t              range_count,
+                    mtn::index_slice_t& output)
 {
     return slice(ranges, range_count, MTN_INDEX_OP_UNION, output);
 }
@@ -91,27 +91,25 @@ mtn::index_t::slice(mtn::index_slice_t& output)
 }
 
 mtn::status_t
-mtn::index_t::index_value(mtn::index_reader_t& reader,
-                          mtn::index_writer_t& writer,
-                          mtn::index_address_t value,
-                          mtn::index_address_t who_or_what,
-                          bool                 state)
+mtn::index_t::index_value(mtn::index_reader_writer_t& rw,
+                          mtn_index_address_t         value,
+                          mtn_index_address_t         who_or_what,
+                          bool                        state)
 {
     mtn::index_t::iterator iter = iter = _index.find(value);
     if (iter == _index.end()) {
         iter = insert(value, new mtn::index_slice_t(_partition, _bucket, _field, value)).first;
     }
 
-    iter->second->bit(reader, writer, who_or_what, state);
+    iter->second->bit(rw, who_or_what, state);
     return mtn::status_t(); // XXX TODO better error handling
 }
 
 mtn::status_t
-mtn::index_t::indexed_value(mtn::index_reader_t&,
-                            mtn::index_writer_t&,
-                            mtn::index_address_t value,
-                            mtn::index_address_t who_or_what,
-                            bool*                state)
+mtn::index_t::indexed_value(mtn::index_reader_writer_t&,
+                            mtn_index_address_t value,
+                            mtn_index_address_t who_or_what,
+                            bool*               state)
 {
     mtn::index_t::iterator iter = _index.find(value);
     if (iter == _index.end()) {
@@ -124,9 +122,8 @@ mtn::index_t::indexed_value(mtn::index_reader_t&,
 }
 
 mtn::status_t
-mtn::index_t::indexed_value(mtn::index_reader_t&,
-                            mtn::index_writer_t&,
-                            mtn::index_address_t value,
+mtn::index_t::indexed_value(mtn::index_reader_writer_t&,
+                            mtn_index_address_t  value,
                             mtn::index_slice_t** who_or_what)
 {
     mtn::index_t::iterator iter = _index.find(value);
@@ -139,7 +136,7 @@ mtn::index_t::indexed_value(mtn::index_reader_t&,
     return mtn::status_t(); // XXX TODO better error handling
 }
 
-mtn::index_partition_t
+mtn_index_partition_t
 mtn::index_t::partition() const
 {
     return _partition;

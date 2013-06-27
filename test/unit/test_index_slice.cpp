@@ -197,37 +197,37 @@ BOOST_AUTO_TEST_CASE(slice_set_bit)
     BOOST_CHECK(!o.bit(2048));
     BOOST_CHECK_EQUAL(0, o.size());
 
-    o.bit(reader_writer, reader_writer, 2048, true);
+    o.bit(reader_writer, 2048, true);
     BOOST_CHECK_EQUAL(1, o.size());
-    BOOST_CHECK(8 == o.begin()->offset);
+    BOOST_CHECK(1 == o.begin()->offset);
 
     mtn::index_segment_ptr segment = o.begin()->segment;
     BOOST_CHECK_EQUAL(0, memcmp(segment, SEGMENT_ONE, MTN_INDEX_SEGMENT_SIZE));
     BOOST_CHECK(o.bit(2048));
 
-    o.bit(reader_writer, reader_writer, 2048, false);
+    o.bit(reader_writer, 2048, false);
     BOOST_CHECK(!o.bit(2048));
     BOOST_CHECK_EQUAL(1, o.size());
-    BOOST_CHECK(8 == o.begin()->offset);
+    BOOST_CHECK(1 == o.begin()->offset);
 }
 
 BOOST_AUTO_TEST_CASE(slice_check_bit_32)
 {
-   index_reader_writer_memory_t reader_writer;
+    index_reader_writer_memory_t reader_writer;
     mtn::index_slice_t o(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
 
     BOOST_CHECK(!o.bit(32));
-    o.bit(reader_writer, reader_writer, 0, true);
+    o.bit(reader_writer, 0, true);
     BOOST_CHECK(!o.bit(32));
 }
 
 BOOST_AUTO_TEST_CASE(slice_set_bit_32)
 {
-   index_reader_writer_memory_t reader_writer;
+    index_reader_writer_memory_t reader_writer;
     mtn::index_slice_t o(1, reinterpret_cast<const mtn::byte_t*>("bizbang"), 7, reinterpret_cast<const mtn::byte_t*>("foobar"), 6, 2);
 
     BOOST_CHECK(!o.bit(32));
-    o.bit(reader_writer, reader_writer, 32, true);
+    o.bit(reader_writer, 32, true);
     BOOST_CHECK(o.bit(32));
 }
 

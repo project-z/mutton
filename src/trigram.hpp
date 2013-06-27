@@ -71,7 +71,7 @@ namespace mtn {
             return input;
         }
 
-        inline mtn::index_address_t
+        inline mtn_index_address_t
         hash()
         {
             return ((uint128_t) one ) << 64 | ((uint128_t) two) << 32 | ((uint128_t) three);
@@ -81,7 +81,7 @@ namespace mtn {
         static inline void
         to_trigrams(InputIterator first,
                     InputIterator last,
-                    std::set<mtn::index_address_t>& output)
+                    std::set<mtn_index_address_t>& output)
         {
             mtn::trigram_t trigram;
             for (;;) {
@@ -95,11 +95,11 @@ namespace mtn {
         }
 
         static inline void
-        to_ranges(std::set<mtn::index_address_t> trigrams,
+        to_ranges(std::set<mtn_index_address_t> trigrams,
                   std::vector<mtn::range_t>&     output)
         {
             output.reserve(trigrams.size());
-            std::set<mtn::index_address_t>::iterator iter = trigrams.begin();
+            std::set<mtn_index_address_t>::iterator iter = trigrams.begin();
             for (;iter != trigrams.end(); ++iter) {
                 if (((uint32_t) *iter) == 0) {
                     output.push_back(mtn::range_t(*iter, *iter | (((uint128_t) 0x0000000000000000) << 64 | 0x1111111111111111)));
@@ -116,7 +116,7 @@ namespace mtn {
                   InputIterator              last,
                   std::vector<mtn::range_t>& output)
         {
-            std::set<mtn::index_address_t> trigrams;
+            std::set<mtn_index_address_t> trigrams;
             to_trigrams(first, last, trigrams);
             to_ranges(trigrams, output);
         }

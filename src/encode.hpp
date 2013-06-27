@@ -104,8 +104,8 @@ namespace mtn {
                      uint16_t*             bucket_size,
                      mtn::byte_t**         field,
                      uint16_t*             field_size,
-                     mtn::index_address_t* value,
-                     mtn::index_address_t* offset)
+                     mtn_index_address_t* value,
+                     mtn_index_address_t* offset)
     {
         mtn::byte_t* output = decode_parition(input, partition);
         output = decode_bytes(output, bucket, bucket_size);
@@ -170,8 +170,8 @@ namespace mtn {
     get_index_key_size(uint16_t             partition,
                        uint16_t             bucket_size,
                        uint16_t             field_size,
-                       mtn::index_address_t value,
-                       mtn::index_address_t offset)
+                       mtn_index_address_t value,
+                       mtn_index_address_t offset)
     {
         return sizeof(partition)
             + sizeof(bucket_size) + bucket_size
@@ -186,8 +186,8 @@ namespace mtn {
                      uint16_t             bucket_size,
                      const mtn::byte_t*   field,
                      uint16_t             field_size,
-                     mtn::index_address_t value,
-                     mtn::index_address_t offset,
+                     mtn_index_address_t value,
+                     mtn_index_address_t offset,
                      mtn::byte_t*         output)
     {
         mtn::byte_t* pos = encode_parition(partition, &output[0]);
@@ -203,8 +203,8 @@ namespace mtn {
                      uint16_t                  bucket_size,
                      const mtn::byte_t*        field,
                      uint16_t                  field_size,
-                     mtn::index_address_t      value,
-                     mtn::index_address_t      offset,
+                     mtn_index_address_t      value,
+                     mtn_index_address_t      offset,
                      std::vector<mtn::byte_t>& output)
     {
         output.resize(get_index_key_size(partition, bucket_size, field_size, value, offset));

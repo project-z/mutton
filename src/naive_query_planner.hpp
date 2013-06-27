@@ -81,12 +81,13 @@ namespace mtn {
     };
 
 
+    template <class Context>
     struct naive_query_planner_t :
     boost::static_visitor<mtn::index_slice_t>
     {
 
-        naive_query_planner_t(mtn::index_partition_t partition,
-                              mtn::context_t&        context,
+        naive_query_planner_t(mtn_index_partition_t      partition,
+                              Context&                   context,
                               const std::vector<byte_t>& bucket) :
             _partition(partition),
             _context(context),
@@ -198,8 +199,8 @@ namespace mtn {
 
     private:
         mtn::status_t            _status;
-        mtn::index_partition_t   _partition;
-        mtn::context_t&          _context;
+        mtn_index_partition_t    _partition;
+        Context&                 _context;
         std::vector<mtn::byte_t> _bucket;
     };
 

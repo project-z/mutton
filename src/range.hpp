@@ -28,10 +28,10 @@
 namespace mtn {
 
     struct range_t {
-        mtn::index_address_t __attribute__((aligned(16))) start;
-        mtn::index_address_t __attribute__((aligned(16))) limit;
+        mtn_index_address_t __attribute__((aligned(16))) start;
+        mtn_index_address_t __attribute__((aligned(16))) limit;
 
-        // typedef boost::counting_iterator<mtn::index_address_t> counting_iterator;
+        // typedef boost::counting_iterator<mtn_index_address_t> counting_iterator;
         // typedef boost::iterator_range<counting_iterator> iterator;
 
         range_t() :
@@ -39,8 +39,8 @@ namespace mtn {
             limit(0)
         {}
 
-        range_t(const mtn::index_address_t s,
-                const mtn::index_address_t l) :
+        range_t(const mtn_index_address_t s,
+                const mtn_index_address_t l) :
             start(s),
             limit(l)
         {}

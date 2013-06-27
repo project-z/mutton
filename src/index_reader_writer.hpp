@@ -17,8 +17,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __MUTTON_INDEX_READER_HPP_INCLUDED__
-#define __MUTTON_INDEX_READER_HPP_INCLUDED__
+#ifndef __MUTTON_INDEX_READER_WRITER_HPP_INCLUDED__
+#define __MUTTON_INDEX_READER_WRITER_HPP_INCLUDED__
 
 #include <boost/ptr_container/ptr_map.hpp>
 
@@ -30,7 +30,7 @@ namespace mtn {
     class index_t;
     class index_slice_t;
 
-    class index_reader_t
+    class index_reader_writer_t
     {
 
     public:
@@ -38,46 +38,54 @@ namespace mtn {
         typedef boost::ptr_map<std::vector<mtn::byte_t>, mtn::index_t> index_container;
 
         virtual
-        ~index_reader_t()
+        ~index_reader_writer_t()
         {}
 
         virtual mtn::status_t
-        read_indexes(mtn::index_partition_t                partition,
-                     const std::vector<mtn::byte_t>&       start_bucket,
-                     const std::vector<mtn::byte_t>&       start_field,
-                     const std::vector<mtn::byte_t>&       end_bucket,
-                     const std::vector<mtn::byte_t>&       end_field,
-                     mtn::index_reader_t::index_container& output) = 0;
+        read_indexes(mtn_index_partition_t                        partition,
+                     const std::vector<mtn::byte_t>&              start_bucket,
+                     const std::vector<mtn::byte_t>&              start_field,
+                     const std::vector<mtn::byte_t>&              end_bucket,
+                     const std::vector<mtn::byte_t>&              end_field,
+                     mtn::index_reader_writer_t::index_container& output) = 0;
 
         virtual mtn::status_t
-        read_index(mtn::index_partition_t          partition,
+        read_index(mtn_index_partition_t           partition,
                    const std::vector<mtn::byte_t>& bucket,
                    const std::vector<mtn::byte_t>& field,
                    mtn::index_t**                  output) = 0;
 
         virtual mtn::status_t
-        read_index_slice(mtn::index_partition_t          partition,
+        read_index_slice(mtn_index_partition_t           partition,
                          const std::vector<mtn::byte_t>& bucket,
                          const std::vector<mtn::byte_t>& field,
-                         mtn::index_address_t            value,
+                         mtn_index_address_t             value,
                          mtn::index_slice_t&             output) = 0;
 
         virtual mtn::status_t
-        read_segment(mtn::index_partition_t          partition,
+        read_segment(mtn_index_partition_t           partition,
                      const std::vector<mtn::byte_t>& bucket,
                      const std::vector<mtn::byte_t>& field,
-                     mtn::index_address_t            value,
-                     mtn::index_address_t            offset,
+                     mtn_index_address_t             value,
+                     mtn_index_address_t             offset,
                      mtn::index_segment_ptr          output) = 0;
 
         virtual mtn::status_t
-        estimateSize(mtn::index_partition_t          partition,
+        estimateSize(mtn_index_partition_t           partition,
                      const std::vector<mtn::byte_t>& bucket,
                      const std::vector<mtn::byte_t>& field,
-                     mtn::index_address_t            value,
+                     mtn_index_address_t             value,
                      uint64_t*                       output) = 0;
+
+        virtual mtn::status_t
+        write_segment(mtn_index_partition_t           partition,
+                      const std::vector<mtn::byte_t>& bucket,
+                      const std::vector<mtn::byte_t>& field,
+                      mtn_index_address_t             value,
+                      mtn_index_address_t             offset,
+                      index_segment_ptr input) = 0;
     };
 
 } // namespace mtn
 
-#endif // __MUTTON_INDEX_READER_HPP_INCLUDED__
+#endif // __MUTTON_INDEX_READER_WRITER_HPP_INCLUDED__

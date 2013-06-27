@@ -27,9 +27,8 @@
 #include <boost/ptr_container/ptr_map.hpp>
 
 #include "base_types.hpp"
-#include "index_reader.hpp"
-#include "index_writer.hpp"
 #include "index.hpp"
+#include "index_reader_writer.hpp"
 #include "index_slice.hpp"
 
 // Required to use stdint.h
@@ -37,13 +36,10 @@
 #define __STDC_LIMIT_MACROS
 #endif
 
-
-
 typedef std::basic_string<unsigned char> ustring_t;
 
 class index_reader_writer_memory_t :
-    public mtn::index_reader_t,
-    public mtn::index_writer_t,
+    public mtn::index_reader_writer_t,
     private boost::noncopyable
 {
 
@@ -51,27 +47,27 @@ public:
 
     struct index_key_t {
 
-        mtn::index_partition_t partition;
-        ustring_t              bucket;
-        ustring_t              field;
-        mtn::index_address_t   value;
+        mtn_index_partition_t partition;
+        ustring_t             bucket;
+        ustring_t             field;
+        mtn_index_address_t   value;
 
-        index_key_t(mtn::index_partition_t          partition,
+        index_key_t(mtn_index_partition_t           partition,
                     const std::vector<mtn::byte_t>& bucket,
                     const std::vector<mtn::byte_t>& field,
-                    mtn::index_address_t            value) :
+                    mtn_index_address_t             value) :
             partition(partition),
             bucket(&bucket[0], bucket.size()),
             field(&field[0], bucket.size()),
             value(value)
         {}
 
-        index_key_t(mtn::index_partition_t partition,
-                    const mtn::byte_t*     bucket,
-                    size_t                 bucket_size,
-                    const mtn::byte_t*     field,
-                    size_t                 field_size,
-                    mtn::index_address_t   value) :
+        index_key_t(mtn_index_partition_t partition,
+                    const mtn::byte_t*    bucket,
+                    size_t                bucket_size,
+                    const mtn::byte_t*    field,
+                    size_t                field_size,
+                    mtn_index_address_t   value) :
             partition(partition),
             bucket(bucket, bucket + bucket_size),
             field(field, field + field_size),
@@ -96,7 +92,7 @@ public:
 
         friend bool
         operator<=(const index_key_t& a,
-                  const index_key_t& b)
+                   const index_key_t& b)
         {
             if (a.partition != b.partition) {
                 return a.partition <= b.partition;
@@ -117,11 +113,11 @@ public:
     {}
 
     mtn::status_t
-    write_segment(mtn::index_partition_t          partition,
+    write_segment(mtn_index_partition_t           partition,
                   const std::vector<mtn::byte_t>& bucket,
                   const std::vector<mtn::byte_t>& field,
-                  mtn::index_address_t            value,
-                  mtn::index_address_t            offset,
+                  mtn_index_address_t             value,
+                  mtn_index_address_t             offset,
                   mtn::index_segment_ptr          input)
     {
         index_key_t key(partition, bucket, field, value);
@@ -145,12 +141,12 @@ public:
     }
 
     mtn::status_t
-    read_indexes(mtn::index_partition_t                partition,
-                 const std::vector<mtn::byte_t>&       start_bucket,
-                 const std::vector<mtn::byte_t>&       start_field,
-                 const std::vector<mtn::byte_t>&       end_bucket,
-                 const std::vector<mtn::byte_t>&       end_field,
-                 mtn::index_reader_t::index_container& output)
+    read_indexes(mtn_index_partition_t                        partition,
+                 const std::vector<mtn::byte_t>&              start_bucket,
+                 const std::vector<mtn::byte_t>&              start_field,
+                 const std::vector<mtn::byte_t>&              end_bucket,
+                 const std::vector<mtn::byte_t>&              end_field,
+                 mtn::index_reader_writer_t::index_container& output)
     {
         index_key_t start_key(partition, start_bucket, start_field, 0);
         index_key_t end_key(partition, end_bucket, end_field, 0);
@@ -162,7 +158,7 @@ public:
         for (; iter != _index.end() && iter->first <= end_key; ++iter) {
 
             if (iter->first.field != current_field) {
-                mtn::index_reader_t::index_container::key_type key(iter->first.field.begin(), iter->first.field.end());
+                mtn::index_reader_writer_t::index_container::key_type key(iter->first.field.begin(), iter->first.field.end());
                 current_index = output.insert(
                     key,
                     new mtn::index_t(partition,
@@ -180,7 +176,7 @@ public:
     }
 
     mtn::status_t
-    read_index(mtn::index_partition_t          partition,
+    read_index(mtn_index_partition_t           partition,
                const std::vector<mtn::byte_t>& bucket,
                const std::vector<mtn::byte_t>& field,
                mtn::index_t**                  output)
@@ -197,10 +193,10 @@ public:
     }
 
     mtn::status_t
-    read_index_slice(mtn::index_partition_t          partition,
+    read_index_slice(mtn_index_partition_t           partition,
                      const std::vector<mtn::byte_t>& bucket,
                      const std::vector<mtn::byte_t>& field,
-                     mtn::index_address_t            value,
+                     mtn_index_address_t             value,
                      mtn::index_slice_t&             output)
     {
         index_key_t key(partition, bucket, field, value);
@@ -212,11 +208,11 @@ public:
     }
 
     mtn::status_t
-    read_segment(mtn::index_partition_t          partition,
+    read_segment(mtn_index_partition_t           partition,
                  const std::vector<mtn::byte_t>& bucket,
                  const std::vector<mtn::byte_t>& field,
-                 mtn::index_address_t            value,
-                 mtn::index_address_t            offset,
+                 mtn_index_address_t             value,
+                 mtn_index_address_t             offset,
                  mtn::index_segment_ptr          output)
     {
         index_key_t key(partition, bucket, field, value);
@@ -237,10 +233,10 @@ public:
     }
 
     mtn::status_t
-    estimateSize(mtn::index_partition_t,
+    estimateSize(mtn_index_partition_t,
                  const std::vector<mtn::byte_t>&,
                  const std::vector<mtn::byte_t>&,
-                 mtn::index_address_t,
+                 mtn_index_address_t,
                  uint64_t* output)
     {
         *output = 0;

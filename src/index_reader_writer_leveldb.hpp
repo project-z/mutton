@@ -21,17 +21,14 @@
 #define __MUTTON_INDEX_READER_WRITER_LEVELDB_HPP_INCLUDED__
 
 #include <leveldb/db.h>
-
-#include "index_reader.hpp"
-#include "index_writer.hpp"
+#include "index_reader_writer.hpp"
 
 namespace mtn {
 
     class index_slice_t;
 
     class index_reader_writer_leveldb_t :
-        public index_reader_t,
-        public index_writer_t
+        public index_reader_writer_t
     {
 
     public:
@@ -41,47 +38,47 @@ namespace mtn {
                                       leveldb::WriteOptions write_options);
 
         mtn::status_t
-        write_segment(mtn::index_partition_t          partition,
+        write_segment(mtn_index_partition_t           partition,
                       const std::vector<mtn::byte_t>& bucket,
                       const std::vector<mtn::byte_t>& field,
-                      mtn::index_address_t            value,
-                      mtn::index_address_t            offset,
+                      mtn_index_address_t             value,
+                      mtn_index_address_t             offset,
                       mtn::index_segment_ptr          input);
 
         mtn::status_t
-        read_indexes(mtn::index_partition_t                partition,
-                     const std::vector<mtn::byte_t>&       start_bucket,
-                     const std::vector<mtn::byte_t>&       start_field,
-                     const std::vector<mtn::byte_t>&       end_bucket,
-                     const std::vector<mtn::byte_t>&       end_field,
-                     mtn::index_reader_t::index_container& output);
+        read_indexes(mtn_index_partition_t                        partition,
+                     const std::vector<mtn::byte_t>&              start_bucket,
+                     const std::vector<mtn::byte_t>&              start_field,
+                     const std::vector<mtn::byte_t>&              end_bucket,
+                     const std::vector<mtn::byte_t>&              end_field,
+                     mtn::index_reader_writer_t::index_container& output);
 
         mtn::status_t
-        read_index(mtn::index_partition_t          partition,
+        read_index(mtn_index_partition_t           partition,
                    const std::vector<mtn::byte_t>& bucket,
                    const std::vector<mtn::byte_t>& field,
                    mtn::index_t**                  output);
 
         mtn::status_t
-        read_index_slice(mtn::index_partition_t          partition,
+        read_index_slice(mtn_index_partition_t           partition,
                          const std::vector<mtn::byte_t>& bucket,
                          const std::vector<mtn::byte_t>& field,
-                         mtn::index_address_t            value,
+                         mtn_index_address_t             value,
                          mtn::index_slice_t&             output);
 
         mtn::status_t
-        read_segment(mtn::index_partition_t          partition,
+        read_segment(mtn_index_partition_t           partition,
                      const std::vector<mtn::byte_t>& bucket,
                      const std::vector<mtn::byte_t>& field,
-                     mtn::index_address_t            value,
-                     mtn::index_address_t            offset,
+                     mtn_index_address_t             value,
+                     mtn_index_address_t             offset,
                      mtn::index_segment_ptr          output);
 
         mtn::status_t
-        estimateSize(mtn::index_partition_t          partition,
+        estimateSize(mtn_index_partition_t           partition,
                      const std::vector<mtn::byte_t>& bucket,
                      const std::vector<mtn::byte_t>& field,
-                     mtn::index_address_t            value,
+                     mtn_index_address_t             value,
                      uint64_t*                       output);
 
     private:
