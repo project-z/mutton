@@ -113,6 +113,12 @@ public:
     {}
 
     mtn::status_t
+    init(mtn::context_t&)
+    {
+        return mtn::status_t();
+    }
+
+    mtn::status_t
     write_segment(mtn_index_partition_t           partition,
                   const std::vector<mtn::byte_t>& bucket,
                   const std::vector<mtn::byte_t>& field,

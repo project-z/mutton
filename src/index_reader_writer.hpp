@@ -27,6 +27,7 @@
 
 namespace mtn {
 
+    class context_t;
     class index_t;
     class index_slice_t;
 
@@ -40,6 +41,9 @@ namespace mtn {
         virtual
         ~index_reader_writer_t()
         {}
+
+        virtual mtn::status_t
+        init(mtn::context_t& context) = 0;
 
         virtual mtn::status_t
         read_indexes(mtn_index_partition_t                        partition,

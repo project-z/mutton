@@ -26,6 +26,7 @@
 namespace mtn {
 
     class index_slice_t;
+    class context_t;
 
     class index_reader_writer_leveldb_t :
         public index_reader_writer_t
@@ -33,9 +34,12 @@ namespace mtn {
 
     public:
 
-        index_reader_writer_leveldb_t(leveldb::DB*          db,
-                                      leveldb::ReadOptions  read_options,
-                                      leveldb::WriteOptions write_options);
+        index_reader_writer_leveldb_t();
+
+        ~index_reader_writer_leveldb_t();
+
+        mtn::status_t
+        init(mtn::context_t& context);
 
         mtn::status_t
         write_segment(mtn_index_partition_t           partition,

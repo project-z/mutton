@@ -24,20 +24,49 @@
 
 #include "base_types.hpp"
 #include "index.hpp"
+#include "index_reader_writer.hpp"
 #include "status.hpp"
 
 namespace mtn {
 
-    template<class ReaderWriter>
     class context_t {
     public:
 
-        typedef std::vector<mtn::byte_t> index_key_t;
+        typedef std::vector<mtn::byte_t>                  index_key_t;
         typedef boost::ptr_map<index_key_t, mtn::index_t> index_container_t;
+        typedef std::map<int, std::vector<mtn::byte_t> >  options_container_t;
 
-        context_t(ReaderWriter* rw) :
+        context_t(mtn::index_reader_writer_t* rw) :
             _rw(rw)
         {}
+
+        inline mtn::status_t
+        opt(int         option,
+            const void* value,
+            size_t      value_size)
+        {
+            const mtn::byte_t* byte_value = static_cast<const mtn::byte_t*>(value);
+            _options[option] = std::vector<mtn::byte_t>(byte_value, byte_value + value_size);
+            return mtn::status_t();
+        }
+
+        inline const options_container_t&
+        opt()
+        {
+            return _options;
+        }
+
+        inline mtn::status_t
+        init()
+        {
+            return _rw->init(*this);
+        }
+
+        inline mtn::index_reader_writer_t&
+        index_reader_writer()
+        {
+            return *_rw;
+        }
 
         inline mtn::status_t
         get_index(mtn_index_partition_t,
@@ -100,11 +129,11 @@ namespace mtn {
         }
 
         inline mtn::status_t
-        index_value(mtn_index_partition_t          partition,
+        index_value(mtn_index_partition_t           partition,
                     const std::vector<mtn::byte_t>& bucket,
                     const std::vector<mtn::byte_t>& field,
-                    mtn_index_address_t            value,
-                    mtn_index_address_t            who_or_what,
+                    mtn_index_address_t             value,
+                    mtn_index_address_t             who_or_what,
                     bool                            state)
         {
             mtn::index_t* index = NULL;
@@ -117,12 +146,12 @@ namespace mtn {
 
         template<class InputIterator>
         inline mtn::status_t
-        index_value_trigram(mtn_index_partition_t          partition,
+        index_value_trigram(mtn_index_partition_t           partition,
                             const std::vector<mtn::byte_t>& bucket,
                             const std::vector<mtn::byte_t>& field,
                             InputIterator                   first,
                             InputIterator                   last,
-                            mtn_index_address_t            who_or_what,
+                            mtn_index_address_t             who_or_what,
                             bool                            state)
         {
             mtn::index_t* index = NULL;
@@ -134,8 +163,9 @@ namespace mtn {
         }
 
     private:
-        std::auto_ptr<ReaderWriter> _rw;
-        index_container_t           _indexes;
+        std::auto_ptr<mtn::index_reader_writer_t> _rw;
+        index_container_t                         _indexes;
+        options_container_t                       _options;
     };
 
 } // namespace mtn

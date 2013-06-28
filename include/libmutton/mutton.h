@@ -57,6 +57,9 @@ typedef __uint128_t uint128_t;
 typedef uint16_t      mtn_index_partition_t;
 typedef uint128_t     mtn_index_address_t;
 
+//  Socket options
+#define MTN_DB_PATH 1
+
 MUTTON_EXPORT void*
 mutton_context();
 

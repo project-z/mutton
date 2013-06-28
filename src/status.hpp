@@ -26,6 +26,7 @@
 #define MTN_ERROR_INDEX_OPERATION 2
 #define MTN_ERROR_NOT_FOUND 3
 #define MTN_ERROR_BAD_REGEX 4
+#define MTN_ERROR_BAD_OPTION 4
 
 namespace mtn {
 
@@ -43,9 +44,19 @@ namespace mtn {
         {}
 
         status_t(int code,
-                const std::string& message) :
+                 const std::string& message) :
             library(true),
             local_storage(false),
+            code(code),
+            message(message)
+        {}
+
+        status_t(int code,
+                 const std::string& message,
+                 bool library,
+                 bool local_storage) :
+            library(library),
+            local_storage(local_storage),
             code(code),
             message(message)
         {}

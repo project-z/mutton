@@ -18,18 +18,45 @@
 */
 
 #include <vector>
+#include "context.hpp"
 #include "encode.hpp"
 #include "index.hpp"
 #include "index_slice.hpp"
 #include "index_reader_writer_leveldb.hpp"
 
-mtn::index_reader_writer_leveldb_t::index_reader_writer_leveldb_t(leveldb::DB*          db,
-                                                                  leveldb::ReadOptions  read_options,
-                                                                  leveldb::WriteOptions write_options) :
-    _db(db),
-    _read_options(read_options),
-    _write_options(write_options)
+mtn::index_reader_writer_leveldb_t::index_reader_writer_leveldb_t() :
+    _db(NULL),
+    _read_options(),
+    _write_options()
 {}
+
+mtn::index_reader_writer_leveldb_t::~index_reader_writer_leveldb_t()
+{
+    if (_db) {
+        delete _db;
+    }
+}
+
+mtn::status_t
+mtn::index_reader_writer_leveldb_t::init(mtn::context_t& context)
+{
+
+    mtn::context_t::options_container_t::const_iterator iter = context.opt().find(MTN_DB_PATH);
+    if (iter == context.opt().end()) {
+        return mtn::status_t(MTN_ERROR_BAD_OPTION, "no database path was specified");
+    }
+
+    std::string path(iter->second.begin(), iter->second.end());
+    leveldb::Options options;
+    options.create_if_missing = true;
+    leveldb::Status status = leveldb::DB::Open(options, path, &_db);
+
+    if (!status.ok()) {
+        return mtn::status_t(MTN_ERROR_UNKOWN, status.ToString(), false, true);
+    }
+
+    return mtn::status_t();
+}
 
 mtn::status_t
 mtn::index_reader_writer_leveldb_t::read_index(mtn_index_partition_t           partition,
