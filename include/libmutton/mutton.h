@@ -319,10 +319,10 @@ mutton_process_event(
  *
  * @param context allocated mutton context
  * @param partition partition, used to create logical seperation between indexes and other data
- * @param event_name name of the event to associate with this script, must be unique
- * @param event_name_size event name size
  * @param bucket bucket namespace for the event
  * @param bucket_size size of the bucket array
+ * @param event_name name of the event to associate with this script, must be unique
+ * @param event_name_size event name size
  * @param buffer event data
  * @param buffer_size event data size
  * @param status output pointer to status if error is encountered, NULL otherwise. If input value of status is not NULL it will be freed prior to being set.
@@ -333,10 +333,10 @@ MUTTON_EXPORT bool
 mutton_process_event_bucketed(
     void*                 context,
     mtn_index_partition_t partition,
-    void*                 event_name,
-    size_t                event_name_size,
     void*                 bucket,
     size_t                bucket_size,
+    void*                 event_name,
+    size_t                event_name_size,
     void*                 buffer,
     size_t                buffer_size,
     void**                status);

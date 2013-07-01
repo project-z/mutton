@@ -226,20 +226,20 @@ bool
 mutton_process_event_bucketed(
     void*                 context,
     mtn_index_partition_t partition,
-    void*                 event_name,
-    size_t                event_name_size,
     void*                 bucket,
     size_t                bucket_size,
+    void*                 event_name,
+    size_t                event_name_size,
     void*                 buffer,
     size_t                buffer_size,
     void**                status)
 {
     (void)context;
     (void)partition;
-    (void)event_name;
-    (void)event_name_size;
     (void)bucket;
     (void)bucket_size;
+    (void)event_name;
+    (void)event_name_size;
     (void)buffer;
     (void)buffer_size;
     (void)status;
