@@ -21,17 +21,69 @@
 #include "index_reader_writer_leveldb.hpp"
 #include "libmutton/mutton.h"
 
-struct leveldb_reference_thingy
+inline static bool
+set_error(void** statusptr,
+          const mtn::status_t& status)
 {
+    assert(statusptr != NULL);
+    if (status) {
+        return false;
+    }
+    else if (*statusptr == NULL) {
+        *statusptr = new mtn::status_t(status);
+    }
+    else {
+        delete static_cast<mtn::status_t*>(*statusptr);
+        *statusptr = new mtn::status_t(status);
+    }
+    return true;
+}
 
-};
 
+void*
+mutton_new_context()
+{
+    return new mtn::context_t(new mtn::index_reader_writer_leveldb_t());
+}
 
-// void*
-// mutton_new_context()
-// {
-//     return new mtn::context_t<mtn::index_reader_writer_leveldb_t>(new mtn::index_reader_writer_leveldb_t());
-// }
+void
+mutton_free_context(
+    void* context)
+{
+    delete static_cast<mtn::context_t*>(context);
+}
+
+void
+mutton_init(
+    void*  context,
+    void** status)
+{
+    set_error(status, static_cast<mtn::context_t*>(context)->init());
+}
+
+int
+mutton_status_get_code(
+    void*,
+    void* status)
+{
+    return static_cast<mtn::status_t*>(status)->code;
+}
+
+void
+mutton_status_get_message(
+    void*,
+    void*  status,
+    char** message)
+{
+    *message = strdup(static_cast<mtn::status_t*>(status)->message.c_str());
+}
+
+void
+mutton_free_status(
+    void* status)
+{
+    delete static_cast<mtn::status_t*>(status);
+}
 
 // void*
 // mutton_index_value(

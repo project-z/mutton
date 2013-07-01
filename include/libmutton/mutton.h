@@ -63,18 +63,39 @@ typedef uint128_t     mtn_index_address_t;
 MUTTON_EXPORT void*
 mutton_context();
 
-MUTTON_EXPORT void*
+MUTTON_EXPORT void
+mutton_free_context(
+    void* context);
+
+MUTTON_EXPORT void
+mutton_init(
+    void*  context,
+    void** status);
+
+MUTTON_EXPORT int
+mutton_status_get_code(
+    void* context,
+    void* status);
+
+MUTTON_EXPORT void
+mutton_status_get_message(
+    void*  context,
+    void*  status,
+    char** message);
+
+MUTTON_EXPORT void
+mutton_free_status(
+    void* status);
+
+MUTTON_EXPORT void
 mutton_set_opt(
     void*  context,
     int    option,
     void*  value,
-    size_t value_size);
+    size_t value_size,
+    void** status);
 
-MUTTON_EXPORT void*
-mutton_init(
-    void* context);
-
-MUTTON_EXPORT void*
+MUTTON_EXPORT void
 mutton_index_value(
     void*                 context,
     mtn_index_partition_t partition,
@@ -84,9 +105,10 @@ mutton_index_value(
     size_t                field_size,
     mtn_index_address_t   value,
     mtn_index_address_t   who_or_what,
-    bool                  state);
+    bool                  state,
+    void**                status);
 
-MUTTON_EXPORT void*
+MUTTON_EXPORT void
 mutton_index_value_trigram(
     void*                 context,
     mtn_index_partition_t partition,
@@ -97,40 +119,45 @@ mutton_index_value_trigram(
     void*                 value,
     size_t                value_size,
     mtn_index_address_t   who_or_what,
-    bool                  state);
+    bool                  state,
+    void**                status);
 
-MUTTON_EXPORT void*
+MUTTON_EXPORT void
 mutton_query(
     void*                 context,
     mtn_index_partition_t partition,
     void*                 bucket,
     size_t                bucket_size,
     void*                 query,
-    size_t                query_size);
+    size_t                query_size,
+    void**                status);
 
-MUTTON_EXPORT void*
+MUTTON_EXPORT void
 mutton_register_script(
-    void*                 context,
-    void*                 event_name,
-    size_t                event_name_size,
-    void*                 buffer,
-    size_t                buffer_size);
+    void*  context,
+    void*  event_name,
+    size_t event_name_size,
+    void*  buffer,
+    size_t buffer_size,
+    void** status);
 
-MUTTON_EXPORT void*
+MUTTON_EXPORT void
 mutton_register_script_path(
-    void*                 context,
-    void*                 event_name,
-    size_t                event_name_size,
-    void*                 path,
-    size_t                path_size);
+    void*  context,
+    void*  event_name,
+    size_t event_name_size,
+    void*  path,
+    size_t path_size,
+    void** status);
 
-MUTTON_EXPORT void*
+MUTTON_EXPORT void
 mutton_process_event(
-    void*                 context,
-    void*                 event_name,
-    size_t                event_name_size,
-    void*                 buffer,
-    size_t                buffer_size);
+    void*  context,
+    void*  event_name,
+    size_t event_name_size,
+    void*  buffer,
+    size_t buffer_size,
+    void** status);
 
 
 #undef MUTTON_EXPORT
