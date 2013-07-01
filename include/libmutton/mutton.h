@@ -57,37 +57,90 @@ typedef __uint128_t uint128_t;
 typedef uint16_t      mtn_index_partition_t;
 typedef uint128_t     mtn_index_address_t;
 
-//  Socket options
 #define MTN_DB_PATH 1
 
+/**
+ * Allocate a new libmutton context.
+ *
+ * Note: Contexts must be freed using the supplied mutton_free_context function.
+ *
+ * @return allocated mutton context
+ */
 MUTTON_EXPORT void*
 mutton_context();
 
+/**
+ * Free the supplied context and all of the associated resources
+ *
+ * @param context context to be feed
+ */
 MUTTON_EXPORT void
 mutton_free_context(
     void* context);
 
-MUTTON_EXPORT void
+/**
+ * Initialize the mutton context
+ *
+ * @param context allocated mutton context
+ * @param status output pointer to status if error is encountered, NULL otherwise. If input value of status is not NULL it will be freed prior to being set.
+ *
+ * @return true if successfull
+ */
+MUTTON_EXPORT bool
 mutton_init(
     void*  context,
     void** status);
 
+/**
+ * Get the error code from the mutton status pointer
+ *
+ * @param context allocated mutton context
+ * @param status opaque pointer to the mutton status
+ *
+ * @return underlying error code
+ */
 MUTTON_EXPORT int
 mutton_status_get_code(
     void* context,
     void* status);
 
+/**
+ * Get the error message from the mutton status pointer
+ *
+ * Note: resulting error message string must be freed by the caller
+ *
+ * @param context allocated mutton context
+ * @param status opaque pointer to the mutton status
+ * @param message output pointer for the error message
+ *
+ */
 MUTTON_EXPORT void
 mutton_status_get_message(
     void*  context,
     void*  status,
     char** message);
 
+/**
+ * Free the mutton status
+ *
+ * @param status allocated mutton status
+ */
 MUTTON_EXPORT void
 mutton_free_status(
     void* status);
 
-MUTTON_EXPORT void
+/**
+ * Set a configuration for the mutton context prior to initialization
+ *
+ * @param context allocated mutton context
+ * @param option option to set
+ * @param value option value
+ * @param value_size size of option value
+ * @param status output pointer to status if error is encountered, NULL otherwise. If input value of status is not NULL it will be freed prior to being set.
+ *
+ * @return true if successfull
+ */
+MUTTON_EXPORT bool
 mutton_set_opt(
     void*  context,
     int    option,
@@ -95,7 +148,23 @@ mutton_set_opt(
     size_t value_size,
     void** status);
 
-MUTTON_EXPORT void
+/**
+ * Index a value for the given field and row
+ *
+ * @param context allocated mutton context
+ * @param partition partition, used to create logical seperation between indexes and other data
+ * @param bucket bucket namespace for the indexed field
+ * @param bucket_size size of the bucket array
+ * @param field indexed field
+ * @param field_size size of the field array
+ * @param value the value being indexed
+ * @param who_or_what ID of the row which contains the indexed value
+ * @param state set the index value to true or false
+ * @param status output pointer to status if error is encountered, NULL otherwise. If input value of status is not NULL it will be freed prior to being set.
+ *
+ * @return true if successfull
+ */
+MUTTON_EXPORT bool
 mutton_index_value(
     void*                 context,
     mtn_index_partition_t partition,
@@ -108,7 +177,24 @@ mutton_index_value(
     bool                  state,
     void**                status);
 
-MUTTON_EXPORT void
+/**
+ * Index a utf8 byte array using trigrams for the given field and row
+ *
+ * @param context allocated mutton context
+ * @param partition partition, used to create logical seperation between indexes and other data
+ * @param bucket bucket namespace for the indexed field
+ * @param bucket_size size of the bucket array
+ * @param field indexed field
+ * @param field_size size of the field array
+ * @param value the utf8 byte array being indexed, assumes rfc3629 format
+ * @param value_size the size of the value byte array
+ * @param who_or_what ID of the row which contains the indexed value
+ * @param state set the index value to true or false
+ * @param status output pointer to status if error is encountered, NULL otherwise. If input value of status is not NULL it will be freed prior to being set.
+ *
+ * @return true if successfull
+ */
+MUTTON_EXPORT bool
 mutton_index_value_trigram(
     void*                 context,
     mtn_index_partition_t partition,
@@ -122,7 +208,36 @@ mutton_index_value_trigram(
     bool                  state,
     void**                status);
 
-MUTTON_EXPORT void
+/**
+ * Execute a query for the supplied bucket.
+ *
+ * The query language is lispy in style. The most basic operation is a slice which takes a field name and an optional range/regex.
+ *
+ *      Supports utf8 field names: (slice "ταБЬℓσ")
+ *
+ *      Return all rows that have a value for field "a": (slice "a")
+ *
+ *      Return all rows with a field "a" value (1, 2]: (slice "a" (range 1 2))
+ *
+ *      Return all rows with a field "a" value (1, 2] OR (3, 4]: (slice "a" (range 1 2) (range 3 4))
+ *
+ *      Return all rows with a field "a" with trigram index values required of the supplied regex: (slice "a" (regex "foo.*bar"))
+ *
+ *      Ranges accept unsigned 128 bit values (0, 340282366920938463463374607431768211455)
+ *
+ *      The boolean operators 'or', 'and', 'xor', and 'not' can be used to contruct complex queries: (or (slice "a") (not (slice "b")))
+ *
+ * @param context allocated mutton context
+ * @param partition partition, used to create logical seperation between indexes and other data
+ * @param bucket bucket namespace for the indexed field
+ * @param bucket_size size of the bucket array
+ * @param query query string
+ * @param query_size query string size
+ * @param status output pointer to status if error is encountered, NULL otherwise. If input value of status is not NULL it will be freed prior to being set.
+ *
+ * @return true if successfull
+ */
+MUTTON_EXPORT bool
 mutton_query(
     void*                 context,
     mtn_index_partition_t partition,
@@ -132,7 +247,19 @@ mutton_query(
     size_t                query_size,
     void**                status);
 
-MUTTON_EXPORT void
+/**
+ * Register a Lua script with the event proccessing system
+ *
+ * @param context allocated mutton context
+ * @param event_name name of the event to associate with this script, must be unique
+ * @param event_name_size event name size
+ * @param buffer string buffer containing the script
+ * @param buffer_size buffer size
+ * @param status output pointer to status if error is encountered, NULL otherwise. If input value of status is not NULL it will be freed prior to being set.
+ *
+ * @return true if successfull
+ */
+MUTTON_EXPORT bool
 mutton_register_script(
     void*  context,
     void*  event_name,
@@ -141,7 +268,19 @@ mutton_register_script(
     size_t buffer_size,
     void** status);
 
-MUTTON_EXPORT void
+/**
+ * Register a Lua script with the event proccessing system
+ *
+ * @param context allocated mutton context
+ * @param event_name name of the event to associate with this script, must be unique
+ * @param event_name_size event name size
+ * @param path path to the Lua script
+ * @param path_size path size
+ * @param status output pointer to status if error is encountered, NULL otherwise. If input value of status is not NULL it will be freed prior to being set.
+ *
+ * @return true if successfull
+ */
+MUTTON_EXPORT bool
 mutton_register_script_path(
     void*  context,
     void*  event_name,
@@ -150,14 +289,57 @@ mutton_register_script_path(
     size_t path_size,
     void** status);
 
-MUTTON_EXPORT void
+/**
+ * Proccess an event
+ *
+ * Note: Should only be used for event scripts which extract the bucket ID
+ *
+ * @param context allocated mutton context
+ * @param partition partition, used to create logical seperation between indexes and other data
+ * @param event_name name of the event to associate with this script, must be unique
+ * @param event_name_size event name size
+ * @param buffer event data
+ * @param buffer_size event data size
+ * @param status output pointer to status if error is encountered, NULL otherwise. If input value of status is not NULL it will be freed prior to being set.
+ *
+ * @return true if successfull
+ */
+MUTTON_EXPORT bool
 mutton_process_event(
-    void*  context,
-    void*  event_name,
-    size_t event_name_size,
-    void*  buffer,
-    size_t buffer_size,
-    void** status);
+    void*                 context,
+    mtn_index_partition_t partition,
+    void*                 event_name,
+    size_t                event_name_size,
+    void*                 buffer,
+    size_t                buffer_size,
+    void**                status);
+
+/**
+ * Proccess an event
+ *
+ * @param context allocated mutton context
+ * @param partition partition, used to create logical seperation between indexes and other data
+ * @param event_name name of the event to associate with this script, must be unique
+ * @param event_name_size event name size
+ * @param bucket bucket namespace for the event
+ * @param bucket_size size of the bucket array
+ * @param buffer event data
+ * @param buffer_size event data size
+ * @param status output pointer to status if error is encountered, NULL otherwise. If input value of status is not NULL it will be freed prior to being set.
+ *
+ * @return true if successfull
+ */
+MUTTON_EXPORT bool
+mutton_process_event_bucketed(
+    void*                 context,
+    mtn_index_partition_t partition,
+    void*                 event_name,
+    size_t                event_name_size,
+    void*                 bucket,
+    size_t                bucket_size,
+    void*                 buffer,
+    size_t                buffer_size,
+    void**                status);
 
 
 #undef MUTTON_EXPORT

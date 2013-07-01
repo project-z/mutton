@@ -101,13 +101,13 @@ namespace mtn {
             return create_index(partition, bucket.begin(), bucket.end(), field.begin(), field.end(), output);
         }
 
-        template<class InputIterator>
+        template<class BucketIterator, class FieldIterator>
         inline mtn::status_t
         create_index(mtn_index_partition_t partition,
-                     InputIterator         bucket_begin,
-                     InputIterator         bucket_end,
-                     InputIterator         field_begin,
-                     InputIterator         field_end,
+                     BucketIterator        bucket_begin,
+                     BucketIterator        bucket_end,
+                     FieldIterator         field_begin,
+                     FieldIterator         field_end,
                      mtn::index_t**        output)
         {
             index_key_t key;
@@ -151,13 +151,13 @@ namespace mtn {
             return index_value(partition, bucket.begin(), bucket.end(), field.begin(), field.end(), value, who_or_what, state);
         }
 
-        template<class InputIterator>
+        template<class BucketIterator, class FieldIterator>
         inline mtn::status_t
         index_value(mtn_index_partition_t partition,
-                    InputIterator         bucket_begin,
-                    InputIterator         bucket_end,
-                    InputIterator         field_begin,
-                    InputIterator         field_end,
+                    BucketIterator        bucket_begin,
+                    BucketIterator        bucket_end,
+                    FieldIterator         field_begin,
+                    FieldIterator         field_end,
                     mtn_index_address_t   value,
                     mtn_index_address_t   who_or_what,
                     bool                  state)
@@ -170,18 +170,33 @@ namespace mtn {
             return create_status;
         }
 
-        template<class InputIterator>
+        template<class ValueIterator>
         inline mtn::status_t
         index_value_trigram(mtn_index_partition_t           partition,
                             const std::vector<mtn::byte_t>& bucket,
                             const std::vector<mtn::byte_t>& field,
-                            InputIterator                   first,
-                            InputIterator                   last,
+                            ValueIterator                   first,
+                            ValueIterator                   last,
                             mtn_index_address_t             who_or_what,
                             bool                            state)
         {
+            return index_value_trigram(partition, bucket.begin(), bucket.end(), field.begin(), field.end(), first, last, who_or_what, state);
+        }
+
+        template<class BucketIterator, class FieldIterator, class ValueIterator>
+        inline mtn::status_t
+        index_value_trigram(mtn_index_partition_t partition,
+                            BucketIterator        bucket_begin,
+                            BucketIterator        bucket_end,
+                            FieldIterator         field_begin,
+                            FieldIterator         field_end,
+                            ValueIterator         first,
+                            ValueIterator         last,
+                            mtn_index_address_t   who_or_what,
+                            bool                  state)
+        {
             mtn::index_t* index = NULL;
-            mtn::status_t create_status = create_index(partition, bucket, field, &index);
+            mtn::status_t create_status = create_index(partition, bucket_begin, bucket_end, field_begin, field_end, &index);
             if (create_status && index) {
                 return index->index_value_trigram(*_rw, first, last, who_or_what, state);
             }
