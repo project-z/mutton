@@ -53,6 +53,17 @@ namespace mtn {
                 const mtn::byte_t*    field,
                 size_t                field_size);
 
+        template<class InputIterator>
+        index_t(mtn_index_partition_t partition,
+                InputIterator         bucket_begin,
+                InputIterator         bucket_end,
+                InputIterator         field_begin,
+                InputIterator         field_end) :
+            _partition(partition),
+            _bucket(bucket_begin, bucket_end),
+            _field(field_begin, field_end)
+        {}
+
         mtn::status_t
         slice(mtn::index_slice_t&       output);
 

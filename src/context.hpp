@@ -98,10 +98,22 @@ namespace mtn {
                      const std::vector<mtn::byte_t>& field,
                      mtn::index_t**                  output)
         {
+            return create_index(partition, bucket.begin(), bucket.end(), field.begin(), field.end(), output);
+        }
+
+        template<class InputIterator>
+        inline mtn::status_t
+        create_index(mtn_index_partition_t partition,
+                     InputIterator         bucket_begin,
+                     InputIterator         bucket_end,
+                     InputIterator         field_begin,
+                     InputIterator         field_end,
+                     mtn::index_t**        output)
+        {
             index_key_t key;
-            key.reserve(bucket.size() + field.size());
-            key.insert(key.end(), bucket.begin(), bucket.end());
-            key.insert(key.end(), field.begin(), field.end());
+            key.reserve(std::distance(bucket_begin, bucket_end) + std::distance(field_begin, field_end));
+            key.insert(key.end(), bucket_begin, bucket_end);
+            key.insert(key.end(), field_begin, field_end);
 
             mtn::status_t status;
             index_container_t::iterator iter = _indexes.find(key);
@@ -113,7 +125,7 @@ namespace mtn {
             }
 
             std::pair<index_container_t::iterator, bool> insert_result
-                = _indexes.insert(key, new mtn::index_t(partition, bucket, field));
+                = _indexes.insert(key, new mtn::index_t(partition, bucket_begin, bucket_end, field_begin, field_end));
 
             if (insert_result.second) {
                 if (output) {
@@ -136,8 +148,22 @@ namespace mtn {
                     mtn_index_address_t             who_or_what,
                     bool                            state)
         {
+            return index_value(partition, bucket.begin(), bucket.end(), field.begin(), field.end(), value, who_or_what, state);
+        }
+
+        template<class InputIterator>
+        inline mtn::status_t
+        index_value(mtn_index_partition_t partition,
+                    InputIterator         bucket_begin,
+                    InputIterator         bucket_end,
+                    InputIterator         field_begin,
+                    InputIterator         field_end,
+                    mtn_index_address_t   value,
+                    mtn_index_address_t   who_or_what,
+                    bool                  state)
+        {
             mtn::index_t* index = NULL;
-            mtn::status_t create_status = create_index(partition, bucket, field, &index);
+            mtn::status_t create_status = create_index(partition, bucket_begin, bucket_end, field_begin, field_end, &index);
             if (create_status && index) {
                 return index->index_value(*_rw, value, who_or_what, state);
             }

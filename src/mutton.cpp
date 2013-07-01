@@ -85,20 +85,29 @@ mutton_free_status(
     delete static_cast<mtn::status_t*>(status);
 }
 
-// void*
-// mutton_index_value(
-//     void*                 context,
-//     mtn_index_partition_t partition,
-//     void*                 bucket,
-//     size_t                bucket_size,
-//     void*                 field,
-//     size_t                field_size,
-//     mtn_index_address_t   value,
-//     mtn_index_address_t   who_or_what,
-//     bool                  state)
-// {
-
-// }
+void
+mutton_index_value(
+    void*                 context,
+    mtn_index_partition_t partition,
+    void*                 bucket,
+    size_t                bucket_size,
+    void*                 field,
+    size_t                field_size,
+    mtn_index_address_t   value,
+    mtn_index_address_t   who_or_what,
+    bool                  state,
+    void**                status)
+{
+    set_error(status,
+              static_cast<mtn::context_t*>(context)->index_value(partition,
+                                                                 static_cast<unsigned char*>(bucket),
+                                                                 static_cast<unsigned char*>(bucket) + bucket_size,
+                                                                 static_cast<unsigned char*>(field),
+                                                                 static_cast<unsigned char*>(field) + field_size,
+                                                                 value,
+                                                                 who_or_what,
+                                                                 state));
+}
 
 // void*
 // mutton_index_value_trigram(
