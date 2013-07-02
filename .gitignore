@@ -15,6 +15,7 @@
 # cmake output
 CMakeFiles
 CMakeCache.txt
+CMakeScripts
 CTestTestfile.cmake
 Makefile
 cmake_install.cmake
@@ -39,6 +40,9 @@ ext/tmp/
 *~
 .#*
 #*
+
+# demo data
+tmp
 
 # OSX
 .DS_Store
