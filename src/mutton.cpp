@@ -18,6 +18,7 @@
 */
 
 #include "context.hpp"
+#include "lua.hpp"
 #include "index_reader_writer_leveldb.hpp"
 #include "libmutton/mutton.h"
 
@@ -54,7 +55,7 @@ mutton_free_context(
 }
 
 bool
-mutton_init(
+mutton_init_context(
     void*  context,
     void** status)
 {
@@ -83,6 +84,17 @@ mutton_free_status(
     void* status)
 {
     delete static_cast<mtn::status_t*>(status);
+}
+
+bool
+mutton_set_opt(
+    void*  context,
+    int    option,
+    void*  value,
+    size_t value_size,
+    void** status)
+{
+    return set_error(status, static_cast<mtn::context_t*>(context)->opt(option, value, value_size));
 }
 
 bool
@@ -159,45 +171,42 @@ mutton_query(
     return false;
 }
 
-
 bool
 mutton_register_script(
     void*  context,
+    int    ,
     void*  event_name,
     size_t event_name_size,
     void*  buffer,
     size_t buffer_size,
     void** status)
 {
-    (void)context;
-    (void)event_name;
-    (void)event_name_size;
-    (void)buffer;
-    (void)buffer_size;
-    (void)status;
-
-    // XXX TODO TROLOLOL haven't implemented.
-    return false;
+   return set_error(status,
+                    lua_register_script(
+                        *static_cast<mtn::context_t*>(context),
+                        static_cast<char*>(event_name),
+                        event_name_size,
+                        static_cast<char*>(buffer),
+                        buffer_size));
 }
 
 bool
 mutton_register_script_path(
     void*  context,
+    int    ,
     void*  event_name,
     size_t event_name_size,
     void*  path,
     size_t path_size,
     void** status)
 {
-    (void)context;
-    (void)event_name;
-    (void)event_name_size;
-    (void)path;
-    (void)path_size;
-    (void)status;
-
-    // XXX TODO TROLOLOL haven't implemented.
-    return false;
+   return set_error(status,
+                    lua_register_script_path(
+                        *static_cast<mtn::context_t*>(context),
+                        static_cast<char*>(event_name),
+                        event_name_size,
+                        static_cast<char*>(path),
+                        path_size));
 }
 
 bool
@@ -210,16 +219,14 @@ mutton_process_event(
     size_t                buffer_size,
     void**                status)
 {
-    (void)context;
-    (void)partition;
-    (void)event_name;
-    (void)event_name_size;
-    (void)buffer;
-    (void)buffer_size;
-    (void)status;
-
-    // XXX TODO TROLOLOL haven't implemented.
-    return false;
+   return set_error(status,
+                    lua_process_event(
+                        *static_cast<mtn::context_t*>(context),
+                        partition,
+                        static_cast<char*>(event_name),
+                        event_name_size,
+                        static_cast<char*>(buffer),
+                        buffer_size));
 }
 
 bool
@@ -234,16 +241,14 @@ mutton_process_event_bucketed(
     size_t                buffer_size,
     void**                status)
 {
-    (void)context;
-    (void)partition;
-    (void)bucket;
-    (void)bucket_size;
-    (void)event_name;
-    (void)event_name_size;
-    (void)buffer;
-    (void)buffer_size;
-    (void)status;
-
-    // XXX TODO TROLOLOL haven't implemented.
-    return false;
+   return set_error(status,
+                    lua_process_event(
+                        *static_cast<mtn::context_t*>(context),
+                        partition,
+                        static_cast<char*>(bucket),
+                        bucket_size,
+                        static_cast<char*>(event_name),
+                        event_name_size,
+                        static_cast<char*>(buffer),
+                        buffer_size));
 }

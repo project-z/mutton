@@ -21,20 +21,23 @@
 #define __MUTTON_CONTEXT_HPP_INCLUDED__
 
 #include <boost/ptr_container/ptr_map.hpp>
+#include <boost/unordered_map.hpp>
 
 #include "base_types.hpp"
 #include "index.hpp"
 #include "index_reader_writer.hpp"
 #include "status.hpp"
+#include "lua.hpp"
 
 namespace mtn {
 
     class context_t {
     public:
 
-        typedef std::vector<mtn::byte_t>                  index_key_t;
-        typedef boost::ptr_map<index_key_t, mtn::index_t> index_container_t;
-        typedef std::map<int, std::vector<mtn::byte_t> >  options_container_t;
+        typedef std::vector<mtn::byte_t>                       index_key_t;
+        typedef boost::ptr_map<index_key_t, mtn::index_t>      index_container_t;
+        typedef std::map<int, std::vector<mtn::byte_t> >       options_container_t;
+        typedef boost::unordered_map<std::string, lua_state_t> lua_state_container_t;
 
         context_t(mtn::index_reader_writer_t* rw) :
             _rw(rw)
@@ -203,8 +206,48 @@ namespace mtn {
             return create_status;
         }
 
+        inline void
+        register_lua_script(const char* event_name,
+                            size_t      event_name_size,
+                            lua_state_t lua_state)
+        {
+            assert(lua_state.get());
+            _lua_state.insert(lua_state_container_t::value_type(std::string(event_name, event_name_size), lua_state));
+        }
+
+        inline void
+        register_lua_script(const std::string& event_name,
+                            lua_state_t        lua_state)
+        {
+            assert(lua_state.get());
+            _lua_state.insert(lua_state_container_t::value_type(event_name, lua_state));
+        }
+
+        inline bool
+        get_lua_script(const std::string& event_name,
+                       lua_state_t&       output)
+        {
+            lua_state_container_t::iterator iter = _lua_state.find(event_name);
+            if (iter != _lua_state.end()) {
+                assert(iter->second.get());
+                output = iter->second;
+                assert(output.get());
+                return true;
+            }
+            return false;
+        }
+
+        inline bool
+        get_lua_script(const char*  event_name,
+                       size_t       event_name_size,
+                       lua_state_t& output)
+        {
+            return get_lua_script(std::string(event_name, event_name_size), output);
+        }
+
     private:
         std::auto_ptr<mtn::index_reader_writer_t> _rw;
+        lua_state_container_t                     _lua_state;
         index_container_t                         _indexes;
         options_container_t                       _options;
     };

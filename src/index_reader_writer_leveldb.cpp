@@ -41,7 +41,7 @@ mtn::status_t
 mtn::index_reader_writer_leveldb_t::init(mtn::context_t& context)
 {
 
-    mtn::context_t::options_container_t::const_iterator iter = context.opt().find(MTN_DB_PATH);
+    mtn::context_t::options_container_t::const_iterator iter = context.opt().find(MTN_OPT_DB_PATH);
     if (iter == context.opt().end()) {
         return mtn::status_t(MTN_ERROR_BAD_OPTION, "no database path was specified");
     }

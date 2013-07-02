@@ -27,6 +27,8 @@
 #define MTN_ERROR_NOT_FOUND 3
 #define MTN_ERROR_BAD_REGEX 4
 #define MTN_ERROR_BAD_OPTION 4
+#define MTN_ERROR_SCRIPT 5
+#define MTN_ERROR_UNKOWN_EVENT_TYPE 6
 
 namespace mtn {
 

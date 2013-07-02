@@ -57,7 +57,11 @@ typedef __uint128_t uint128_t;
 typedef uint16_t      mtn_index_partition_t;
 typedef uint128_t     mtn_index_address_t;
 
-#define MTN_DB_PATH 1
+/* The configuration options */
+#define MTN_OPT_DB_PATH 1 /* the path to store the DB files */
+
+/* Event Processing script types */
+#define MTN_SCRIPT_LUA 1
 
 /**
  * Allocate a new libmutton context.
@@ -67,7 +71,7 @@ typedef uint128_t     mtn_index_address_t;
  * @return allocated mutton context
  */
 MUTTON_EXPORT void*
-mutton_context();
+mutton_new_context();
 
 /**
  * Free the supplied context and all of the associated resources
@@ -87,7 +91,7 @@ mutton_free_context(
  * @return true if successfull
  */
 MUTTON_EXPORT bool
-mutton_init(
+mutton_init_context(
     void*  context,
     void** status);
 
@@ -248,9 +252,10 @@ mutton_query(
     void**                status);
 
 /**
- * Register a Lua script with the event proccessing system
+ * Register a script with the event proccessing system
  *
  * @param context allocated mutton context
+ * @param script_type type of script being registered
  * @param event_name name of the event to associate with this script, must be unique
  * @param event_name_size event name size
  * @param buffer string buffer containing the script
@@ -262,6 +267,7 @@ mutton_query(
 MUTTON_EXPORT bool
 mutton_register_script(
     void*  context,
+    int    script_type,
     void*  event_name,
     size_t event_name_size,
     void*  buffer,
@@ -269,9 +275,10 @@ mutton_register_script(
     void** status);
 
 /**
- * Register a Lua script with the event proccessing system
+ * Register a script with the event proccessing system
  *
  * @param context allocated mutton context
+ * @param script_type type of script being registered
  * @param event_name name of the event to associate with this script, must be unique
  * @param event_name_size event name size
  * @param path path to the Lua script
@@ -283,6 +290,7 @@ mutton_register_script(
 MUTTON_EXPORT bool
 mutton_register_script_path(
     void*  context,
+    int    script_type,
     void*  event_name,
     size_t event_name_size,
     void*  path,
