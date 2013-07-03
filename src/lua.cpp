@@ -17,6 +17,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <boost/format.hpp>
+
 #include "context.hpp"
 #include "lua.hpp"
 
@@ -26,130 +28,239 @@ extern "C" {
 #include "lauxlib.h"
 }
 
-static int
-lua_mutton_index_value(lua_State* lua_state)
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Lua wrappers for the context methods
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int
+lua_mutton_index_value(
+    lua_State* L)
 {
-    size_t size = 0;
-    mtn::context_t* context = static_cast<mtn::context_t*>(lua_touserdata(lua_state, 1));
+    mtn::context_t* context = static_cast<mtn::context_t*>(lua_touserdata(L, 1));
 
-	mtn_index_partition_t partition = luaL_checkint(lua_state, 2);
+	mtn_index_partition_t partition = luaL_checkint(L, 2);
 
+    luaL_checkany(L, 3);
     size_t bucket_size = 0;
-    const char* bucket = lua_tolstring(lua_state, 3, &bucket_size);
+    const char* bucket = luaL_checklstring(L, 3, &bucket_size);
 
+    luaL_checkany(L, 4);
     size_t field_size = 0;
-    const char* field = lua_tolstring(lua_state, 4, &field_size);
+    const char* field = lua_tolstring(L, 4, &field_size);
 
-    size = lua_objlen(lua_state, 5);
-    if (size != sizeof(mtn_index_address_t)) {
-        return -1;
+    luaL_checkany(L, 5);
+    size_t value_size = 0;
+    const char* value = lua_tolstring(L, 5, &value_size);
+    if (value_size > sizeof(mtn_index_address_t)) {
+        std::string error_msg = (boost::format("max of 16 bytes expected, got %1%") % value_size).str();
+        luaL_argerror(L, 5, error_msg.c_str());
+        return 0;
     }
-    mtn_index_address_t value = *static_cast<mtn_index_address_t*>(lua_touserdata(lua_state, 5));
 
-    size = lua_objlen(lua_state, 6);
-    if (size != sizeof(mtn_index_address_t)) {
-        return -1;
+    luaL_checkany(L, 6);
+    size_t who_or_what_size = 0;
+    const char* who_or_what = lua_tolstring(L, 6, &who_or_what_size);
+    if (who_or_what_size > sizeof(mtn_index_address_t)) {
+        std::string error_msg = (boost::format("max of 16 bytes expected, got %1%") % who_or_what_size).str();
+        luaL_argerror(L, 6, error_msg.c_str());
+        return 0;
     }
-    mtn_index_address_t who_or_what = *static_cast<mtn_index_address_t*>(lua_touserdata(lua_state, 6));
 
-    bool state = lua_toboolean(lua_state, 7);
+    luaL_checkany(L, 7);
+    bool state = lua_toboolean(L, 7);
 
     context->index_value(partition,
                          bucket,
                          bucket + bucket_size,
                          field,
                          field + field_size,
-                         value,
-                         who_or_what,
+                         *reinterpret_cast<const mtn_index_address_t*>(value),
+                         *reinterpret_cast<const mtn_index_address_t*>(who_or_what),
                          state);
     return 0;
 }
 
-static int
-lua_mutton_index_value_trigram(lua_State* lua_state)
+int
+lua_mutton_index_value_trigram(
+    lua_State* L)
 {
-    size_t size = 0;
-    mtn::context_t* context = static_cast<mtn::context_t*>(lua_touserdata(lua_state, 1));
-
-	mtn_index_partition_t partition = luaL_checkint(lua_state, 2);
-
-    size_t bucket_size = 0;
-    const char* bucket = lua_tolstring(lua_state, 3, &bucket_size);
-
-    size_t field_size = 0;
-    const char* field = lua_tolstring(lua_state, 4, &field_size);
-
-    size_t value_size = 0;
-    const char* value = lua_tolstring(lua_state, 4, &value_size);
-
-    size = lua_objlen(lua_state, 6);
-    if (size != sizeof(mtn_index_address_t)) {
-        return -1;
+    if (!lua_islightuserdata(L, 1)) {
+        luaL_argerror(L, 1, "expected a mutton context");
+        return 0;
     }
-    mtn_index_address_t who_or_what = *static_cast<mtn_index_address_t*>(lua_touserdata(lua_state, 6));
+    mtn::context_t* context = static_cast<mtn::context_t*>(lua_touserdata(L, 1));
 
-    bool state = lua_toboolean(lua_state, 7);
+	mtn_index_partition_t partition = luaL_checkint(L, 2);
 
-    context->index_value_trigram(partition,
-                                 bucket,
-                                 bucket + bucket_size,
-                                 field,
-                                 field + field_size,
-                                 value,
-                                 value + value_size,
-                                 who_or_what,
-                                 state);
+    luaL_checkany(L, 3);
+    size_t bucket_size = 0;
+    const char* bucket = luaL_checklstring(L, 3, &bucket_size);
+
+    luaL_checkany(L, 4);
+    size_t field_size = 0;
+    const char* field = lua_tolstring(L, 4, &field_size);
+
+    luaL_checkany(L, 5);
+    size_t value_size = 0;
+    const char* value = lua_tolstring(L, 5, &value_size);
+
+    luaL_checkany(L, 6);
+    size_t who_or_what_size = 0;
+    const char* who_or_what = lua_tolstring(L, 6, &who_or_what_size);
+    if (who_or_what_size > sizeof(mtn_index_address_t)) {
+        std::string error_msg = (boost::format("max of 16 bytes expected, got %1%") % who_or_what_size).str();
+        luaL_argerror(L, 6, error_msg.c_str());
+        return 0;
+    }
+
+    luaL_checkany(L, 7);
+    bool state = lua_toboolean(L, 7);
+
+    mtn::status_t status
+        = context->index_value_trigram(partition,
+                                       bucket,
+                                       bucket + bucket_size,
+                                       field,
+                                       field + field_size,
+                                       value,
+                                       value + value_size,
+                                       *reinterpret_cast<const mtn_index_address_t*>(who_or_what),
+                                       state);
+
+    if (!status) {
+        luaL_error(L, status.message.c_str());
+    }
     return 0;
 }
 
-inline void
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Lua helper functions
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+inline int
 register_functions(
-    mtn::lua_state_t lua_state)
+    lua_State       *L)
 {
-    lua_register(lua_state.get(), "mutton_index_value", lua_mutton_index_value);
-    lua_register(lua_state.get(), "mutton_index_value_trigram", lua_mutton_index_value_trigram);
+    lua_register(L, "mutton_index_value", lua_mutton_index_value);
+    lua_register(L, "mutton_index_value_trigram", lua_mutton_index_value_trigram);
+
+    return 0; // figure out how to check for errors
+}
+
+inline int
+set_package_path(
+    lua_State *L,
+    const char *path)
+{
+    lua_getglobal(L, "package");
+    lua_pushstring(L, path);
+    lua_setfield(L, -2, "path");
+    lua_pop(L, 1);
+
+    return 0; // figure out how to check for errors
+}
+
+inline int
+set_package_cpath(
+    lua_State *L,
+    const char *path)
+{
+    lua_getglobal(L, "package");
+    lua_pushstring(L, path);
+    lua_setfield(L, -2, "cpath");
+    lua_pop(L, 1);
+
+    return 0; // figure out how to check for errors
 }
 
 inline mtn::status_t
-process_event(
-    mtn::lua_state_t      lua_state,
-    mtn::context_t&       context,
-    mtn_index_partition_t partition,
-    const char*           bucket,
-    size_t                bucket_size,
-    const char*           buffer,
-    size_t                buffer_size)
+format_lua_error(
+    lua_State       *L,
+    const std::string& message)
+
 {
-    assert(lua_state.get());
+    return mtn::status_t(MTN_ERROR_SCRIPT, (boost::format(message) % lua_tostring(L, -1)).str());
+}
 
-    // create a new table
-    lua_newtable(lua_state.get());
+inline mtn::status_t
+setup_lua_env(
+    mtn::context_t&  context,
+    lua_State       *L)
+{
+    std::string path;
+    if (context.get_opt(MTN_OPT_LUA_PATH, path)) {
+        if (set_package_path(L, path.c_str())) {
+            return format_lua_error(L, "error setting Lua package path '%1%'");
+        }
+    }
 
-    lua_pushstring(lua_state.get(), "context");
-    lua_pushlightuserdata(lua_state.get(), &context);
-    lua_rawset(lua_state.get(), -3);
+    std::string cpath;
+    if (context.get_opt(MTN_OPT_LUA_CPATH, cpath)) {
+        if (set_package_cpath(L, cpath.c_str())) {
+            return format_lua_error(L, "error setting Lua library path '%1%'");
+        }
+    }
 
-    lua_pushstring(lua_state.get(), "partition");
-    lua_pushnumber(lua_state.get(), partition);
-    lua_rawset(lua_state.get(), -3);
-
-    lua_pushstring(lua_state.get(), "bucket");
-    lua_pushlstring(lua_state.get(), bucket, bucket_size);
-    lua_rawset(lua_state.get(), -3);
-
-    lua_pushstring(lua_state.get(), "event_data");
-    lua_pushlstring(lua_state.get(), buffer, buffer_size);
-    lua_rawset(lua_state.get(), -3);
-
-    lua_setglobal(lua_state.get(), "mutton");
-
-    // Run the fucker
-    if (lua_pcall(lua_state.get(), 0, LUA_MULTRET, 0)) {
-        std::cout << "Failed to run script: " << lua_tostring(lua_state.get(), -1) << std::endl;
+    if (register_functions(L)) {
+        return format_lua_error(L, "error registering Lua functions '%1%'");
     }
 
     return mtn::status_t();
 }
+
+inline mtn::status_t
+process_event(
+    lua_State             *L,
+    mtn::context_t&        context,
+    mtn_index_partition_t  partition,
+    const char*            bucket,
+    size_t                 bucket_size,
+    const char*            buffer,
+    size_t                 buffer_size)
+{
+    assert(L);
+
+    // create a new table
+    lua_newtable(L);
+
+    lua_pushstring(L, "context");
+    lua_pushlightuserdata(L, &context);
+    lua_rawset(L, -3);
+
+    lua_pushstring(L, "partition");
+    lua_pushnumber(L, partition);
+    lua_rawset(L, -3);
+
+    lua_pushstring(L, "bucket");
+    lua_pushlstring(L, bucket, bucket_size);
+    lua_rawset(L, -3);
+
+    lua_pushstring(L, "event_data");
+    lua_pushlstring(L, buffer, buffer_size);
+    lua_rawset(L, -3);
+
+    lua_setglobal(L, "mutton");
+
+    // Run the fucker
+    if (lua_pcall(L, 0, LUA_MULTRET, 0)) {
+        return format_lua_error(L, "error in execution of Lua script '%1%'");
+    }
+
+    return mtn::status_t();
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// The public stuff
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 mtn::status_t
 mtn::lua_register_script(
@@ -163,17 +274,17 @@ mtn::lua_register_script(
     assert(lua_state.get());
 
     luaL_openlibs(lua_state.get());
-    int load_status = luaL_loadbuffer(lua_state.get(), buffer, buffer_size, event_name);
-
-    if (load_status) {
-        mtn::status_t output(MTN_ERROR_SCRIPT, "Couldn't load lua buffer: ");
-        output.message.append(lua_tostring(lua_state.get(), -1));
-        return output;
+    if (luaL_loadbuffer(lua_state.get(), buffer, buffer_size, event_name)) {
+        return format_lua_error(lua_state.get(), "error loading Lua buffer '%1%'");
     }
 
-    register_functions(lua_state);
+    mtn::status_t setup_status = setup_lua_env(context, lua_state.get());
+    if (!setup_status) {
+        return setup_status;
+    }
+
     context.register_lua_script(event_name, event_name_size, lua_state);
-    return mtn::status_t();
+    return setup_status;
 }
 
 mtn::status_t
@@ -185,18 +296,20 @@ mtn::lua_register_script_path(
     size_t)
 {
     lua_state_t lua_state(luaL_newstate(), lua_free_state);
-    luaL_openlibs(lua_state.get());
-    int load_status = luaL_loadfile(lua_state.get(), path);
+    assert(lua_state.get());
 
-    if (load_status) {
-        mtn::status_t output(MTN_ERROR_SCRIPT, "Couldn't load lua file: ");
-        output.message.append(lua_tostring(lua_state.get(), -1));
-        return output;
+    luaL_openlibs(lua_state.get());
+    if (luaL_loadfile(lua_state.get(), path)) {
+        return format_lua_error(lua_state.get(), "error loading Lua script '%1%'");
     }
 
-    register_functions(lua_state);
+    mtn::status_t setup_status = setup_lua_env(context, lua_state.get());
+    if (!setup_status) {
+        return setup_status;
+    }
+
     context.register_lua_script(event_name, event_name_size, lua_state);
-    return mtn::status_t();
+    return setup_status;
 }
 
 
@@ -230,7 +343,7 @@ mtn::lua_process_event(
 {
     lua_state_t lua_state;
     if (context.get_lua_script(event_name, event_name_size, lua_state)) {
-        return process_event(lua_state, context, partition, "", 0, buffer, buffer_size);
+        return process_event(lua_state.get(), context, partition, "", 0, buffer, buffer_size);
     }
     else {
         std::string message("no script registered for event type: ");
@@ -252,7 +365,7 @@ mtn::lua_process_event(
 {
     lua_state_t lua_state;
     if (context.get_lua_script(event_name, event_name_size, lua_state)) {
-        return process_event(lua_state, context, partition, bucket, bucket_size, buffer, buffer_size);
+        return process_event(lua_state.get(), context, partition, bucket, bucket_size, buffer, buffer_size);
     }
     else {
         std::string message("no script registered for event type: ");
@@ -271,7 +384,7 @@ mtn::lua_process_event(
     lua_state_t lua_state;
     if (context.get_lua_script(event_name, lua_state)) {
         assert(lua_state.get());
-        return process_event(lua_state, context, partition, "", 0, buffer.c_str(), buffer.size());
+        return process_event(lua_state.get(), context, partition, "", 0, buffer.c_str(), buffer.size());
     }
     else {
         return mtn::status_t(MTN_ERROR_UNKOWN_EVENT_TYPE, std::string("no script registered for event type: ") + event_name);

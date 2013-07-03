@@ -40,13 +40,11 @@ mtn::index_reader_writer_leveldb_t::~index_reader_writer_leveldb_t()
 mtn::status_t
 mtn::index_reader_writer_leveldb_t::init(mtn::context_t& context)
 {
-
-    mtn::context_t::options_container_t::const_iterator iter = context.opt().find(MTN_OPT_DB_PATH);
-    if (iter == context.opt().end()) {
+    std::string path;
+    if (!context.get_opt(MTN_OPT_DB_PATH, path)) {
         return mtn::status_t(MTN_ERROR_BAD_OPTION, "no database path was specified");
     }
 
-    std::string path(iter->second.begin(), iter->second.end());
     leveldb::Options options;
     options.create_if_missing = true;
     leveldb::Status status = leveldb::DB::Open(options, path, &_db);

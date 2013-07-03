@@ -44,19 +44,26 @@ namespace mtn {
         {}
 
         inline mtn::status_t
-        opt(int         option,
-            const void* value,
-            size_t      value_size)
+        set_opt(int         option,
+                const void* value,
+                size_t      value_size)
         {
             const mtn::byte_t* byte_value = static_cast<const mtn::byte_t*>(value);
             _options[option] = std::vector<mtn::byte_t>(byte_value, byte_value + value_size);
             return mtn::status_t();
         }
 
-        inline const options_container_t&
-        opt()
+        bool
+        get_opt(int          option,
+                std::string& output)
         {
-            return _options;
+            mtn::context_t::options_container_t::const_iterator iter = _options.find(option);
+            if (iter == _options.end()) {
+                return false;
+            }
+
+            output.assign(iter->second.begin(), iter->second.end());
+            return true;
         }
 
         inline mtn::status_t

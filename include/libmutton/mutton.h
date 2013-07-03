@@ -59,9 +59,20 @@ typedef uint128_t     mtn_index_address_t;
 
 /* The configuration options */
 #define MTN_OPT_DB_PATH 1 /* the path to store the DB files */
+#define MTN_OPT_LUA_PATH 2 /* the search path for lua packages */
+#define MTN_OPT_LUA_CPATH 3 /* the search path for shared libraries utilized by lua  */
 
 /* Event Processing script types */
 #define MTN_SCRIPT_LUA 1
+
+/* libmutton error codes */
+#define MTN_ERROR_UNKOWN 1
+#define MTN_ERROR_INDEX_OPERATION 2
+#define MTN_ERROR_NOT_FOUND 3
+#define MTN_ERROR_BAD_REGEX 4
+#define MTN_ERROR_BAD_OPTION 4
+#define MTN_ERROR_SCRIPT 5
+#define MTN_ERROR_UNKOWN_EVENT_TYPE 6
 
 /**
  * Allocate a new libmutton context.

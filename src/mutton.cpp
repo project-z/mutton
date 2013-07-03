@@ -94,7 +94,7 @@ mutton_set_opt(
     size_t value_size,
     void** status)
 {
-    return set_error(status, static_cast<mtn::context_t*>(context)->opt(option, value, value_size));
+    return set_error(status, static_cast<mtn::context_t*>(context)->set_opt(option, value, value_size));
 }
 
 bool
