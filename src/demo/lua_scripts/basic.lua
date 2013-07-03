@@ -37,11 +37,11 @@ print_table(_G)
 
 ------------------------------------------------------------------------------------
 --
--- Lets parse an event
+-- Let's parse an event
 --
 ------------------------------------------------------------------------------------
 
-print("\nLets parse an event")
+print("\nLet's parse an event")
 print("Got following JSON data as event body:")
 print(mutton.event_data)
 
