@@ -50,7 +50,7 @@ BOOST_AUTO_TEST_CASE(index_partition)
     auto_path_t path;
     mtn::context_t context(new mtn::index_reader_writer_leveldb_t());
 
-    context.opt(MTN_OPT_DB_PATH, static_cast<const void*>(path.path.c_str()), path.path.size());
+    context.set_opt(MTN_OPT_DB_PATH, static_cast<const void*>(path.path.c_str()), path.path.size());
     context.init();
 
     mtn::byte_t bucket_name_array[] = "bizbang";
@@ -70,7 +70,7 @@ BOOST_AUTO_TEST_CASE(index_bucket)
     auto_path_t path;
     mtn::context_t context(new mtn::index_reader_writer_leveldb_t());
 
-    context.opt(MTN_OPT_DB_PATH, static_cast<const void*>(path.path.c_str()), path.path.size());
+    context.set_opt(MTN_OPT_DB_PATH, static_cast<const void*>(path.path.c_str()), path.path.size());
     BOOST_CHECK(context.init());
 
     mtn::byte_t bucket_name_array[] = "bizbang";
@@ -91,7 +91,7 @@ BOOST_AUTO_TEST_CASE(index_field)
     auto_path_t path;
     mtn::context_t context(new mtn::index_reader_writer_leveldb_t());
 
-    context.opt(MTN_OPT_DB_PATH, static_cast<const void*>(path.path.c_str()), path.path.size());
+    context.set_opt(MTN_OPT_DB_PATH, static_cast<const void*>(path.path.c_str()), path.path.size());
     BOOST_CHECK(context.init());
 
     mtn::byte_t bucket_name_array[] = "bizbang";
@@ -112,7 +112,7 @@ BOOST_AUTO_TEST_CASE(read_write_segment)
     auto_path_t path;
     mtn::context_t context(new mtn::index_reader_writer_leveldb_t());
 
-    context.opt(MTN_OPT_DB_PATH, static_cast<const void*>(path.path.c_str()), path.path.size());
+    context.set_opt(MTN_OPT_DB_PATH, static_cast<const void*>(path.path.c_str()), path.path.size());
     context.init();
 
     mtn::byte_t bucket_name_array[] = "bizbang";
@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_CASE(slice_set_bit_simple)
     auto_path_t path;
     mtn::context_t context(new mtn::index_reader_writer_leveldb_t());
 
-    context.opt(MTN_OPT_DB_PATH, static_cast<const void*>(path.path.c_str()), path.path.size());
+    context.set_opt(MTN_OPT_DB_PATH, static_cast<const void*>(path.path.c_str()), path.path.size());
     context.init();
 
     mtn::byte_t bucket_name_array[] = "bizbang";
@@ -178,7 +178,7 @@ BOOST_AUTO_TEST_CASE(slice_set_bit_larger_offset)
     auto_path_t path;
     mtn::context_t context(new mtn::index_reader_writer_leveldb_t());
 
-    context.opt(MTN_OPT_DB_PATH, static_cast<const void*>(path.path.c_str()), path.path.size());
+    context.set_opt(MTN_OPT_DB_PATH, static_cast<const void*>(path.path.c_str()), path.path.size());
     context.init();
 
     mtn::byte_t bucket_name_array[] = "bizbang";
@@ -212,7 +212,7 @@ BOOST_AUTO_TEST_CASE(slice_set_bit_larger_user)
     auto_path_t path;
     mtn::context_t context(new mtn::index_reader_writer_leveldb_t());
 
-    context.opt(MTN_OPT_DB_PATH, static_cast<const void*>(path.path.c_str()), path.path.size());
+    context.set_opt(MTN_OPT_DB_PATH, static_cast<const void*>(path.path.c_str()), path.path.size());
     context.init();
 
     mtn::byte_t bucket_name_array[] = "bizbang";
