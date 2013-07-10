@@ -225,6 +225,12 @@ process_event(
 {
     assert(L);
 
+    // remember the index of the top of the stack
+    int stack_top = lua_gettop(L);
+
+    // copy the script
+    lua_pushvalue(L, -1);
+
     // create a new table
     lua_newtable(L);
 
@@ -247,11 +253,14 @@ process_event(
     lua_setglobal(L, "mutton");
 
     // Run the fucker
+    mtn::status_t status;
     if (lua_pcall(L, 0, LUA_MULTRET, 0)) {
-        return format_lua_error(L, "error in execution of Lua script '%1%'");
+        status = format_lua_error(L, "error in execution of Lua script '%1%'");
     }
 
-    return mtn::status_t();
+    // set the stack index back to the remembered value to trigger GC
+    lua_settop(L, stack_top);
+    return status;
 }
 
 
