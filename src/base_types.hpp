@@ -57,7 +57,10 @@ namespace mtn {
 
     struct index_address_comparator_t
     {
-        bool operator()(mtn_index_address_t a, mtn_index_address_t b)
+        bool
+        operator()(
+            const mtn_index_address_t a,
+            const mtn_index_address_t b) const
         {
             uint64_t high_a = (uint64_t) (a >> 64);
             uint64_t high_b = (uint64_t) (b >> 64);

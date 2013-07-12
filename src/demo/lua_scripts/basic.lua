@@ -97,5 +97,14 @@ then
    error("should reject because context isn't light userdata")
 end
 
+if pcall(
+   function()
+      mutton_index_value_trigram(mutton.context, 1, mutton.bucket, "a_field", nil, 1, true)
+   end)
+then
+   error("should reject because value is nil")
+end
+
+
 
 print("\nTHE END");

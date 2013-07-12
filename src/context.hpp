@@ -20,14 +20,46 @@
 #ifndef __MUTTON_CONTEXT_HPP_INCLUDED__
 #define __MUTTON_CONTEXT_HPP_INCLUDED__
 
+#include <boost/thread/future.hpp>
+#include <boost/asio.hpp>
 #include <boost/ptr_container/ptr_map.hpp>
 #include <boost/unordered_map.hpp>
+
+#include <libcql/cql_future_connection.hpp>
+#include <libcql/cql_future_result.hpp>
+#include <libcql/cql_client.hpp>
+#include <libcql/cql_client_factory.hpp>
+#include <libcql/cql_client_pool.hpp>
+#include <libcql/cql_client_pool_factory.hpp>
+
 
 #include "base_types.hpp"
 #include "index.hpp"
 #include "index_reader_writer.hpp"
 #include "status.hpp"
 #include "lua.hpp"
+
+struct client_functor_t
+{
+
+public:
+
+    client_functor_t(boost::asio::io_service&              service,
+                     cql::cql_client_t::cql_log_callback_t log_callback) :
+        _io_service(service),
+        _log_callback(log_callback)
+    {}
+
+    cql::cql_client_t*
+    operator()()
+    {
+        return cql::cql_client_factory_t::create_cql_client_t(_io_service, _log_callback);
+    }
+
+private:
+    boost::asio::io_service&              _io_service;
+    cql::cql_client_t::cql_log_callback_t _log_callback;
+};
 
 namespace mtn {
 
@@ -40,7 +72,9 @@ namespace mtn {
         typedef boost::unordered_map<std::string, lua_state_t> lua_state_container_t;
 
         context_t(mtn::index_reader_writer_t* rw) :
-            _rw(rw)
+            _rw(rw),
+            _work(_io),
+            _io_thread(boost::bind(&boost::asio::io_service::run, &_io))
         {}
 
         inline mtn::status_t
@@ -70,6 +104,16 @@ namespace mtn {
         init()
         {
             return _rw->init(*this);
+
+            cql::cql_client_pool_t::cql_client_callback_t client_factory;
+            // if (argc > 1) {
+            //     client_factory = client_ssl_functor_t(io_service, ctx, &log_callback);
+            // }
+            // else {
+            client_factory = client_functor_t(_io, NULL);
+                // }
+            _cql_pool.reset(cql::cql_client_pool_factory_t::create_client_pool_t(client_factory, NULL, NULL));
+
         }
 
         inline mtn::index_reader_writer_t&
@@ -245,11 +289,23 @@ namespace mtn {
         }
 
         inline bool
-        get_lua_script(const char*  event_name,
-                       size_t       event_name_size,
-                       lua_state_t& output)
+        get_lua_script(
+            const char*  event_name,
+            size_t       event_name_size,
+            lua_state_t& output)
         {
             return get_lua_script(std::string(event_name, event_name_size), output);
+        }
+
+        inline bool
+        cql_pool(
+            cql::cql_client_pool_t** output)
+        {
+            if (_cql_pool.get()) {
+                *output = _cql_pool.get();
+                return true;
+            }
+            return false;
         }
 
     private:
@@ -257,6 +313,10 @@ namespace mtn {
         lua_state_container_t                     _lua_state;
         index_container_t                         _indexes;
         options_container_t                       _options;
+        boost::asio::io_service                   _io;
+        boost::asio::io_service::work             _work;
+        boost::thread                             _io_thread;
+        std::auto_ptr<cql::cql_client_pool_t>     _cql_pool;
     };
 
 } // namespace mtn

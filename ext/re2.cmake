@@ -36,8 +36,8 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
   endif (NOT RE2_NAME)
 else()
-  find_path(RE2_INCLUDE_DIRS NAMES leveldb/db.h HINTS /usr/include /usr/local/include)
-  find_library(RE2_LIBRARIES NAMES libleveldb.a libleveldb.lib libleveldb.dylib HINTS /usr/lib /usr/local/lib)
+  find_path(RE2_INCLUDE_DIRS NAMES re2/re2.h HINTS /usr/include /usr/local/include)
+  find_library(RE2_LIBRARIES NAMES libre2.a libre2.lib libre2.dylib HINTS /usr/lib /usr/local/lib)
 endif()
 
 if(RE2_INCLUDE_DIRS AND RE2_LIBRARIES)

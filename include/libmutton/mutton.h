@@ -57,6 +57,9 @@ typedef __uint128_t uint128_t;
 typedef uint16_t      mtn_index_partition_t;
 typedef uint128_t     mtn_index_address_t;
 
+/* 1MB max string size */
+#define MTN_MAX_STRING_SIZE 1048576
+
 /* The configuration options */
 #define MTN_OPT_DB_PATH 1 /* the path to store the DB files */
 #define MTN_OPT_LUA_PATH 2 /* the search path for lua packages */
@@ -70,9 +73,10 @@ typedef uint128_t     mtn_index_address_t;
 #define MTN_ERROR_INDEX_OPERATION 2
 #define MTN_ERROR_NOT_FOUND 3
 #define MTN_ERROR_BAD_REGEX 4
-#define MTN_ERROR_BAD_OPTION 4
+#define MTN_ERROR_BAD_CONFIGURATION 4
 #define MTN_ERROR_SCRIPT 5
 #define MTN_ERROR_UNKOWN_EVENT_TYPE 6
+#define MTN_ERROR_BAD_PARAM 7
 
 /**
  * Allocate a new libmutton context.
@@ -358,6 +362,26 @@ mutton_process_event_bucketed(
     size_t                event_name_size,
     void*                 buffer,
     size_t                buffer_size,
+    void**                status);
+
+/**
+ * Proccess an event
+ *
+ * @param context allocated mutton context
+ * @param partition partition, used to create logical seperation between indexes and other data
+ * @param query the adhoc query string
+ * @param query_size size of the query string
+ * @param future query result future
+ * @param status output pointer to status if error is encountered, NULL otherwise. If input value of status is not NULL it will be freed prior to being set.
+ *
+ * @return true if successfull
+ */
+MUTTON_EXPORT bool
+mutton_persistence_query(
+    void*                 context,
+    void*                 query,
+    size_t                query_size,
+    void**                future,
     void**                status);
 
 

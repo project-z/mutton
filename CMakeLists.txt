@@ -26,9 +26,30 @@ endif()
 # UTF8-CPP
 set(INCLUDES ${INCLUDES} ${PROJECT_SOURCE_DIR}/ext/utf8/source)
 
+# OS specific lib stuff
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set(Boost_USE_STATIC_LIBS ON)
+  set(Boost_USE_STATIC_RUNTIME ON)
+
+  include(OpenSSL)
+  include(ZLib)
+  set(LIBS ${LIBS} ${openssl_STATIC_LIBRARIES} )
+  set(LIBS ${LIBS} ${zlib_STATIC_LIBRARIES} )
+else()
+  set(Boost_USE_STATIC_LIBS OFF)
+  set(Boost_USE_STATIC_RUNTIME OFF)
+
+  find_package(OpenSSL)
+  if (${OPENSSL_FOUND})
+    set(LIBS ${LIBS} ${OPENSSL_LIBRARIES} )
+  else()
+    message(FATAL_ERROR "couldn't find OpenSSL")
+  endif()
+endif()
+
 # Boost
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost 1.47.0 COMPONENTS system filesystem REQUIRED )
+find_package(Boost 1.47.0 COMPONENTS system filesystem thread REQUIRED )
 set(INCLUDES ${INCLUDES} ${Boost_INCLUDE_DIRS} )
 set(LIBS ${LIBS} ${Boost_LIBRARIES} )
 
@@ -41,6 +62,9 @@ include(leveldb)
 
 # RE2
 include(re2)
+
+# libcql
+include(libcql)
 
 # Lua 5.1
 find_package(Lua51 REQUIRED)

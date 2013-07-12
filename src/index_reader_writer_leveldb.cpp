@@ -42,7 +42,7 @@ mtn::index_reader_writer_leveldb_t::init(mtn::context_t& context)
 {
     std::string path;
     if (!context.get_opt(MTN_OPT_DB_PATH, path)) {
-        return mtn::status_t(MTN_ERROR_BAD_OPTION, "no database path was specified");
+        return mtn::status_t(MTN_ERROR_BAD_CONFIGURATION, "no database path was specified");
     }
 
     leveldb::Options options;

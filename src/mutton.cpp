@@ -22,6 +22,11 @@
 #include "index_reader_writer_leveldb.hpp"
 #include "libmutton/mutton.h"
 
+#define CHECK_NULL(__param__, __outstatus__) if (!__param__) { *__outstatus__ = new mtn::status_t(MTN_ERROR_BAD_PARAM, "null parameter"); return false; }
+#define CHECK_SIZE(__size__, __outstatus__) if (__size__ > MTN_MAX_STRING_SIZE) { *__outstatus__ = new mtn::status_t(MTN_ERROR_BAD_PARAM, "string size greater than the allowed maximum"); return false; }
+#define CHECK_STRING(__param__, __size__, __outstatus__) CHECK_NULL(__param__, __outstatus__); CHECK_SIZE(__size__, __outstatus__);
+
+
 inline static bool
 set_error(void** statusptr,
           const mtn::status_t& status)
@@ -94,6 +99,7 @@ mutton_set_opt(
     size_t value_size,
     void** status)
 {
+    CHECK_STRING(value, value_size, status);
     return set_error(status, static_cast<mtn::context_t*>(context)->set_opt(option, value, value_size));
 }
 
@@ -110,6 +116,10 @@ mutton_index_value(
     bool                  state,
     void**                status)
 {
+    CHECK_NULL(context, status);
+    CHECK_STRING(bucket, bucket_size, status);
+    CHECK_STRING(field, field_size, status);
+
     return set_error(status,
                      static_cast<mtn::context_t*>(context)
                      ->index_value(partition,
@@ -136,6 +146,11 @@ mutton_index_value_trigram(
     bool                  state,
     void**                status)
 {
+    CHECK_NULL(context, status);
+    CHECK_STRING(bucket, bucket_size, status);
+    CHECK_STRING(field, field_size, status);
+    CHECK_STRING(value, value_size, status);
+
     return set_error(status,
                      static_cast<mtn::context_t*>(context)
                      ->index_value_trigram(partition,
@@ -159,6 +174,10 @@ mutton_query(
     size_t                query_size,
     void**                status)
 {
+    CHECK_NULL(context, status);
+    CHECK_STRING(bucket, bucket_size, status);
+    CHECK_STRING(query, query_size, status);
+
     (void)context;
     (void)partition;
     (void)bucket;
@@ -181,13 +200,17 @@ mutton_register_script(
     size_t buffer_size,
     void** status)
 {
-   return set_error(status,
-                    lua_register_script(
-                        *static_cast<mtn::context_t*>(context),
-                        static_cast<char*>(event_name),
-                        event_name_size,
-                        static_cast<char*>(buffer),
-                        buffer_size));
+    CHECK_NULL(context, status);
+    CHECK_STRING(event_name, event_name_size, status);
+    CHECK_STRING(buffer, buffer_size, status);
+
+    return set_error(status,
+                     lua_register_script(
+                         *static_cast<mtn::context_t*>(context),
+                         static_cast<char*>(event_name),
+                         event_name_size,
+                         static_cast<char*>(buffer),
+                         buffer_size));
 }
 
 bool
@@ -200,13 +223,17 @@ mutton_register_script_path(
     size_t path_size,
     void** status)
 {
-   return set_error(status,
-                    lua_register_script_path(
-                        *static_cast<mtn::context_t*>(context),
-                        static_cast<char*>(event_name),
-                        event_name_size,
-                        static_cast<char*>(path),
-                        path_size));
+    CHECK_NULL(context, status);
+    CHECK_STRING(event_name, event_name_size, status);
+    CHECK_STRING(path, path_size, status);
+
+    return set_error(status,
+                     lua_register_script_path(
+                         *static_cast<mtn::context_t*>(context),
+                         static_cast<char*>(event_name),
+                         event_name_size,
+                         static_cast<char*>(path),
+                         path_size));
 }
 
 bool
@@ -219,14 +246,18 @@ mutton_process_event(
     size_t                buffer_size,
     void**                status)
 {
-   return set_error(status,
-                    lua_process_event(
-                        *static_cast<mtn::context_t*>(context),
-                        partition,
-                        static_cast<char*>(event_name),
-                        event_name_size,
-                        static_cast<char*>(buffer),
-                        buffer_size));
+    CHECK_NULL(context, status);
+    CHECK_STRING(event_name, event_name_size, status);
+    CHECK_STRING(buffer, buffer_size, status);
+
+    return set_error(status,
+                     lua_process_event(
+                         *static_cast<mtn::context_t*>(context),
+                         partition,
+                         static_cast<char*>(event_name),
+                         event_name_size,
+                         static_cast<char*>(buffer),
+                         buffer_size));
 }
 
 bool
@@ -241,14 +272,51 @@ mutton_process_event_bucketed(
     size_t                buffer_size,
     void**                status)
 {
-   return set_error(status,
-                    lua_process_event(
-                        *static_cast<mtn::context_t*>(context),
-                        partition,
-                        static_cast<char*>(bucket),
-                        bucket_size,
-                        static_cast<char*>(event_name),
-                        event_name_size,
-                        static_cast<char*>(buffer),
-                        buffer_size));
+    CHECK_NULL(context, status);
+    CHECK_STRING(bucket, bucket_size, status);
+    CHECK_STRING(event_name, event_name_size, status);
+    CHECK_STRING(buffer, buffer_size, status);
+
+    return set_error(status,
+                     lua_process_event(
+                         *static_cast<mtn::context_t*>(context),
+                         partition,
+                         static_cast<char*>(bucket),
+                         bucket_size,
+                         static_cast<char*>(event_name),
+                         event_name_size,
+                         static_cast<char*>(buffer),
+                         buffer_size));
+}
+
+
+bool
+mutton_persistence_query(
+    void*                 context,
+    void*                 query,
+    size_t                query_size,
+    void**                future,
+    void**                status)
+
+{
+    CHECK_NULL(context, status);
+    CHECK_STRING(query, query_size, status);
+
+    (void) context;
+    (void) query;
+    (void) query_size;
+    (void) future;
+    (void) status;
+    return true;
+
+
+
+    // cql::cql_client_pool_t* pool;
+    // if (static_cast<mtn::context_t*>(context)->cql_pool(&pool)) {
+    //     std::string cppstring(static_cast<char*>(query), query_size);
+    //     *future = new boost::shared_future<cql::cql_future_connection_t>(pool->query(cppstring, cql::CQL_CONSISTENCY_ONE));
+    // }
+
+    // *statusptr = new mtn::status_t(MTN_ERROR_BAD_OPTION, "client pool is uninitialized");
+    // return false;
 }

@@ -49,7 +49,7 @@ lua_mutton_index_value(
 
     luaL_checkany(L, 4);
     size_t field_size = 0;
-    const char* field = lua_tolstring(L, 4, &field_size);
+    const char* field = luaL_checklstring(L, 4, &field_size);
 
     luaL_checkany(L, 5);
     size_t value_size = 0;
@@ -101,11 +101,15 @@ lua_mutton_index_value_trigram(
 
     luaL_checkany(L, 4);
     size_t field_size = 0;
-    const char* field = lua_tolstring(L, 4, &field_size);
+    const char* field = luaL_checklstring(L, 4, &field_size);
 
     luaL_checkany(L, 5);
     size_t value_size = 0;
     const char* value = lua_tolstring(L, 5, &value_size);
+    if (!value) {
+        luaL_argerror(L, 6, "nil value");
+        return 0;
+    }
 
     luaL_checkany(L, 6);
     size_t who_or_what_size = 0;
