@@ -19,7 +19,6 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     ExternalProject_Add(LIBCQL
       PREFIX ${EXT_PREFIX}
       URL https://github.com/mstump/libcql/archive/master.zip
-      URL_MD5 c511a6b9f89d56d0893f12a81d638ec2
       CMAKE_ARGS "-DCMAKE_BUILD_TYPE=debug"
       BUILD_IN_SOURCE 1
       )

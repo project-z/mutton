@@ -45,7 +45,6 @@ set_error(void** statusptr,
     return false;
 }
 
-
 void*
 mutton_new_context()
 {
@@ -64,6 +63,7 @@ mutton_init_context(
     void*  context,
     void** status)
 {
+    CHECK_NULL(context, status);
     return set_error(status, static_cast<mtn::context_t*>(context)->init());
 }
 
@@ -72,6 +72,9 @@ mutton_status_get_code(
     void*,
     void* status)
 {
+    if (!status) {
+        return 0;
+    }
     return static_cast<mtn::status_t*>(status)->code;
 }
 
@@ -81,7 +84,9 @@ mutton_status_get_message(
     void*  status,
     char** message)
 {
-    *message = strdup(static_cast<mtn::status_t*>(status)->message.c_str());
+    if (status) {
+        *message = strdup(static_cast<mtn::status_t*>(status)->message.c_str());
+    }
 }
 
 void
