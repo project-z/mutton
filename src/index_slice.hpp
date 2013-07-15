@@ -37,7 +37,7 @@ namespace mtn {
 
         struct index_node_t {
             mtn_index_address_t offset;
-            index_segment_t segment;
+            index_segment_t     segment;
 
             index_node_t(const index_node_t& node);
 
@@ -70,6 +70,9 @@ namespace mtn {
                       mtn_index_address_t   value);
 
         index_slice_t(const index_slice_t& other);
+
+        void
+        invert();
 
         static mtn::status_t
         execute(index_operation_enum operation,

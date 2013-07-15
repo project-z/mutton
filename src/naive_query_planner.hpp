@@ -145,9 +145,12 @@ namespace mtn {
         }
 
         mtn::index_slice_t
-        operator()(const mtn::op_not&)
+        operator()(const mtn::op_not& o)
         {
-            throw "XXX TODO fix me";
+            mtn::index_slice_t result;
+            mtn::index_slice_t temp_slice = boost::apply_visitor(*this, o.child);
+            temp_slice.invert();
+            return temp_slice;
         }
 
         mtn::index_slice_t

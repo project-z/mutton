@@ -28,10 +28,11 @@
 #include "index_slice.hpp"
 
 inline void
-get_address(mtn_index_address_t    position,
-            mtn_index_address_t*   segment,
-            mtn_index_partition_t* segment_index,
-            mtn_index_partition_t* bit_offset)
+get_address(
+    mtn_index_address_t    position,
+    mtn_index_address_t*   segment,
+    mtn_index_partition_t* segment_index,
+    mtn_index_partition_t* bit_offset)
 {
     *segment = position >> 11; // div by 2048
     mtn_index_partition_t segment_offset = position & 0x7FF; // mod by 2048
@@ -40,10 +41,11 @@ get_address(mtn_index_address_t    position,
 }
 
 inline void
-set_bit(mtn::index_segment_ptr input,
-        mtn_index_partition_t bucket_index,
-        mtn_index_partition_t bit_offset,
-        bool                   val)
+set_bit(
+    mtn::index_segment_ptr input,
+    mtn_index_partition_t  bucket_index,
+    mtn_index_partition_t  bit_offset,
+    bool                   val)
 {
     if (val) {
         input[bucket_index] |= 1ULL << bit_offset;
@@ -54,9 +56,10 @@ set_bit(mtn::index_segment_ptr input,
 }
 
 inline void
-segment_union(mtn::index_segment_ptr a,
-              mtn::index_segment_ptr b,
-              mtn::index_segment_ptr o)
+segment_union(
+    mtn::index_segment_ptr a,
+    mtn::index_segment_ptr b,
+    mtn::index_segment_ptr o)
 {
     for (int i = 0; i < MTN_INDEX_SEGMENT_LENGTH; ++i) {
         o[i] = a[i] | b[i];
@@ -64,19 +67,31 @@ segment_union(mtn::index_segment_ptr a,
 }
 
 inline void
-segment_intersection(mtn::index_segment_ptr a,
-                     mtn::index_segment_ptr b,
-                     mtn::index_segment_ptr o)
+segment_intersection(
+    mtn::index_segment_ptr a,
+    mtn::index_segment_ptr b,
+    mtn::index_segment_ptr o)
 {
     for (int i = 0; i < MTN_INDEX_SEGMENT_LENGTH; ++i) {
         o[i] = a[i] & b[i];
     }
 }
 
+inline void
+segment_invert(
+    mtn::index_segment_ptr a,
+    mtn::index_segment_ptr o)
+{
+    for (int i = 0; i < MTN_INDEX_SEGMENT_LENGTH; ++i) {
+        o[i] = ~a[i];
+    }
+}
+
 inline mtn::index_slice_t::iterator
-find_insertion_point(mtn::index_slice_t::iterator begin,
-                     mtn::index_slice_t::iterator end,
-                     mtn_index_address_t         bucket)
+find_insertion_point(
+    mtn::index_slice_t::iterator begin,
+    mtn::index_slice_t::iterator end,
+    mtn_index_address_t          bucket)
 {
     return std::find_if(begin,
                         end,
@@ -84,9 +99,10 @@ find_insertion_point(mtn::index_slice_t::iterator begin,
 }
 
 inline mtn::index_slice_t::iterator
-get_union_output_node(mtn::index_slice_t&          output,
-                      mtn::index_slice_t::iterator output_iter,
-                      mtn_index_address_t         offset)
+get_union_output_node(
+    mtn::index_slice_t&          output,
+    mtn::index_slice_t::iterator output_iter,
+    mtn_index_address_t          offset)
 {
     output_iter = find_insertion_point(output_iter, output.end(), offset);
     if (output_iter == output.end() || output_iter->offset != offset) {
@@ -96,9 +112,10 @@ get_union_output_node(mtn::index_slice_t&          output,
 }
 
 inline mtn::index_slice_t::iterator
-get_intersection_output_node(mtn::index_slice_t&          output,
-                             mtn::index_slice_t::iterator output_iter,
-                             mtn_index_address_t         offset)
+get_intersection_output_node(
+    mtn::index_slice_t&          output,
+    mtn::index_slice_t::iterator output_iter,
+    mtn_index_address_t          offset)
 {
     for (;;) {
         if (output_iter == output.end() || output_iter->offset > offset) {
@@ -115,9 +132,10 @@ get_intersection_output_node(mtn::index_slice_t&          output,
 }
 
 inline mtn::status_t
-union_behavior(mtn::index_slice_t& a_index,
-               mtn::index_slice_t& b_index,
-               mtn::index_slice_t& output)
+union_behavior(
+    mtn::index_slice_t& a_index,
+    mtn::index_slice_t& b_index,
+    mtn::index_slice_t& output)
 {
 
     mtn::index_slice_t::iterator a_iter = a_index.begin();
@@ -174,9 +192,10 @@ union_behavior(mtn::index_slice_t& a_index,
 }
 
 inline mtn::status_t
-intersection_behavior(mtn::index_slice_t& a_index,
-                      mtn::index_slice_t& b_index,
-                      mtn::index_slice_t& output)
+intersection_behavior(
+    mtn::index_slice_t& a_index,
+    mtn::index_slice_t& b_index,
+    mtn::index_slice_t& output)
 {
     mtn::index_slice_t::iterator a_iter = a_index.begin();
     mtn::index_slice_t::iterator b_iter = b_index.begin();
@@ -211,18 +230,21 @@ intersection_behavior(mtn::index_slice_t& a_index,
     return mtn::status_t();
 }
 
-mtn::index_slice_t::index_node_t::index_node_t(const index_node_t& node) :
+mtn::index_slice_t::index_node_t::index_node_t(
+    const index_node_t& node) :
     offset(node.offset)
 {
     memcpy(segment, node.segment, MTN_INDEX_SEGMENT_SIZE);
 }
 
-mtn::index_slice_t::index_node_t::index_node_t(mtn_index_address_t offset) :
+mtn::index_slice_t::index_node_t::index_node_t(
+    mtn_index_address_t offset) :
     offset(offset)
 {}
 
-mtn::index_slice_t::index_node_t::index_node_t(mtn_index_address_t offset,
-                                               const index_segment_ptr data) :
+mtn::index_slice_t::index_node_t::index_node_t(
+    mtn_index_address_t     offset,
+    const index_segment_ptr data) :
     offset(offset)
 {
     memcpy(segment, data, MTN_INDEX_SEGMENT_SIZE);
@@ -239,29 +261,32 @@ mtn::index_slice_t::index_slice_t() :
     _value(0)
 {}
 
-mtn::index_slice_t::index_slice_t(mtn_index_partition_t          partition,
-                                  const std::vector<mtn::byte_t>& bucket,
-                                  const std::vector<mtn::byte_t>& field,
-                                  mtn_index_address_t            value) :
+mtn::index_slice_t::index_slice_t(
+    mtn_index_partition_t           partition,
+    const std::vector<mtn::byte_t>& bucket,
+    const std::vector<mtn::byte_t>& field,
+    mtn_index_address_t             value) :
     _partition(partition),
     _bucket(bucket),
     _field(field),
     _value(value)
 {}
 
-mtn::index_slice_t::index_slice_t(mtn_index_partition_t          partition,
-                                  const mtn::byte_t*              bucket,
-                                  size_t                          bucket_size,
-                                  const mtn::byte_t*              field,
-                                  size_t                          field_size,
-                                  mtn_index_address_t            value) :
+mtn::index_slice_t::index_slice_t(
+    mtn_index_partition_t partition,
+    const mtn::byte_t*    bucket,
+    size_t                bucket_size,
+    const mtn::byte_t*    field,
+    size_t                field_size,
+    mtn_index_address_t   value) :
     _partition(partition),
     _bucket(bucket, bucket + bucket_size),
     _field(field, field + field_size),
     _value(value)
 {}
 
-mtn::index_slice_t::index_slice_t(const mtn::index_slice_t::index_slice_t& other)  :
+mtn::index_slice_t::index_slice_t(
+    const mtn::index_slice_t::index_slice_t& other)  :
     _partition(other.partition()),
     _field(other.field()),
     _value(other.value())
@@ -271,11 +296,20 @@ mtn::index_slice_t::index_slice_t(const mtn::index_slice_t::index_slice_t& other
     }
 }
 
+void
+mtn::index_slice_t::invert()
+{
+    for (mtn::index_slice_t::iterator iter = begin(); iter != end(); ++iter) {
+        segment_invert(iter->segment, iter->segment);
+    }
+}
+
 mtn::status_t
-mtn::index_slice_t::execute(index_operation_enum operation,
-                            mtn::index_slice_t&  a_index,
-                            mtn::index_slice_t&  b_index,
-                            mtn::index_slice_t&  output)
+mtn::index_slice_t::execute(
+    index_operation_enum operation,
+    mtn::index_slice_t&  a_index,
+    mtn::index_slice_t&  b_index,
+    mtn::index_slice_t&  output)
 {
     if (operation == MTN_INDEX_OP_INTERSECTION) {
         return intersection_behavior(a_index, b_index, output);
@@ -287,9 +321,10 @@ mtn::index_slice_t::execute(index_operation_enum operation,
 }
 
 mtn::status_t
-mtn::index_slice_t::bit(mtn::index_reader_writer_t& rw,
-                        mtn_index_address_t         bit,
-                        bool                        state)
+mtn::index_slice_t::bit(
+    mtn::index_reader_writer_t& rw,
+    mtn_index_address_t         bit,
+    bool                        state)
 {
     mtn_index_address_t   segment       = 0;
     mtn_index_partition_t segment_index = 0;
@@ -312,7 +347,8 @@ mtn::index_slice_t::bit(mtn::index_reader_writer_t& rw,
 }
 
 bool
-mtn::index_slice_t::bit(mtn_index_address_t bit)
+mtn::index_slice_t::bit(
+    mtn_index_address_t bit)
 {
     mtn_index_address_t   segment       = 0;
     mtn_index_partition_t segment_index = 0;
@@ -328,7 +364,8 @@ mtn::index_slice_t::bit(mtn_index_address_t bit)
 }
 
 mtn::index_slice_t&
-mtn::index_slice_t::operator=(const index_slice_t& other)
+mtn::index_slice_t::operator=(
+    const index_slice_t& other)
 {
     _field = other.field();
     _partition = other.partition();
