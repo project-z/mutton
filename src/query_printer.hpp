@@ -79,6 +79,12 @@ struct query_printer_t :
         }
     }
 
+    std::string
+    operator()(const mtn::op_or& o) const
+    {
+        return std::string("(group ") + "\"" + o.index + "\" " + boost::apply_visitor(*this, o.child) + ")";
+    }
+
     template<class Iterator>
     inline std::string
     print(const std::string& op,

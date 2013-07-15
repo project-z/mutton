@@ -30,17 +30,25 @@ namespace mtn {
     struct op_and;
     struct op_not;
     struct op_or;
-    struct op_slice;
     struct op_xor;
+    struct op_slice;
+    struct op_group;
 
     typedef boost::variant<mtn::range_t,
                            mtn::regex_t,
-                           op_slice,
+                           boost::recursive_wrapper<op_slice>,
                            boost::recursive_wrapper<op_or>,
                            boost::recursive_wrapper<op_not>,
                            boost::recursive_wrapper<op_and>,
-                           boost::recursive_wrapper<op_xor>
+                           boost::recursive_wrapper<op_xor>,
+                           boost::recursive_wrapper<op_group>
                            > expr;
+
+    struct op_group
+    {
+        expr        child;
+        std::string index;
+    };
 
     struct op_slice
     {

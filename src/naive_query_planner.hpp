@@ -66,6 +66,12 @@ namespace mtn {
         }
 
         void
+        operator()(const mtn::op_group&)
+        {
+            throw "shouldn't happen";
+        }
+
+        void
         operator()(const mtn::range_t& r)
         {
             ranges.push_back(r);
@@ -140,6 +146,12 @@ namespace mtn {
 
         mtn::index_slice_t
         operator()(const mtn::op_not&)
+        {
+            throw "XXX TODO fix me";
+        }
+
+        mtn::index_slice_t
+        operator()(const mtn::op_group&)
         {
             throw "XXX TODO fix me";
         }

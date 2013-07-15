@@ -48,7 +48,9 @@ namespace mtn {
             qi::uint_parser<unsigned char, 16, 2, 2> hex2;
             qi::uint_parser<uint128_t, 10, 1, 39> uint;
 
-            expr_ = ('(' >> (slice_ | or_ | and_ | xor_ | not_)  >> ')');
+            search_ = (slice_ | or_ | and_ | xor_ | not_);
+
+            expr_ = ('(' >> (search_ | group_)  >> ')');
 
             byte_string_ = qi::lexeme['#' > +hex2 > '#'];
             quoted_string_ %= qi::lexeme ['"' >> *(qi::char_ - qi::char_('\\') - qi::char_('"') | '\\' >> qi::char_) >> '"'];
@@ -61,6 +63,10 @@ namespace mtn {
             slice_ = "slice"
                 > (quoted_string_) [phx::bind(&op_slice::index, qi::_val) = qi::_1]
                 > *(regex_ | range_) [phx::push_back(phx::bind(&op_slice::values, qi::_val), qi::_1)];
+
+            group_ = "group"
+                > (quoted_string_) [phx::bind(&op_group::index, qi::_val) = qi::_1]
+                > (search_) [phx::bind(&op_group::child, qi::_val) = qi::_1];
 
             and_ = "and"
                 > +(expr_) [phx::push_back(phx::bind(&op_and::children, qi::_val), qi::_1)];
@@ -76,16 +82,20 @@ namespace mtn {
 
             BOOST_SPIRIT_DEBUG_NODE(and_);
             BOOST_SPIRIT_DEBUG_NODE(expr_);
-            BOOST_SPIRIT_DEBUG_NODE(uint_);
+            BOOST_SPIRIT_DEBUG_NODE(group_);
             BOOST_SPIRIT_DEBUG_NODE(not_);
             BOOST_SPIRIT_DEBUG_NODE(or_);
             BOOST_SPIRIT_DEBUG_NODE(range_);
             BOOST_SPIRIT_DEBUG_NODE(regex_);
+            BOOST_SPIRIT_DEBUG_NODE(search_);
+            BOOST_SPIRIT_DEBUG_NODE(uint_);
             BOOST_SPIRIT_DEBUG_NODE(xor_);
         }
 
     private:
         qi::rule<Iterator, expr(), Skipper>         expr_;
+        qi::rule<Iterator, expr(), Skipper>         search_;
+        qi::rule<Iterator, op_group(), Skipper>     group_;
         qi::rule<Iterator, uint128_t(), Skipper>    uint_;
         qi::rule<Iterator, op_and(), Skipper>       and_;
         qi::rule<Iterator, op_not(), Skipper>       not_;
