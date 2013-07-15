@@ -46,6 +46,20 @@ namespace mtn {
 
     struct op_group
     {
+        op_group() :
+            reverse(false)
+        {}
+
+        op_group(
+            const std::string& index,
+            expr&              child,
+            bool               reverse) :
+            index(index),
+            child(child),
+            reverse(reverse)
+        {}
+
+        bool        reverse;
         expr        child;
         std::string index;
     };

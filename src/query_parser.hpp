@@ -48,41 +48,36 @@ namespace mtn {
             qi::uint_parser<unsigned char, 16, 2, 2> hex2;
             qi::uint_parser<uint128_t, 10, 1, 39> uint;
 
-            search_ = (slice_ | or_ | and_ | xor_ | not_);
-
-            expr_ = ('(' >> (search_ | group_)  >> ')');
-
+            expr_ = (search_ | group_ | rgroup_);
+            search_ = ('(' >> (slice_ | or_ | and_ | xor_ | not_)  >> ')');
             byte_string_ = qi::lexeme['#' > +hex2 > '#'];
             quoted_string_ %= qi::lexeme ['"' >> *(qi::char_ - qi::char_('\\') - qi::char_('"') | '\\' >> qi::char_) >> '"'];
             uint_ = boost::spirit::lexeme[qi::no_case["0x"] > qi::hex] | uint;
-
+            group_ = ("(group" > quoted_string_ > search_ > ")") [qi::_val = phx::construct<mtn::op_group>(qi::_1, qi::_2, false)];
+            group_ = ("(rgroup" > quoted_string_ > search_ > ")") [qi::_val = phx::construct<mtn::op_group>(qi::_1, qi::_2, true)];
             range_ = ("(range" > uint_ > uint_ > ")") [qi::_val = phx::construct<mtn::range_t>(qi::_1, qi::_2)];
-
             regex_ = ("(regex" > quoted_string_  > ")") [phx::bind(&mtn::regex_t::pattern, qi::_val) = qi::_1];
 
             slice_ = "slice"
                 > (quoted_string_) [phx::bind(&op_slice::index, qi::_val) = qi::_1]
                 > *(regex_ | range_) [phx::push_back(phx::bind(&op_slice::values, qi::_val), qi::_1)];
 
-            group_ = "group"
-                > (quoted_string_) [phx::bind(&op_group::index, qi::_val) = qi::_1]
-                > (search_) [phx::bind(&op_group::child, qi::_val) = qi::_1];
-
             and_ = "and"
-                > +(expr_) [phx::push_back(phx::bind(&op_and::children, qi::_val), qi::_1)];
+                > +(search_) [phx::push_back(phx::bind(&op_and::children, qi::_val), qi::_1)];
 
             not_ = "not"
-                > (expr_) [phx::bind(&op_not::child, qi::_val) = qi::_1];
+                > (search_) [phx::bind(&op_not::child, qi::_val) = qi::_1];
 
             or_ = "or"
-                > +(expr_) [phx::push_back(phx::bind(&op_or::children, qi::_val), qi::_1)];
+                > +(search_) [phx::push_back(phx::bind(&op_or::children, qi::_val), qi::_1)];
 
             xor_ = "xor"
-                > +(expr_) [phx::push_back(phx::bind(&op_xor::children, qi::_val), qi::_1)];
+                > +(search_) [phx::push_back(phx::bind(&op_xor::children, qi::_val), qi::_1)];
 
             BOOST_SPIRIT_DEBUG_NODE(and_);
             BOOST_SPIRIT_DEBUG_NODE(expr_);
             BOOST_SPIRIT_DEBUG_NODE(group_);
+            BOOST_SPIRIT_DEBUG_NODE(rgroup_);
             BOOST_SPIRIT_DEBUG_NODE(not_);
             BOOST_SPIRIT_DEBUG_NODE(or_);
             BOOST_SPIRIT_DEBUG_NODE(range_);
@@ -96,6 +91,7 @@ namespace mtn {
         qi::rule<Iterator, expr(), Skipper>         expr_;
         qi::rule<Iterator, expr(), Skipper>         search_;
         qi::rule<Iterator, op_group(), Skipper>     group_;
+        qi::rule<Iterator, op_group(), Skipper>     rgroup_;
         qi::rule<Iterator, uint128_t(), Skipper>    uint_;
         qi::rule<Iterator, op_and(), Skipper>       and_;
         qi::rule<Iterator, op_not(), Skipper>       not_;
