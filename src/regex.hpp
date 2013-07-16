@@ -36,19 +36,31 @@ namespace mtn {
 
     struct regex_t
     {
+        bool        invert;
         std::string pattern;
 
         regex_t() :
+            invert(false),
             pattern("")
         {}
 
-        regex_t(const std::string& pattern) :
+        regex_t(
+            const std::string& pattern) :
+            invert(false),
+            pattern(pattern)
+        {}
+
+        regex_t(
+            const std::string& pattern,
+            bool               invert) :
+            invert(invert),
             pattern(pattern)
         {}
 
         static inline mtn::status_t
-        to_pieces(const regex_t&            input,
-                  std::vector<std::string>& output)
+        to_pieces(
+            const regex_t&            input,
+            std::vector<std::string>& output)
         {
             re2::FilteredRE2 re2;
             RE2::Options options;
@@ -96,8 +108,9 @@ namespace mtn {
         }
 
         static inline mtn::status_t
-        to_ranges(const regex_t&             input,
-                  std::vector<mtn::range_t>& output)
+        to_ranges(
+            const regex_t&             input,
+            std::vector<mtn::range_t>& output)
         {
             std::vector<std::string> pieces;
             mtn::status_t status = to_pieces(input, pieces);

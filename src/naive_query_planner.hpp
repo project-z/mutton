@@ -30,9 +30,13 @@ namespace mtn {
     struct range_visitor_t :
         boost::static_visitor<void>
     {
-
-        range_visitor_t(std::vector<mtn::range_t>& ranges) :
-            ranges(ranges)
+        range_visitor_t(
+            std::vector<mtn::range_t>& ranges,
+            std::vector<mtn::regex_t>& regexes,
+            bool                       invert) :
+            invert(invert),
+            ranges(ranges),
+            regexes(regexes)
         {}
 
         void
@@ -78,12 +82,16 @@ namespace mtn {
         }
 
         void
-        operator()(const mtn::regex_t& r)
+        operator()(mtn::regex_t r)
         {
             mtn::regex_t::to_ranges(r, ranges);
+            r.invert = invert;
+            regexes.push_back(r);
         }
 
+        bool                       invert;
         std::vector<mtn::range_t>& ranges;
+        std::vector<mtn::regex_t>& regexes;
     };
 
 
@@ -91,16 +99,18 @@ namespace mtn {
     boost::static_visitor<mtn::index_slice_t>
     {
 
-        naive_query_planner_t(mtn_index_partition_t      partition,
-                              mtn::context_t&            context,
-                              const std::vector<byte_t>& bucket) :
+        naive_query_planner_t(
+            mtn_index_partition_t      partition,
+            mtn::context_t&            context,
+            const std::vector<byte_t>& bucket) :
             _partition(partition),
             _context(context),
             _bucket(bucket)
         {};
 
         mtn::index_slice_t
-        operator()(const mtn::op_or& o)
+        operator()(
+            const mtn::op_or& o)
         {
             mtn::index_slice_t result;
             mtn::op_or::const_iterator iter = o.children.begin();
@@ -115,7 +125,8 @@ namespace mtn {
         }
 
         mtn::index_slice_t
-        operator()(const mtn::op_and& o)
+        operator()(
+            const mtn::op_and& o)
         {
             mtn::index_slice_t result;
             mtn::op_and::const_iterator iter = o.children.begin();
@@ -130,7 +141,8 @@ namespace mtn {
         }
 
         mtn::index_slice_t
-        operator()(const mtn::op_xor& o)
+        operator()(
+            const mtn::op_xor& o)
         {
             mtn::index_slice_t result;
             mtn::op_xor::const_iterator iter = o.children.begin();
@@ -145,8 +157,10 @@ namespace mtn {
         }
 
         mtn::index_slice_t
-        operator()(const mtn::op_not& o)
+        operator()(
+            const mtn::op_not& o)
         {
+            _invert = !_invert;
             mtn::index_slice_t result;
             mtn::index_slice_t temp_slice = boost::apply_visitor(*this, o.child);
             temp_slice.invert();
@@ -154,25 +168,29 @@ namespace mtn {
         }
 
         mtn::index_slice_t
-        operator()(const mtn::op_group&)
+        operator()(
+            const mtn::op_group&)
         {
             throw "XXX TODO fix me";
         }
 
         mtn::index_slice_t
-        operator()(const mtn::range_t&)
+        operator()(
+            const mtn::range_t&)
         {
             throw "shouldn't happen";
         }
 
         mtn::index_slice_t
-        operator()(const mtn::regex_t&)
+        operator()(
+            const mtn::regex_t&)
         {
             throw "shouldn't happen";
         }
 
         mtn::index_slice_t
-        operator()(const mtn::op_slice& o)
+        operator()(
+            const mtn::op_slice& o)
         {
             mtn::index_slice_t result;
             if (!_status) {
@@ -190,7 +208,7 @@ namespace mtn {
             }
             else {
                 std::vector<mtn::range_t> ranges;
-                range_visitor_t visitor(ranges);
+                range_visitor_t visitor(ranges, _regexes, _invert);
 
                 mtn::op_slice::const_iterator iter = o.values.begin();
                 for (; iter != o.values.end(); ++iter) {
@@ -212,10 +230,12 @@ namespace mtn {
         }
 
     private:
-        mtn::status_t            _status;
-        mtn_index_partition_t    _partition;
-        mtn::context_t&          _context;
-        std::vector<mtn::byte_t> _bucket;
+        bool                      _invert;
+        mtn::status_t             _status;
+        mtn_index_partition_t     _partition;
+        mtn::context_t&           _context;
+        std::vector<mtn::byte_t>  _bucket;
+        std::vector<mtn::regex_t> _regexes;
     };
 
 } // namespace mtn
