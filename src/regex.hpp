@@ -36,24 +36,14 @@ namespace mtn {
 
     struct regex_t
     {
-        bool        invert;
         std::string pattern;
 
         regex_t() :
-            invert(false),
             pattern("")
         {}
 
         regex_t(
             const std::string& pattern) :
-            invert(false),
-            pattern(pattern)
-        {}
-
-        regex_t(
-            const std::string& pattern,
-            bool               invert) :
-            invert(invert),
             pattern(pattern)
         {}
 

@@ -27,82 +27,111 @@
 
 namespace mtn {
 
-    struct range_visitor_t :
-        boost::static_visitor<void>
-    {
-        range_visitor_t(
-            std::vector<mtn::range_t>& ranges,
-            std::vector<mtn::regex_t>& regexes,
-            bool                       invert) :
-            invert(invert),
-            ranges(ranges),
-            regexes(regexes)
-        {}
-
-        void
-        operator()(const mtn::op_and&)
-        {
-            throw "shouldn't happen";
-        }
-
-        void
-        operator()(const mtn::op_or&)
-        {
-            throw "shouldn't happen";
-        }
-
-        void
-        operator()(const mtn::op_xor&)
-        {
-            throw "shouldn't happen";
-        }
-
-        void
-        operator()(const mtn::op_not&)
-        {
-            throw "shouldn't happen";
-        }
-
-        void
-        operator()(const mtn::op_slice&)
-        {
-            throw "shouldn't happen";
-        }
-
-        void
-        operator()(const mtn::op_group&)
-        {
-            throw "shouldn't happen";
-        }
-
-        void
-        operator()(const mtn::range_t& r)
-        {
-            ranges.push_back(r);
-        }
-
-        void
-        operator()(mtn::regex_t r)
-        {
-            mtn::regex_t::to_ranges(r, ranges);
-            r.invert = invert;
-            regexes.push_back(r);
-        }
-
-        bool                       invert;
-        std::vector<mtn::range_t>& ranges;
-        std::vector<mtn::regex_t>& regexes;
-    };
-
 
     struct naive_query_planner_t :
-    boost::static_visitor<mtn::index_slice_t>
+        boost::static_visitor<mtn::index_slice_t>
     {
+        struct regex_node_t
+        {
+            regex_node_t(
+                const std::string&  field,
+                bool                invert,
+                const mtn::regex_t& regex) :
+                field(field),
+                invert(invert),
+                regex(regex)
+            {}
+
+            std::string  field;
+            bool         invert;
+            mtn::regex_t regex;
+        };
+
+        struct range_visitor_t :
+            boost::static_visitor<void>
+        {
+            range_visitor_t(
+                const std::string&         field,
+                bool                       invert,
+                std::vector<mtn::range_t>& ranges,
+                std::vector<regex_node_t>& regexes) :
+                field(field),
+                invert(invert),
+                ranges(ranges),
+                regexes(regexes)
+            {}
+
+            void
+            operator()(const mtn::op_and&)
+            {
+                throw "shouldn't happen";
+            }
+
+            void
+            operator()(const mtn::op_or&)
+            {
+                throw "shouldn't happen";
+            }
+
+            void
+            operator()(const mtn::op_xor&)
+            {
+                throw "shouldn't happen";
+            }
+
+            void
+            operator()(const mtn::op_not&)
+            {
+                throw "shouldn't happen";
+            }
+
+            void
+            operator()(const mtn::op_slice&)
+            {
+                throw "shouldn't happen";
+            }
+
+            void
+            operator()(const mtn::op_group&)
+            {
+                throw "shouldn't happen";
+            }
+
+            void
+            operator()(const mtn::range_t& r)
+            {
+                ranges.push_back(r);
+            }
+
+            void
+            operator()(mtn::regex_t r)
+            {
+                mtn::regex_t::to_ranges(r, ranges);
+                regexes.push_back(regex_node_t(field, invert, r));
+            }
+
+            const std::string&         field;
+            bool                       invert;
+            std::vector<mtn::range_t>& ranges;
+            std::vector<regex_node_t>& regexes;
+        };
 
         naive_query_planner_t(
             mtn_index_partition_t      partition,
             mtn::context_t&            context,
             const std::vector<byte_t>& bucket) :
+            _invert(false),
+            _partition(partition),
+            _context(context),
+            _bucket(bucket)
+        {};
+
+        naive_query_planner_t(
+            bool                       invert,
+            mtn_index_partition_t      partition,
+            mtn::context_t&            context,
+            const std::vector<byte_t>& bucket) :
+            _invert(invert),
             _partition(partition),
             _context(context),
             _bucket(bucket)
@@ -160,10 +189,11 @@ namespace mtn {
         operator()(
             const mtn::op_not& o)
         {
-            _invert = !_invert;
+            _invert = !_invert; // pop a not onto the stack
             mtn::index_slice_t result;
             mtn::index_slice_t temp_slice = boost::apply_visitor(*this, o.child);
             temp_slice.invert();
+            _invert = !_invert; // pop a not off the stack
             return temp_slice;
         }
 
@@ -208,7 +238,7 @@ namespace mtn {
             }
             else {
                 std::vector<mtn::range_t> ranges;
-                range_visitor_t visitor(ranges, _regexes, _invert);
+                range_visitor_t visitor(o.index, _invert, ranges, _regexes);
 
                 mtn::op_slice::const_iterator iter = o.values.begin();
                 for (; iter != o.values.end(); ++iter) {
@@ -235,7 +265,7 @@ namespace mtn {
         mtn_index_partition_t     _partition;
         mtn::context_t&           _context;
         std::vector<mtn::byte_t>  _bucket;
-        std::vector<mtn::regex_t> _regexes;
+        std::vector<regex_node_t> _regexes;
     };
 
 } // namespace mtn
